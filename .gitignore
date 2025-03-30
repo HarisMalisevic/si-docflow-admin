@@ -3,7 +3,13 @@ backend/node_modules/
 frontend/node_modules/
 
 # Ignore React build files
-frontend/build/
+frontend_build/
+react_build/
+
+# Ignore Node.js build files
+server_build/
+backend/build/
+backend/dist/
 
 # Ignore environment files
 backend/.env
