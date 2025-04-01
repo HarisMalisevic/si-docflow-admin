@@ -1,7 +1,7 @@
 # docflow-core
 > Document processing system
 
-This repository contains the source code for the Processing Server (Node.js) and Web Application (React) for a document processing system. The Processing Server handles document types and layouts, passing them through to OCR services. The web app is a dashboard for administrators to set up destinations for different file types and to define layouts. The Server interacts with a separate client app for Windows Desktop that is developed separately as [si-docflow-windows](https://github.com/kanitakadusic/si-docflow-windows).
+This repository contains the source code for the Processing Server (Node.js) and Web Application (React) for a document processing system. The Processing Server handles document types and layouts, passing them through to OCR services. The web app is a dashboard for administrators to set up destinations for different file types and to define layouts. The Server interacts with a client app for Windows Desktop that is developed separately as [si-docflow-windows](https://github.com/kanitakadusic/si-docflow-windows).
 
 ## Architecture 🗂️
 
