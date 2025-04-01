@@ -1,0 +1,22 @@
+{
+  "name": "si-docflow-core",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "start": "cd backend/build && npm run start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HarisMalisevic/si-docflow-core.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HarisMalisevic/si-docflow-core/issues"
+  },
+  "homepage": "https://github.com/HarisMalisevic/si-docflow-core#readme"
+}
