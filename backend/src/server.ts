@@ -1,7 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from 'path';
-import documentTypeRoutes from './routes/documentType.routes';
+import documentTypeRoutes from '@routes/documentType.routes';
 
 // Load environment variables
 dotenv.config();
