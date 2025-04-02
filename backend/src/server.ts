@@ -1,5 +1,9 @@
 import express from 'express';
 import path from 'path';
+import dotenv from 'dotenv';
+
+// Initialize dotenv to load environment variables from .env file
+dotenv.config();
 
 const APP = express();
 const PORT = 5000;
