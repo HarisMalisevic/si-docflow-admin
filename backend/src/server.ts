@@ -1,15 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import path from 'path';
-import documentTypeRoutes from '@routes/documentType.routes';
-
-// Load environment variables
-dotenv.config();
+import db_init from './database/DB_initialization';
 
 const APP = express();
 const PORT = 5000;
 
-APP.use(express.json());
+db_init()
 
 // Define the path to the frontend build folder
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
@@ -23,7 +20,7 @@ APP.get("/", (req, res) => {
 
 // Example API route
 APP.get("/api/message", (req, res) => {
-    res.json({ message: "Hello from backend!" });
+  res.json({ message: "Hello from backend!" });
 });
 
 // API Routes
