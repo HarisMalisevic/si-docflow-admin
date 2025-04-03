@@ -55,7 +55,7 @@ function db_init() {
     db.sequelize.sync({ force: true }).then(function () {
         fill_document_types().then(function () {
             console.log("Table creation done!");
-            process.exit();
+            //process.exit(); // Uncomment this line if you want to exit the process after initialization
         });
     });
 }
