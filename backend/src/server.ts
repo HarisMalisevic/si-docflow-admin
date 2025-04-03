@@ -2,11 +2,14 @@ import express from "express";
 import dotenv from "dotenv";
 import path from 'path';
 import db_init from './database/DB_initialization';
+import documentTypeRoutes from "./routes/documentType.routes";
 
 const APP = express();
 const PORT = 5000;
 
-db_init()
+APP.use(express.json());
+
+//db_init()
 
 // Define the path to the frontend build folder
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
