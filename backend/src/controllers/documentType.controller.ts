@@ -47,11 +47,25 @@ class DocumentTypeController {
     }
   }
 
-  static remove(req: Request, res: Response) {
+  static async remove(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
     // Remove the document type from the database
 
+    //TODO: Authentication check
 
+    try {
+      const documentType = await db.document_types.findOne({ where: { id } });
+      if (!documentType) {
+        res.status(404).json({ message: `Document type with ID ${id} not found` });
+        return;
+      }
+
+      await db.document_types.destroy({ where: { id } });
+    } catch (error) {
+      console.error("Error removing document type:", error);
+      res.status(500).json({ message: "Internal server error" });
+      return;
+    }
 
     res.json({ message: `Document type ${id} removed` });
   }
