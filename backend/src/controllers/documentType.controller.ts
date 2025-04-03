@@ -5,9 +5,15 @@ class DocumentTypeController {
   static async getAll(req: Request, res: Response): Promise<void> {
     // Fetch document types from database
 
-    const documentTypes = await db.document_types.findAll();
+    try {
+      const documentTypes = await db.document_types.findAll();
+      res.json(documentTypes);
+    } catch (error) {
+      console.error("Error fetching document types:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
 
-    res.json(documentTypes);
+
   }
 
   static async create(req: Request, res: Response): Promise<void> {
@@ -44,6 +50,9 @@ class DocumentTypeController {
   static remove(req: Request, res: Response) {
     const { id } = req.params;
     // Remove the document type from the database
+
+
+
     res.json({ message: `Document type ${id} removed` });
   }
 }
