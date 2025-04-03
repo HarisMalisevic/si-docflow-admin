@@ -7,7 +7,7 @@ console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
 //console.log("Loaded environment variables:", process.env);
 
 if (!process.env.DATABASE_URL) {
-  throw new Error("DABASE_URL is not defined")
+  throw new Error("DATABASE_URL is not defined")
 }
 const connectionString: string = process.env.DATABASE_URL;
 
