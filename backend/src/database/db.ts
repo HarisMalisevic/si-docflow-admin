@@ -2,7 +2,8 @@ import { Sequelize, DataTypes } from 'sequelize';
 import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: "../.env" });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
 //console.log("Loaded environment variables:", process.env);
 
 if (!process.env.DATABASE_URL) {
