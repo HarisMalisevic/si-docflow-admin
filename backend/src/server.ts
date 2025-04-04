@@ -27,7 +27,7 @@ APP.get("/api/message", (req, res) => {
 });
 
 // API Routes
-APP.use("/document-types", documentTypeRoutes);
+APP.use("/api/document-types", documentTypeRoutes);
 
 
 APP.listen(PORT, () => {
