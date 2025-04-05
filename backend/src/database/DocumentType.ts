@@ -1,24 +1,22 @@
-import { allowedNodeEnvironmentFlags } from 'process';
-import Sequelize from 'sequelize';
-import { deserialize } from 'v8';
+import { Sequelize, DataTypes } from "sequelize";
 
-module.exports = function (sequelize: any, DataTypes: any) {
+export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
     const DocumentType = sequelize.define("document_types", {
         name: {
-            type: DataTypes.TEXT,
+            type: dataTypes.TEXT,
             allowNull: false,
         },
         description: {
-            type: DataTypes.TEXT,
+            type: dataTypes.TEXT,
             allowNull: true,
         },
         created_by: {
-            type: DataTypes.INTEGER,
+            type: dataTypes.INTEGER,
             allowNull: true,
         }
     },
         {
             freezeTableName: true
-        })
+        });
     return DocumentType;
-};
+}
