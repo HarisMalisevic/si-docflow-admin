@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes } from "sequelize";
 
 export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
-    const OAuthProvider = sequelize.define("document_types", {
+    const OAuthProvider = sequelize.define("oauth_providers", {
         name: {
             type: dataTypes.TEXT,
             allowNull: false,

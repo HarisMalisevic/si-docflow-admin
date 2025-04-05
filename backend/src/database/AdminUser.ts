@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes } from "sequelize";
 
 export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
-    const AdminUser = sequelize.define("document_types", {
+    const AdminUser = sequelize.define("admin_users", {
         email: {
             type: dataTypes.TEXT,
             allowNull: false,
