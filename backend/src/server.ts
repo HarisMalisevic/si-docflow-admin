@@ -1,6 +1,6 @@
 import express from "express";
-import dotenv from "dotenv";
 import path from 'path';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import db_init from './database/DB_initialization';
 import documentTypeRoutes from "./routes/documentType.routes";
 
