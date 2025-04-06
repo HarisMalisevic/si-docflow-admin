@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Container, Form, Row, Col, Button, Table, Alert } from "react-bootstrap";
 
-export const DocumentTypeViewer = () => {
+function DocumentTypeViewer() {
     const [documentName, setDocumentName] = useState("");
     const [documentDescription, setDocumentDescription] = useState("");
     const [documents, setDocuments] = useState([]);
@@ -187,3 +187,5 @@ export const DocumentTypeViewer = () => {
         </Container>
     );
 };
+
+export default DocumentTypeViewer;
