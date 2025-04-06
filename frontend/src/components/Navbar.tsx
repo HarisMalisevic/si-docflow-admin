@@ -8,8 +8,23 @@ function AppNavbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Ovdje možete dodati logiku za brisanje tokena ili sesije
-    navigate("/login"); // Preusmjeravanje na login formu
+    fetch("/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Logout failed");
+        }
+        console.log("Successfully logged out");
+
+      }).then(() => {
+        window.location.reload(); // Refresh the site
+      })
+      .catch((error) => {
+        console.error("Error during logout:", error);
+      })
+
   };
 
   return (
@@ -22,9 +37,9 @@ function AppNavbar() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              <Nav.Link as={Link} to="/">
+              {/* <Nav.Link as={Link} to="/">
                 Home
-              </Nav.Link>
+              </Nav.Link> */}
               <Nav.Link as={Link} to="/document-types">
                 Document Types
               </Nav.Link>
