@@ -56,6 +56,7 @@ function fill_oauth_providers() {
                 name: "Google",
                 client_id: process.env.GOOGLE_CLIENT_ID,
                 client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                callback_url: process.env.GOOGLE_CALLBACK_URL,
             }
         ];
 

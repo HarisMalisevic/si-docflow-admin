@@ -14,6 +14,10 @@ export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
             type: dataTypes.TEXT,
             allowNull: false,
         },
+        callback_url: { // URL na koji OAuth server šalje korisnika nakon autentifikacije
+            type: dataTypes.TEXT,
+            allowNull: false,
+        },
 
     },
         {
