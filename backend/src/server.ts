@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import express from "express";
 import path from 'path';
 import db_init from './database/DB_initialization';
@@ -6,6 +7,7 @@ import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
+import authMiddleware from "./middleware/authMiddleware";
 
 const APP = express();
 const PORT = 5000;
@@ -39,14 +41,25 @@ APP.get("/", (req, res) => {
 APP.use("/auth", authRoutes);
 
 // Example API route
-APP.get("/api/message", (req, res) => {
+APP.get("/api/message",authMiddleware as any, (req, res) => {
+  const cookies = req.headers.cookie;
+  const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
+  console.log("Extracted JWT:", jwtCookie);
+
   res.json({ message: "Hello from backend!" });
 });
 
 // API Routes
 APP.use("/api/document-types", documentTypeRoutes);
 
+APP.get("/api/auth/status", authMiddleware as any, (req, res) => {
+  res.json({ loggedIn: true, user: req.user });
+});
 
+// Serve React frontend for any unknown routes
+APP.get("*", (req, res) => {
+  res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
+});
 
 APP.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
