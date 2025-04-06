@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router";
 
 import DocumentTypeViewer from "./components/DocumentTypeViewer";
 import AppNavbar from "./components/Navbar";
+import LoginForm from "./components/LoginForm";
 
 function App() {
   return (
@@ -11,7 +12,8 @@ function App() {
       <Routes>
         <Route path="/" element={<div></div>} />
         <Route path="/document-types" element={<DocumentTypeViewer />} />
-        {/* Add more routes as needed */}
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/logout" element={<LoginForm />} /> {/* Dodano */}
       </Routes>
     </div>
   );
