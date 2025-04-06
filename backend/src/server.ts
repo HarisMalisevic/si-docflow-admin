@@ -14,7 +14,7 @@ APP.use(express.json());
 
 (async () => {
   await db_init();
-  await configurePassport(passport);
+  configurePassport(passport);
 })();
 
 APP.use(session({
