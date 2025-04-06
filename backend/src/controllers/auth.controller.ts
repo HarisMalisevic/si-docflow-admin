@@ -57,6 +57,21 @@ class AuthController {
         // Brisanje JWT cookija
         // Preusmjeravanje na login stranicu
 
+        // Destroy the session if it exists
+        req.logout((err) => {
+            if (err) {
+                return res.status(500).send({ error: "Failed to log out" });
+            }
+
+            // Clear the JWT cookie
+            res.clearCookie("jwt", { httpOnly: true, secure: true });
+
+            console.log("User logged out successfully.");
+
+            // Redirect to the login page or send a success response
+            res.redirect("/");
+        });
+
     }
 }
 
