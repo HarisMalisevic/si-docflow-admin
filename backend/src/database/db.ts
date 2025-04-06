@@ -17,6 +17,7 @@ const connectionString: string = process.env.DATABASE_URL;
 const sequelize_obj = new Sequelize(connectionString,
   {
     dialect: "postgres",
+    logging: false,
   });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

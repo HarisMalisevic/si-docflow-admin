@@ -66,6 +66,7 @@ function fill_oauth_providers() {
                     name: provider.name,
                     client_id: provider.client_id,
                     client_secret: provider.client_secret,
+                    callback_url: provider.callback_url,
                 })
             );
             console.log("OAuth provider created:", provider.name)
@@ -137,7 +138,7 @@ function fill_admin_users() {
     });
 }
 
-function db_init() {
+async function db_init() {
     if (!db.sequelize) {
         throw new Error("Sequelize connection is not defined")
     }

@@ -1,13 +1,18 @@
 import express from 'express';
 import path from 'path';
 import db_init from './database/DB_initialization';
-import passport from './auth/passportConfig';
+import passport from 'passport';
+import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 
 const APP = express();
 const PORT = 5000;
 
-db_init()
+
+(async () => {
+  await db_init();
+  await configurePassport(passport);
+})();
 
 APP.use(session({
   secret: process.env.SESSION_SECRET!,

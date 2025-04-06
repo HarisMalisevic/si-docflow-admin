@@ -1,13 +1,11 @@
-import passport from 'passport';
-
 import db from '../database/db';
-
 import dotenv from 'dotenv';
 import createGoogleStrategy from './googleAuthStrategy';
+import { PassportStatic } from 'passport';
 
 dotenv.config();
 
-async function configurePassport() {
+async function configurePassport(passport: PassportStatic) {
 
   passport.use(await createGoogleStrategy());
 
@@ -26,8 +24,5 @@ async function configurePassport() {
   });
 }
 
-(async () => {
-  await configurePassport();
-})();
 
-export default passport;
+export default configurePassport;
