@@ -1,11 +1,25 @@
 import express from 'express';
 import path from 'path';
 import db_init from './database/DB_initialization';
+import './passportConfig';
+import passport from 'passport';
+import session from 'express-session';
 
 const APP = express();
 const PORT = 5000;
 
 db_init()
+
+APP.use(session({
+  secret: process.env.SESSION_SECRET!,
+  resave: false,
+  saveUninitialized: true,
+}));
+
+APP.use(passport.initialize());
+APP.use(passport.session());
+
+
 
 // Define the path to the frontend build folder
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");

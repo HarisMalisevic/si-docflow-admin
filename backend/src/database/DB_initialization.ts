@@ -54,13 +54,8 @@ function fill_oauth_providers() {
         const oauthProviders_default = [
             {
                 name: "Google",
-                client_id: "google_client_id",
-                client_secret: "google_client_secret",
-            },
-            {
-                name: "Facebook",
-                client_id: "facebook_client_id",
-                client_secret: "facebook_client_secret",
+                client_id: process.env.GOOGLE_CLIENT_ID,
+                client_secret: process.env.GOOGLE_CLIENT_SECRET,
             }
         ];
 
