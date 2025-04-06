@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import express from "express";
 import path from 'path';
 import db_init from './database/DB_initialization';
@@ -6,6 +7,7 @@ import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
+import authMiddleware from "./middleware/authMiddleware";
 
 const APP = express();
 const PORT = 5000;
@@ -39,7 +41,7 @@ APP.get("/", (req, res) => {
 APP.use("/auth", authRoutes);
 
 // Example API route
-APP.get("/api/message", (req, res) => {
+APP.get("/api/message", authMiddleware as any, (req, res) => {
   res.json({ message: "Hello from backend!" });
 });
 
