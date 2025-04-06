@@ -40,8 +40,8 @@ class AuthController {
                 const token = jwt.sign({ id: user.id }, process.env.SESSION_SECRET!);
                 console.log("User.id:", user.id, " - generated token: ", token);
 
-                // Optionally, set the token as a cookie
-                res.cookie("jwt", token, { httpOnly: true, secure: true });
+                res.cookie("jwt", token, { httpOnly: true, secure: true, maxAge: 3600000 });
+                // Token lasts for 1 hour, browser deletes if after expiration
 
                 // Redirect to the dashboard or send a success response
                 res.redirect("/");
