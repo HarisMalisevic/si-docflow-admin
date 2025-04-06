@@ -8,7 +8,7 @@ export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
         },
         password: {
             type: dataTypes.TEXT,
-            allowNull: false,
+            allowNull: true,
         },
         oauth_provider: { // FK to OAuthProviders table
             type: dataTypes.INTEGER,
