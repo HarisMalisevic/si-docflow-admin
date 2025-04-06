@@ -26,7 +26,6 @@ APP.use(session({
 }));
 
 APP.use(passport.initialize());
-APP.use(passport.session());
 
 // Define the path to the frontend build folder
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
