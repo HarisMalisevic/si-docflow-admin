@@ -79,7 +79,7 @@ function LoginForm() {
 
           <div className="d-flex align-items-center my-2">
             <hr className="flex-grow-1" />
-            <span className="mx-2 text-muted small"> ili </span>
+            <span className="mx-2 text-muted small"> or </span>
             <hr className="flex-grow-1" />
           </div>
 
@@ -119,7 +119,7 @@ function LoginForm() {
                     Loading...
                   </>
                 ) : (
-                  "Prijava"
+                  "Log in"
                 )}
               </Button>
             </div>
