@@ -4,6 +4,7 @@ import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
+import authRoutes from './routes/auth.routes';
 
 const APP = express();
 const PORT = 5000;
@@ -34,10 +35,13 @@ APP.get("/", (req, res) => {
   res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
 });
 
+APP.use("/auth", authRoutes);
+
 // Example API route
 APP.get("/api/message", (req, res) => {
   res.json({ message: "Hello from backend!" });
 });
+
 APP.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
