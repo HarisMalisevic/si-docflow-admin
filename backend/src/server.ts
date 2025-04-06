@@ -1,15 +1,29 @@
 import express from "express";
 import path from 'path';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import db_init from './database/DB_initialization';
+import passport from 'passport';
+import configurePassport from './auth/passportConfig';
+import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 
 const APP = express();
 const PORT = 5000;
-
 APP.use(express.json());
 
-//db_init()
+
+(async () => {
+  await db_init();
+  await configurePassport(passport);
+})();
+
+APP.use(session({
+  secret: process.env.SESSION_SECRET!,
+  resave: false,
+  saveUninitialized: true,
+}));
+
+APP.use(passport.initialize());
+APP.use(passport.session());
 
 // Define the path to the frontend build folder
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
