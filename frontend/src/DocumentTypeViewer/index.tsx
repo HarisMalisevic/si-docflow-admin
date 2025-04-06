@@ -23,10 +23,10 @@ export const DocumentTypeViewer = () => {
     const validateForm = () => {
         const newErrors: { name?: string; description?: string } = {};
         if (!documentName.trim()) {
-            newErrors.name = "Naziv dokumenta je obavezan.";
+            newErrors.name = "Document name is required.";
         }
         if (!documentDescription.trim()) {
-            newErrors.description = "Opis dokumenta je obavezan.";
+            newErrors.description = "Document description is required.";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -52,7 +52,7 @@ export const DocumentTypeViewer = () => {
                 setDocumentName("");
                 setDocumentDescription("");
                 setErrors({});
-                setSuccessMessage("Dokument je uspešno dodat!");
+                setSuccessMessage("Document successfully added!");
                 fetchDocuments(); // Refresh the list
                 setTimeout(() => setSuccessMessage(""), 3000); // Clear success message after 3 seconds
             } else {
@@ -64,7 +64,7 @@ export const DocumentTypeViewer = () => {
     };
 
     const handleDelete = async (id: number) => {
-        const confirmDelete = window.confirm("Da li ste sigurni da želite obrisati ovaj dokument?");
+        const confirmDelete = window.confirm("Are you sure you want to delete this document?");
         if (!confirmDelete) return;
 
         try {
@@ -94,14 +94,14 @@ export const DocumentTypeViewer = () => {
         <Container fluid="md" className="py-4">
             <Row style={{ marginBottom: "70px" }} className="mb-4">
                 <Col md={6} className="mx-auto" style={{ backgroundColor: "rgb(0,0,0,0.05)", padding: "20px", borderRadius: "8px" }}>
-                    <h4 className="text-center mb-3">Dodaj Novi Dokument</h4>
+                    <h4 className="text-center mb-3">Add New Document</h4>
                     {successMessage && <Alert variant="success">{successMessage}</Alert>}
                     <Form onSubmit={handleSubmit}>
                         <Form.Group controlId="documentName" className="mb-3">
-                            <Form.Label>Naziv dokumenta</Form.Label>
+                            <Form.Label>Document Name</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Unesite naziv dokumenta"
+                                placeholder="Enter document name"
                                 value={documentName}
                                 onChange={(e) => setDocumentName(e.target.value)}
                                 isInvalid={!!errors.name}
@@ -111,11 +111,11 @@ export const DocumentTypeViewer = () => {
                             </Form.Control.Feedback>
                         </Form.Group>
                         <Form.Group controlId="documentDescription" className="mb-3">
-                            <Form.Label>Opis dokumenta</Form.Label>
+                            <Form.Label>Document Description</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                placeholder="Unesite opis dokumenta"
+                                placeholder="Enter document description"
                                 value={documentDescription}
                                 onChange={(e) => setDocumentDescription(e.target.value)}
                                 isInvalid={!!errors.description}
@@ -126,7 +126,7 @@ export const DocumentTypeViewer = () => {
                         </Form.Group>
                         <div className="text-center">
                             <Button variant="primary" type="submit">
-                                Dodaj Dokument
+                                Add Document
                             </Button>
                         </div>
                     </Form>
@@ -138,20 +138,20 @@ export const DocumentTypeViewer = () => {
                     <Form className="d-flex w-50 mb-3" >
                         <Form.Control
                             type="text"
-                            placeholder="Pretraži dokumente"
+                            placeholder="Search documents"
                             className="me-2"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <Button variant="secondary">Pretraži</Button>
+                        <Button variant="secondary">Search</Button>
                     </Form>
                 
                     <Table striped bordered hover>
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Naziv</th>
-                                <th>Opis</th>
+                                <th>Name</th>
+                                <th>Description</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -168,7 +168,7 @@ export const DocumentTypeViewer = () => {
                                                 size="sm"
                                                 onClick={() => handleDelete(doc.id)}
                                             >
-                                                Ukloni
+                                                Delete
                                             </Button>
                                         </td>
                                     </tr>
@@ -176,7 +176,7 @@ export const DocumentTypeViewer = () => {
                             ) : (
                                 <tr>
                                     <td colSpan={4} className="text-center">
-                                        Nema dostupnih dokumenata.
+                                        No documents available.
                                     </td>
                                 </tr>
                             )}
