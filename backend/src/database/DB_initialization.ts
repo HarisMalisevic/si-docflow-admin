@@ -143,17 +143,17 @@ async function db_init() {
         throw new Error("Sequelize connection is not defined")
     }
     db.sequelize.sync({ force: true }).then(function () {
-        fill_document_types().then(function () {
-            console.log("Table creation done!");
-        });
+        // fill_document_types().then(function () {
+        //     console.log("Table creation done!");
+        // });
 
-        fill_oauth_providers().then(function () {
-            console.log("Table creation done!");
-        });
+        // fill_oauth_providers().then(function () {
+        //     console.log("Table creation done!");
+        // });
 
-        fill_admin_users().then(function () {
-            console.log("Table creation done!");
-        });
+        // fill_admin_users().then(function () {
+        //     console.log("Table creation done!");
+        // });
     });
 }
 
