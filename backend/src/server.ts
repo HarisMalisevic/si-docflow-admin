@@ -42,12 +42,19 @@ APP.use("/auth", authRoutes);
 
 // Example API route
 APP.get("/api/message", authMiddleware as any, (req, res) => {
+  const cookies = req.headers.cookie;
+  const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
+  console.log("Extracted JWT:", jwtCookie);
+
   res.json({ message: "Hello from backend!" });
 });
 
 // API Routes
 APP.use("/api/document-types", documentTypeRoutes);
 
+APP.get("/api/auth/status", authMiddleware as any, (req, res) => {
+  res.json({ loggedIn: true, user: req.user });
+});
 
 
 APP.listen(PORT, () => {

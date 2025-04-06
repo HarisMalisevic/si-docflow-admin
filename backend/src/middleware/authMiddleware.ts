@@ -3,19 +3,21 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies?.jwt; // Get the JWT from the cookie
+    const cookies = req.headers.cookie;
+    const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
+    console.log("Extracted JWT:", jwtCookie);
 
-    if (!token) {
-        return res.status(401).send({ error: "Unauthorized: No token provided" });
+    if (!jwtCookie) {
+        return res.status(401).send({ error: "Unauthorized: No jwtCookie provided" });
     }
 
     try {
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.SESSION_SECRET!);
+        // Verify the jwtCookie
+        const decoded = jwt.verify(jwtCookie, process.env.SESSION_SECRET!);
         req.user = decoded; // Attach user info to the request object
         next(); // Proceed to the next middleware or route handler
     } catch (err) {
-        return res.status(401).send({ error: "Unauthorized: Invalid token" });
+        return res.status(401).send({ error: "Unauthorized: Invalid jwtCookie" });
     }
 };
 
