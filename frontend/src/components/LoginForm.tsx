@@ -57,7 +57,7 @@ function LoginForm() {
           style={{ width: "100%" }}
         >
           <h2 className="text-center fw-bold mb-3">
-            Wellcome to <br /> DocFlow
+            Welcome to <br /> DocumentManager
           </h2>
 
           <Button
@@ -79,7 +79,7 @@ function LoginForm() {
 
           <div className="d-flex align-items-center my-2">
             <hr className="flex-grow-1" />
-            <span className="mx-2 text-muted small"> ili </span>
+            <span className="mx-2 text-muted small"> or </span>
             <hr className="flex-grow-1" />
           </div>
 
@@ -89,7 +89,7 @@ function LoginForm() {
               <Form.Control
                 type="email"
                 name="email"
-                placeholder="mail@example.ba"
+                placeholder="example@example.com"
               />
             </Form.Group>
 
@@ -119,7 +119,7 @@ function LoginForm() {
                     Loading...
                   </>
                 ) : (
-                  "Sign in"
+                  "Log in"
                 )}
               </Button>
             </div>
