@@ -39,4 +39,10 @@ db.oauth_providers.hasMany(db.admin_users, {
   as: 'admin_users'
 });
 
+db.admin_users.hasMany(db.document_types, {
+  foreignKey: 'admin_user_id',
+  onDelete: 'CASCADE',
+  as: 'document_types'
+})
+
 export default db;

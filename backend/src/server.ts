@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express from "express";
 import path from 'path';
-import db_init from './database/DB_initialization';
+//import db_init from './database/DB_initialization'; OVO NE IMPORTOVATI -Haris 7.4.2025. 00:26
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
@@ -15,7 +15,7 @@ APP.use(express.json());
 
 
 (async () => {
-  await db_init();
+  //await db_init(); NE SKLANJATI KOMENTAR, POJEST CE VAS HARIS!! -Haris 7.4.2025. 00:19
   configurePassport(passport);
 })();
 
@@ -41,7 +41,7 @@ APP.get("/", (req, res) => {
 APP.use("/auth", authRoutes);
 
 // Example API route
-APP.get("/api/message",authMiddleware as any, (req, res) => {
+APP.get("/api/message", authMiddleware as any, (req, res) => {
   const cookies = req.headers.cookie;
   const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
   console.log("Extracted JWT:", jwtCookie);
