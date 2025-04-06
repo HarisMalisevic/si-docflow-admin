@@ -57,7 +57,7 @@ function LoginForm() {
           style={{ width: "100%" }}
         >
           <h2 className="text-center fw-bold mb-3">
-            Dobrodošli u <br /> DocumentManager
+            Welcome to <br /> DocumentManager
           </h2>
 
           <Button
@@ -74,7 +74,7 @@ function LoginForm() {
               height="18"
               className="me-2"
             />
-            Prijava putem Google-a
+            Log in with Google
           </Button>
 
           <div className="d-flex align-items-center my-2">
@@ -85,16 +85,16 @@ function LoginForm() {
 
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="loginFormEmail">
-              <Form.Label>Email adresa</Form.Label>
+              <Form.Label>Email address</Form.Label>
               <Form.Control
                 type="email"
                 name="email"
-                placeholder="primjer@primjer.ba"
+                placeholder="example@example.com"
               />
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="loginFormPassword">
-              <Form.Label>Lozinka</Form.Label>
+              <Form.Label>Password</Form.Label>
               <Form.Control type="password" name="password" />
             </Form.Group>
 
@@ -116,7 +116,7 @@ function LoginForm() {
                       aria-hidden="true"
                       className="me-2"
                     />
-                    Učitavanje...
+                    Loading...
                   </>
                 ) : (
                   "Prijava"
