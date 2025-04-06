@@ -74,7 +74,7 @@ function LoginForm() {
               height="18"
               className="me-2"
             />
-            Prijava putem platforme Google
+            Prijava putem Google-a
           </Button>
 
           <div className="d-flex align-items-center my-2">
