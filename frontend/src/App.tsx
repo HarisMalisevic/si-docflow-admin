@@ -1,16 +1,19 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginForm from "./components/LoginForm";
+import { Routes, Route } from "react-router";
+
+import DocumentTypeViewer from "./components/DocumentTypeViewer";
+import AppNavbar from "./components/Navbar";
 
 function App() {
   return (
-    <Router>
+    <div>
+      <AppNavbar />
       <Routes>
-        <Route path="/" element={<LoginForm />} />
-        {/* Trenutno privremeno ovdje - treba zamijeniti sa stranicom za managanje tipovima dokumenata*/}
-        <Route path="/dashboard" element={<div>Dashboard</div>} />
+        <Route path="/" element={<div></div>} />
+        <Route path="/document-types" element={<DocumentTypeViewer />} />
+        {/* Add more routes as needed */}
       </Routes>
-    </Router>
+    </div>
   );
 }
 
