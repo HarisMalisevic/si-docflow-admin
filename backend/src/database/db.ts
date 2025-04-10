@@ -1,4 +1,4 @@
-import { Sequelize, DataTypes } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import path from 'path';
 import dotenv from 'dotenv';
 import DocumentType from './DocumentType';
@@ -27,9 +27,9 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize_obj;
 
 // Import modela
-db.document_types = DocumentType(sequelize_obj, DataTypes);
-db.admin_users = AdminUsers(sequelize_obj, DataTypes);
-db.oauth_providers = OAuthProvider(sequelize_obj, DataTypes);
+db.document_types = DocumentType(sequelize_obj);
+db.admin_users = AdminUsers(sequelize_obj);
+db.oauth_providers = OAuthProvider(sequelize_obj);
 
 
 // Relacije
