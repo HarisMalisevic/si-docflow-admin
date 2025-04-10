@@ -1,15 +1,12 @@
 import db from "../database/db";
 import { Request, Response } from "express";
+import SSOProvider from "../database/SSOProvider";
 
 class SsoProviderController {
   static async getAllSSOProviders(req: Request, res: Response) {
     try {
-      const allSSOProviders: {
-        name: string;
-        client_id: string;
-        client_secret: string;
-        callback_url: string;
-      }[] = await db.sso_providers.findAll();
+      const allSSOProviders: SSOProvider[] = await db.sso_providers.findAll();
+
       if (!allSSOProviders) {
         throw new Error("No SSO providers found in the database!");
       }
@@ -42,13 +39,15 @@ class SsoProviderController {
       return;
     }
 
+    const newSSOProvider = SSOProvider.build({
+      name: jsonReq.name,
+      client_id: jsonReq.client_id,
+      client_secret: jsonReq.client_secret,
+      callback_url: jsonReq.callback_url,
+    })
+
     try {
-      await db.sso_providers.create({
-        name: jsonReq.name,
-        client_id: jsonReq.client_id,
-        client_secret: jsonReq.client_secret,
-        callback_url: jsonReq.callback_url,
-      });
+      await db.sso_providers.create(newSSOProvider);
       res.status(200).json({ message: "SSO provider added successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to add SSO provider", error });
