@@ -30,7 +30,7 @@ db.sequelize = sequelize_obj;
 // Import modela
 db.document_types = initDocumentType(sequelize_obj);
 db.admin_users = initAdminUser(sequelize_obj);
-db.oauth_providers = initSSOProvider(sequelize_obj);
+db.sso_providers = initSSOProvider(sequelize_obj);
 db.document_layouts = initDocumentLayout(sequelize_obj);
 
 
