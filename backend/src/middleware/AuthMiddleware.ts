@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import db from "../database/db";
 import AdminUser from "../database/AdminUser";
-import { RequestHandler } from "express-serve-static-core";
 
 
 class AuthMiddleware {
