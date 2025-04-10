@@ -5,8 +5,8 @@ import AuthMiddleware from "../middleware/AuthMiddleware";
 
 const router = Router();
 
-router.get("/", AuthMiddleware.isLoggedIn as any, DocumentTypeController.getAll);
-router.post("/", AuthMiddleware.isLoggedIn as any, DocumentTypeController.create);
-router.delete("/:id", AuthMiddleware.isLoggedIn as any, DocumentTypeController.remove);
+router.get("/", AuthMiddleware.isLoggedIn, DocumentTypeController.getAll);
+router.post("/", AuthMiddleware.isLoggedIn, DocumentTypeController.create);
+router.delete("/:id", AuthMiddleware.isLoggedIn, DocumentTypeController.remove);
 
 export default router;

@@ -5,13 +5,14 @@ import AdminUser from "../database/AdminUser";
 
 
 class AuthMiddleware {
-    static isLoggedIn(req: Request, res: Response, next: NextFunction) {
+    static isLoggedIn(req: Request, res: Response, next: NextFunction): Promise<void> | void {
         const cookies = req.headers.cookie;
         const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
         console.log("Extracted JWT:", jwtCookie);
 
-        if (!jwtCookie) {
-            return res.status(401).send({ error: "Unauthorized: No jwtCookie provided" });
+        if (typeof jwtCookie === "undefined" || jwtCookie === null) {
+            res.status(401).send({ error: "Unauthorized: No jwtCookie provided" });
+            return;
         }
 
         try {
@@ -20,36 +21,42 @@ class AuthMiddleware {
             req.user = decoded; // Attach user info to the request object
             next(); // Proceed to the next middleware or route handler
         } catch (err) {
-            return res.status(401).send({ error: "Unauthorized: Invalid jwtCookie" });
+            res.status(401).send({ error: "Unauthorized: Invalid jwtCookie" });
+            return
         }
     };
 
-    static async isSuperAdmin(req: Request, res: Response, next: NextFunction) {
+    static async isSuperAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
         const userId = (req.user as { id: number }).id;
 
         if (!userId) {
-            return res.status(401).send({ error: "Unauthorized: No userID provided" });
+            res.status(401).send({ error: "Unauthorized: No userID provided" });
+            return
         }
 
         try {
             const adminUser = await AdminUser.findOne({ where: { id: userId } });
 
             if (!adminUser) {
-                return res.status(403).send({ error: "Forbidden: User not found" });
+                res.status(403).send({ error: "Forbidden: User not found" });
+                return
             }
 
             if (!(adminUser instanceof AdminUser)) {
-                return res.status(403).send({ error: "Forbidden: Invalid user type" });
+                res.status(403).send({ error: "Forbidden: Invalid user type" });
+                return
             }
 
             if (!adminUser.is_super_admin) {
-                return res.status(403).send({ error: "Forbidden: Not a super admin" });
+                res.status(403).send({ error: "Forbidden: Not a super admin" });
+                return
             }
 
             next(); // Proceed to the next middleware or route handler
         } catch (err) {
             console.error("Error checking super admin status:", err);
-            return res.status(500).send({ error: "Internal Server Error" });
+            res.status(500).send({ error: "Internal Server Error" });
+            return
         }
     }
 
