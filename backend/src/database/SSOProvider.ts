@@ -1,7 +1,7 @@
 import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
-// Define the attributes for the OAuthProvider model
-interface OAuthProviderAttributes {
+// Define the attributes for the SSOProvider model
+interface SSOProviderAttributes {
     id: number;
     name: string;
     client_id: string;
@@ -10,10 +10,10 @@ interface OAuthProviderAttributes {
 }
 
 // Define the creation attributes (optional fields for new instances)
-type OAuthProviderCreationAttributes = Optional<OAuthProviderAttributes, "id">;
+type SSOProviderCreationAttributes = Optional<SSOProviderAttributes, "id">;
 
-// Define the OAuthProvider model class
-class OAuthProvider extends Model<OAuthProviderAttributes, OAuthProviderCreationAttributes> implements OAuthProviderAttributes {
+// Define the SSOProvider model class
+class SSOProvider extends Model<SSOProviderAttributes, SSOProviderCreationAttributes> implements SSOProviderAttributes {
     public id!: number;
     public name!: string;
     public client_id!: string;
@@ -21,8 +21,8 @@ class OAuthProvider extends Model<OAuthProviderAttributes, OAuthProviderCreation
     public callback_url!: string;
 }
 
-export function initOAuthProvider(sequelize: Sequelize) {
-    OAuthProvider.init(
+export function initSSOProvider(sequelize: Sequelize) {
+    SSOProvider.init(
         {
             id: {
                 type: DataTypes.INTEGER,
@@ -48,13 +48,13 @@ export function initOAuthProvider(sequelize: Sequelize) {
         },
         {
             sequelize,
-            modelName: "OAuthProvider",
-            tableName: "oauth_providers",
+            modelName: "SSOProvider",
+            tableName: "sso_providers",
             freezeTableName: true,
         }
     );
 
-    return OAuthProvider;
+    return SSOProvider;
 }
 
-export default OAuthProvider;
+export default SSOProvider;

@@ -3,7 +3,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { initDocumentType } from './DocumentType';
 import { initAdminUser } from './AdminUser';
-import { initOAuthProvider } from './OAuthProvider';
+import { initSSOProvider } from './SSOProvider';
 import DocumentLayout from './DocumentLayout';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
@@ -30,13 +30,13 @@ db.sequelize = sequelize_obj;
 // Import modela
 db.document_types = initDocumentType(sequelize_obj);
 db.admin_users = initAdminUser(sequelize_obj);
-db.oauth_providers = initOAuthProvider(sequelize_obj);
+db.oauth_providers = initSSOProvider(sequelize_obj);
 db.document_layouts = DocumentLayout(sequelize_obj, DataTypes);
 
 
 // Relacije
-db.oauth_providers.hasMany(db.admin_users, {
-  foreignKey: 'oauth_provider',
+db.sso_providers.hasMany(db.admin_users, {
+  foreignKey: 'sso_provider',
   onDelete: 'CASCADE',
   as: 'admin_users'
 });

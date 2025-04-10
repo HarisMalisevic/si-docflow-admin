@@ -46,12 +46,12 @@ function fill_document_types() {
     });
 }
 
-function fill_oauth_providers() {
+function fill_sso_providers() {
 
     return new Promise<void>(function (resolve, reject) {
-        const oauthProviders_PromiseList: Promise<any>[] = [];
+        const ssoProviders_PromiseList: Promise<any>[] = [];
 
-        const oauthProviders_default = [
+        const ssoProviders_default = [
             {
                 name: "Google",
                 client_id: process.env.GOOGLE_CLIENT_ID,
@@ -60,25 +60,25 @@ function fill_oauth_providers() {
             }
         ];
 
-        oauthProviders_default.forEach((provider) => {
-            oauthProviders_PromiseList.push(
-                db.oauth_providers.create({
+        ssoProviders_default.forEach((provider) => {
+            ssoProviders_PromiseList.push(
+                db.sso_providers.create({
                     name: provider.name,
                     client_id: provider.client_id,
                     client_secret: provider.client_secret,
                     callback_url: provider.callback_url,
                 })
             );
-            console.log("OAuth provider created:", provider.name)
+            console.log("SSO provider created:", provider.name)
         });
 
-        Promise.all(oauthProviders_PromiseList)
+        Promise.all(ssoProviders_PromiseList)
             .then(() => {
-                console.log("OAuth providers table filled!")
+                console.log("SSO providers table filled!")
                 resolve();
             })
             .catch((err) => {
-                console.error("Error while resolving OAuth providers table", err);
+                console.error("Error while resolving SSO providers table", err);
                 reject(err);
             })
     });
@@ -93,24 +93,24 @@ function fill_admin_users() {
             {
                 email: "admin@example.com",
                 password: "admin",
-                oauth_provider: null,
-                oauth_id: null,
+                sso_provider: null,
+                sso_id: null,
                 access_token: null,
                 is_super_admin: false,
             },
             {
                 email: "user1@example.com",
                 password: "user1",
-                oauth_provider: null,
-                oauth_id: null,
+                sso_provider: null,
+                sso_id: null,
                 access_token: null,
                 is_super_admin: false,
             },
             {
                 email: "user2@example.com",
                 password: "user2",
-                oauth_provider: null,
-                oauth_id: null,
+                sso_provider: null,
+                sso_id: null,
                 access_token: null,
                 is_super_admin: false,
             }
@@ -121,8 +121,8 @@ function fill_admin_users() {
                 db.admin_users.create({
                     email: user.email,
                     password: user.password,
-                    oauth_provider: user.oauth_provider,
-                    oauth_id: user.oauth_id,
+                    sso_provider: user.sso_provider,
+                    sso_id: user.sso_id,
                     access_token: user.access_token,
                 })
             );
@@ -150,7 +150,7 @@ async function db_init() {
             console.log("Table creation done!");
         });
 
-        fill_oauth_providers().then(function () {
+        fill_sso_providers().then(function () {
             console.log("Table creation done!");
         });
 
