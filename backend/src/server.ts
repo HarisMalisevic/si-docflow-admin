@@ -6,7 +6,8 @@ import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
-import ssoProvidersRoutes from './routes/ssoProviders.routes'
+import ssoProvidersRoutes from './routes/ssoProviders.routes';
+import documentLayoutRoutes from './routes/documetLayout.routes';
 import AuthMiddleware from "./middleware/AuthMiddleware";
 
 const APP = express();
@@ -57,6 +58,7 @@ APP.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
 });
 
 APP.use("/api/sso-providers", ssoProvidersRoutes);
+APP.use("/api/document-layouts", documentLayoutRoutes)
 
 // Serve React frontend for any unknown routes
 APP.get("*", (req, res) => {
