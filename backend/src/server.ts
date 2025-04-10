@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import express from "express";
 import path from 'path';
-//import db_init from './database/DB_initialization'; OVO NE IMPORTOVATI -Haris 7.4.2025. 00:26
+import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
-import authMiddleware from "./middleware/authMiddleware";
+import AuthMiddleware from "./middleware/AuthMiddleware";
 
 const APP = express();
 const PORT = 5000;
@@ -15,8 +14,8 @@ APP.use(express.json());
 
 
 (async () => {
-  //await db_init(); NE SKLANJATI KOMENTAR, POJEST CE VAS HARIS!! -Haris 7.4.2025. 00:19
-  configurePassport(passport);
+  //await db_init(); SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restrart stanja
+  configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 
 APP.use(session({
@@ -41,7 +40,7 @@ APP.get("/", (req, res) => {
 APP.use("/auth", authRoutes);
 
 // Example API route
-APP.get("/api/message", authMiddleware as any, (req, res) => {
+APP.get("/api/message", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
   const cookies = req.headers.cookie;
   const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
   console.log("Extracted JWT:", jwtCookie);
@@ -52,7 +51,7 @@ APP.get("/api/message", authMiddleware as any, (req, res) => {
 // API Routes
 APP.use("/api/document-types", documentTypeRoutes);
 
-APP.get("/api/auth/status", authMiddleware as any, (req, res) => {
+APP.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
   res.json({ loggedIn: true, user: req.user });
 });
 

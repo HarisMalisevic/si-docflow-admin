@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Router } from "express";
 import DocumentTypeController from "../controllers/documentType.controller";
-import authMiddleware from "../middleware/authMiddleware";
+import AuthMiddleware from "../middleware/AuthMiddleware";
 
 const router = Router();
 
-router.get("/", authMiddleware as any, DocumentTypeController.getAll);
-router.post("/", authMiddleware as any, DocumentTypeController.create);
-router.delete("/:id", authMiddleware as any, DocumentTypeController.remove);
+router.get("/", AuthMiddleware.isLoggedIn, DocumentTypeController.getAll);
+router.post("/", AuthMiddleware.isLoggedIn, DocumentTypeController.create);
+router.delete("/:id", AuthMiddleware.isLoggedIn, DocumentTypeController.remove);
 
 export default router;
