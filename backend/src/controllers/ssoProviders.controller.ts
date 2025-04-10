@@ -1,27 +1,26 @@
-import { where } from "sequelize";
 import db from "../database/db";
 import { Request, Response } from "express";
 
 class SsoProviderController {
-  static async getAllOAuthProviders(req: Request, res: Response) {
+  static async getAllSSOProviders(req: Request, res: Response) {
     try {
-      const allOAuthProviders: {
+      const allSSOProviders: {
         name: string;
         client_id: string;
         client_secret: string;
         callback_url: string;
-      }[] = await db.oauth_providers.findAll();
-      if (!allOAuthProviders) {
-        throw new Error("No OAuth providers found in the database!");
+      }[] = await db.sso_providers.findAll();
+      if (!allSSOProviders) {
+        throw new Error("No SSO providers found in the database!");
       }
-      res.json(allOAuthProviders);
+      res.json(allSSOProviders);
     } catch (error) {
-      console.error("Error fetching oauth providers: ", error);
+      console.error("Error fetching SSO providers: ", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
 
-  static async addOAuthProvider(req: Request, res: Response) {
+  static async addSSOProvider(req: Request, res: Response) {
     const jsonReq: {
       name: string;
       client_id: string;
@@ -44,36 +43,37 @@ class SsoProviderController {
     }
 
     try {
-      await db.oauth_providers.create({
+      await db.sso_providers.create({
         name: jsonReq.name,
         client_id: jsonReq.client_id,
         client_secret: jsonReq.client_secret,
         callback_url: jsonReq.callback_url,
       });
-      res.status(200).json({ message: "OAuth provider added successfully" });
+      res.status(200).json({ message: "SSO provider added successfully" });
     } catch (error) {
-        res.status(500).json({ message: "Failed to add OAuth provider", error });
+      res.status(500).json({ message: "Failed to add SSO provider", error });
+    }
   }
 
-  static async deleteOAuthProvider(req: Request, res: Response) {
+  static async deleteSSOProvider(req: Request, res: Response) {
     const { id } = req.params;
 
     try {
-        const oauth_provider = await db.oauth_providers.findOne({where: { id }});
+      const SSO_provider = await db.sso_providers.findOne({ where: { id } });
 
-        if(!oauth_provider) {
-            res.status(404).json({message: `OAuth provider with ID ${id} not found`});
-            return;
-        }
-
-        await db.oauth_providers.destroy({where: {id }});
-    } catch (error) {
-        console.error("Error removing OAuth provider:", error);
-        res.status(500).json({ message: "Internal server error" });
+      if (!SSO_provider) {
+        res.status(404).json({ message: `SSO provider with ID ${id} not found` });
         return;
+      }
+
+      await db.sso_providers.destroy({ where: { id } });
+    } catch (error) {
+      console.error("Error removing SSO provider:", error);
+      res.status(500).json({ message: "Internal server error" });
+      return;
     }
 
-    res.json({ message: `OAuth provider ${id} removed` });
+    res.json({ message: `SSO provider ${id} removed` });
   }
 }
 

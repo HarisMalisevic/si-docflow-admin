@@ -7,7 +7,7 @@ import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
 import ssoProvidersRoutes from './routes/ssoProviders.routes'
-import authMiddleware from "./middleware/authMiddleware";
+import AuthMiddleware from "./middleware/AuthMiddleware";
 
 const APP = express();
 const PORT = 5000;

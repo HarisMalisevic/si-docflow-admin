@@ -4,8 +4,8 @@ import SsoProviderController from "../controllers/ssoProviders.controller";
 
 const router = Router();
 
-router.get("/oauth-provider", SsoProviderController.getAllOAuthProviders);
-router.post("/oauth-provider", SsoProviderController.addOAuthProvider);
-router.delete("/oauth-provider/:id", SsoProviderController.deleteOAuthProvider);
+router.get("/sso-provider", SsoProviderController.getAllSSOProviders);
+router.post("/sso-provider", SsoProviderController.addSSOProvider);
+router.delete("/sso-provider/:id", SsoProviderController.deleteSSOProvider);
 
 export default router;
