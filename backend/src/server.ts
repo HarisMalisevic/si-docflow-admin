@@ -16,7 +16,7 @@ APP.use(express.json());
 
 
 (async () => {
-  await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restrart stanja
+  //await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
   configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 
@@ -57,7 +57,7 @@ APP.get("/api/auth/status", authMiddleware as any, (req, res) => {
   res.json({ loggedIn: true, user: req.user });
 });
 
-APP.use("/sso-providers", ssoProvidersRoutes);
+APP.use("/api/sso-providers", ssoProvidersRoutes);
 
 // Serve React frontend for any unknown routes
 APP.get("*", (req, res) => {
