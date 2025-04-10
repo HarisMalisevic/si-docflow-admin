@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import express from "express";
 import path from 'path';
-//import db_init from './database/DB_initialization'; OVO NE IMPORTOVATI -Haris 7.4.2025. 00:26
+import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
@@ -15,8 +15,8 @@ APP.use(express.json());
 
 
 (async () => {
-  //await db_init(); NE SKLANJATI KOMENTAR, POJEST CE VAS HARIS!! -Haris 7.4.2025. 00:19
-  configurePassport(passport);
+  //await db_init(); SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restrart stanja
+  configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 
 APP.use(session({
