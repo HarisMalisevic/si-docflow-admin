@@ -1,26 +1,68 @@
-import { Sequelize, DataTypes } from "sequelize";
+import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
-export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
-    const DocumentLayout = sequelize.define("document_layouts", {
-        name: {
-            type: dataTypes.TEXT,
-            allowNull: false,
-        },
-        metadata: {
-            type: dataTypes.TEXT,
-            allowNull: false,
-        },
-        document_type: {
-            type: dataTypes.INTEGER,
-            allowNull: true,
-        },
-        created_by: {
-            type: dataTypes.INTEGER,
-            allowNull: true,
-        }
-    },
+// Define the attributes for DocumentLayout
+interface DocumentLayoutAttributes {
+    id?: number;
+    name: string;
+    description?: string;
+    metadata: string;
+    document_type?: number;
+    created_by?: number;
+}
+
+// Define the creation attributes (optional fields during creation)
+type DocumentLayoutCreationAttributes = Optional<DocumentLayoutAttributes, "id">
+
+// Extend the Sequelize Model
+class DocumentLayout extends Model<DocumentLayoutAttributes, DocumentLayoutCreationAttributes>
+    implements DocumentLayoutAttributes {
+    public id!: number;
+    public name!: string;
+    public description?: string;
+    public metadata!: string;
+    public document_type?: number;
+    public created_by?: number;
+}
+
+// Initialize the model
+export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout {
+    DocumentLayout.init(
         {
-            freezeTableName: true
-        });
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
+            name: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            description: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            metadata: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            document_type: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
+            created_by: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
+        },
+        {
+            sequelize,
+            modelName: "DocumentLayout",
+            tableName: "document_layouts",
+            freezeTableName: true,
+        }
+    );
+
     return DocumentLayout;
 }
+
+export default DocumentLayout;

@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { initDocumentType } from './DocumentType';
 import { initAdminUser } from './AdminUser';
 import { initSSOProvider } from './SSOProvider';
-import DocumentLayout from './DocumentLayout';
+import { initDocumentLayout } from './DocumentLayout';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -31,7 +31,7 @@ db.sequelize = sequelize_obj;
 db.document_types = initDocumentType(sequelize_obj);
 db.admin_users = initAdminUser(sequelize_obj);
 db.oauth_providers = initSSOProvider(sequelize_obj);
-db.document_layouts = DocumentLayout(sequelize_obj, DataTypes);
+db.document_layouts = initDocumentLayout(sequelize_obj);
 
 
 // Relacije
@@ -42,13 +42,19 @@ db.sso_providers.hasMany(db.admin_users, {
 });
 
 db.admin_users.hasMany(db.document_types, {
-  foreignKey: 'admin_user_id',
+  foreignKey: 'created_by',
   onDelete: 'CASCADE',
   as: 'document_types'
 })
 
 db.document_types.hasMany(db.document_layouts, {
   foreignKey: 'document_type',
+  onDelete: 'CASCADE',
+  as: 'document_layouts'
+});
+
+db.admin_users.hasMany(db.document_layouts, {
+  foreignKey: 'created_by',
   onDelete: 'CASCADE',
   as: 'document_layouts'
 });
