@@ -1,9 +1,9 @@
 import { Sequelize } from 'sequelize';
 import path from 'path';
 import dotenv from 'dotenv';
-import DocumentType from './DocumentType';
-import AdminUsers from './AdminUser';
-import OAuthProvider from './OAuthProvider';
+import { initDocumentType } from './DocumentType';
+import { initAdminUser } from './AdminUser';
+import { initOAuthProvider } from './OAuthProvider';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -27,9 +27,9 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize_obj;
 
 // Import modela
-db.document_types = DocumentType(sequelize_obj);
-db.admin_users = AdminUsers(sequelize_obj);
-db.oauth_providers = OAuthProvider(sequelize_obj);
+db.document_types = initDocumentType(sequelize_obj);
+db.admin_users = initAdminUser(sequelize_obj);
+db.oauth_providers = initOAuthProvider(sequelize_obj);
 
 
 // Relacije

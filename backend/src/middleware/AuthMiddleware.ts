@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import db from "../database/db";
-import { AdminUser } from "../database/AdminUser";
+import AdminUser from "../database/AdminUser";
 
 
 class AuthMiddleware {

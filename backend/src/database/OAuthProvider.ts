@@ -21,7 +21,7 @@ class OAuthProvider extends Model<OAuthProviderAttributes, OAuthProviderCreation
     public callback_url!: string;
 }
 
-export default function initializeOAuthProvider(sequelize: Sequelize) {
+export function initOAuthProvider(sequelize: Sequelize) {
     OAuthProvider.init(
         {
             id: {
@@ -57,4 +57,4 @@ export default function initializeOAuthProvider(sequelize: Sequelize) {
     return OAuthProvider;
 }
 
-export { OAuthProvider };
+export default OAuthProvider;

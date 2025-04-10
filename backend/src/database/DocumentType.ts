@@ -19,7 +19,7 @@ class DocumentType extends Model<DocumentTypeAttributes, DocumentTypeCreationAtt
     public created_by?: number;
 }
 
-export default function initializeDocumentType(sequelize: Sequelize) {
+export function initDocumentType(sequelize: Sequelize) {
     DocumentType.init(
         {
             id: {
@@ -51,4 +51,4 @@ export default function initializeDocumentType(sequelize: Sequelize) {
     return DocumentType;
 }
 
-export { DocumentType };
+export default DocumentType;

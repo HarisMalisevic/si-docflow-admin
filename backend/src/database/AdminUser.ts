@@ -22,7 +22,7 @@ class AdminUser extends Model<AdminUserAttributes, AdminUserCreationAttributes> 
     public is_super_admin!: boolean;
 }
 
-export default function (sequelize: Sequelize) {
+export function initAdminUser(sequelize: Sequelize) {
     AdminUser.init(
         {
             id: {
@@ -67,4 +67,4 @@ export default function (sequelize: Sequelize) {
     return AdminUser;
 }
 
-export { AdminUser }
+export default AdminUser;
