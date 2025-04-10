@@ -6,6 +6,7 @@ import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
+import ssoProvidersRoutes from './routes/ssoProviders.routes'
 import AuthMiddleware from "./middleware/AuthMiddleware";
 
 const APP = express();
@@ -14,7 +15,7 @@ APP.use(express.json());
 
 
 (async () => {
-  //await db_init(); SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restrart stanja
+  //await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
   configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 
@@ -54,6 +55,8 @@ APP.use("/api/document-types", documentTypeRoutes);
 APP.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
   res.json({ loggedIn: true, user: req.user });
 });
+
+APP.use("/api/sso-providers", ssoProvidersRoutes);
 
 // Serve React frontend for any unknown routes
 APP.get("*", (req, res) => {

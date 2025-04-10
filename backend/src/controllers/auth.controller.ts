@@ -8,9 +8,6 @@ import jwt from "jsonwebtoken";
 class AuthController {
     static async googleLogin(req: Request, res: Response): Promise<void> {
 
-        // Preusmjerava korisnika na Googleov OAuth zaslon za prijavu
-        // Scope: profile email
-        // Koristi passport.authenticate('google')
 
         passport.authenticate("google", {
             scope: ["profile", "email"],

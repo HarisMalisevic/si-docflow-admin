@@ -4,8 +4,8 @@ interface AdminUserAttributes {
     id: number;
     email: string;
     password?: string;
-    oauth_provider?: number;
-    oauth_id?: string;
+    sso_provider?: number;
+    sso_id?: string;
     access_token?: string;
     is_super_admin: boolean;
 }
@@ -16,8 +16,8 @@ class AdminUser extends Model<AdminUserAttributes, AdminUserCreationAttributes> 
     public id!: number;
     public email!: string;
     public password?: string;
-    public oauth_provider?: number;
-    public oauth_id?: string;
+    public sso_provider?: number;
+    public sso_id?: string;
     public access_token?: string;
     public is_super_admin!: boolean;
 }
@@ -38,11 +38,11 @@ export function initAdminUser(sequelize: Sequelize) {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
-            oauth_provider: {
+            sso_provider: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
             },
-            oauth_id: {
+            sso_id: {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
