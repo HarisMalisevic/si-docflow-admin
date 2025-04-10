@@ -1,27 +1,60 @@
-import { Sequelize, DataTypes } from "sequelize";
+import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
-export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
-    const OAuthProvider = sequelize.define("oauth_providers", {
-        name: {
-            type: dataTypes.TEXT,
-            allowNull: false,
-        },
-        client_id: { // ID nase aplikacije koji dobijemo prilikom registracije aplikacije na OAuth serveru
-            type: dataTypes.TEXT,
-            allowNull: false,
-        },
-        client_secret: { // Tajni ključ aplikacije koji dobijemo prilikom registracije aplikacije na OAuth serveru
-            type: dataTypes.TEXT,
-            allowNull: false,
-        },
-        callback_url: { // URL na koji OAuth server šalje korisnika nakon autentifikacije
-            type: dataTypes.TEXT,
-            allowNull: false,
-        },
+// Define the attributes for the OAuthProvider model
+interface OAuthProviderAttributes {
+    id: number;
+    name: string;
+    client_id: string;
+    client_secret: string;
+    callback_url: string;
+}
 
-    },
+// Define the creation attributes (optional fields for new instances)
+type OAuthProviderCreationAttributes = Optional<OAuthProviderAttributes, "id">;
+
+// Define the OAuthProvider model class
+class OAuthProvider extends Model<OAuthProviderAttributes, OAuthProviderCreationAttributes> implements OAuthProviderAttributes {
+    public id!: number;
+    public name!: string;
+    public client_id!: string;
+    public client_secret!: string;
+    public callback_url!: string;
+}
+
+export function initOAuthProvider(sequelize: Sequelize) {
+    OAuthProvider.init(
         {
-            freezeTableName: true
-        });
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true,
+            },
+            name: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            client_id: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            client_secret: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            callback_url: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+        },
+        {
+            sequelize,
+            modelName: "OAuthProvider",
+            tableName: "oauth_providers",
+            freezeTableName: true,
+        }
+    );
+
     return OAuthProvider;
 }
+
+export default OAuthProvider;

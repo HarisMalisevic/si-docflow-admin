@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import express from "express";
 import path from 'path';
 import db_init from './database/DB_initialization';
@@ -7,7 +6,7 @@ import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import documentTypeRoutes from "./routes/documentType.routes";
 import authRoutes from './routes/auth.routes';
-import authMiddleware from "./middleware/authMiddleware";
+import AuthMiddleware from "./middleware/AuthMiddleware";
 
 const APP = express();
 const PORT = 5000;
@@ -41,7 +40,7 @@ APP.get("/", (req, res) => {
 APP.use("/auth", authRoutes);
 
 // Example API route
-APP.get("/api/message", authMiddleware as any, (req, res) => {
+APP.get("/api/message", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
   const cookies = req.headers.cookie;
   const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
   console.log("Extracted JWT:", jwtCookie);
@@ -52,7 +51,7 @@ APP.get("/api/message", authMiddleware as any, (req, res) => {
 // API Routes
 APP.use("/api/document-types", documentTypeRoutes);
 
-APP.get("/api/auth/status", authMiddleware as any, (req, res) => {
+APP.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
   res.json({ loggedIn: true, user: req.user });
 });
 
