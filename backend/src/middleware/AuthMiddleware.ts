@@ -3,10 +3,11 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import db from "../database/db";
 import AdminUser from "../database/AdminUser";
+import { RequestHandler } from "express-serve-static-core";
 
 
 class AuthMiddleware {
-    static isLoggedIn = (req: Request, res: Response, next: NextFunction) => {
+    static isLoggedIn(req: Request, res: Response, next: NextFunction) {
         const cookies = req.headers.cookie;
         const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
         console.log("Extracted JWT:", jwtCookie);
