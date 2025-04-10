@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
 import Annotation from "./Annotation";
 import { ShapeProps } from "./Annotation";
+import { Button } from "react-bootstrap";
 
 function DocumentLayoutCreate() {
     const [annotations, setAnnotations] = useState<ShapeProps[]>([]);
@@ -13,20 +14,22 @@ function DocumentLayoutCreate() {
     };
 
     const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
-        width: window.innerWidth,
+        width: window.innerWidth / 2,
         height: window.innerHeight,
     });
 
     const handleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
+        if(annotations.length > 0 && annotations[annotations.length - 1].stroke != "blue") {
+          annotations.pop();
+        }
+
         const { x, y } = event.target.getStage().getPointerPosition();
         setNewAnnotation([{ x, y, width: 0, height: 0}]);
     };
 
     const [image, setImage] = useState<HTMLImageElement | null>(null);
-    const imageRef = useRef<HTMLImageElement>(new window.Image());
 
     useEffect(() => {
-        // Load the image from URL
         const img = new window.Image();
         img.src = "https://cdn.dribbble.com/users/2150390/screenshots/8064018/media/117406b607c400e7030deb6dfa60caa6.jpg";
         img.onload = () => setImage(img);
@@ -54,6 +57,13 @@ function DocumentLayoutCreate() {
         setNewAnnotation([]); // Reset newAnnotation state
     }
     };
+
+    const saveAnnotation = () => {
+      const updatedAnnotations = [...annotations];
+      updatedAnnotations[updatedAnnotations.length - 1].stroke = "blue";
+      
+      setAnnotations(updatedAnnotations);
+    }
     
     const annotationsToDraw = [...annotations, ...newAnnotation];
     
@@ -86,6 +96,12 @@ function DocumentLayoutCreate() {
               })}
             </Layer>
           </Stage>
+          <Button
+            variant="light"
+            onClick={saveAnnotation}
+          >
+            Save
+          </Button>
         </div>
     );  
 }
