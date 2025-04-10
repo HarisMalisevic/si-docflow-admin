@@ -21,6 +21,11 @@ export default function (sequelize: Sequelize, dataTypes: typeof DataTypes) {
         access_token: {
             type: dataTypes.TEXT,
             allowNull: true,
+        },
+        is_super_admin: {
+            type: dataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
         }
 
     },
