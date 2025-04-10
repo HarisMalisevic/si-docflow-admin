@@ -64,6 +64,7 @@ class SsoProviderController {
 
         if(!oauth_provider) {
             res.status(404).json({message: `OAuth provider with ID ${id} not found`});
+            return;
         }
 
         await db.oauth_providers.destroy({where: {id }});
