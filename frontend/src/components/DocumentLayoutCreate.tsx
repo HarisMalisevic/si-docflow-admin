@@ -3,6 +3,10 @@ import { Stage, Layer, Image } from "react-konva";
 import Annotation, { AnnotationProps } from "./Annotation";
 import { Button, Form } from "react-bootstrap";
 
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+// @ts-ignore
+GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.mjs';
+
 function DocumentLayoutCreate() {
     const [annotations, setAnnotations] = useState<AnnotationProps[]>([]);
     const [newAnnotation, setNewAnnotation] = useState<AnnotationProps[]>([]);
@@ -90,14 +94,14 @@ function DocumentLayoutCreate() {
         console.log(annotationsFields);
         console.log(fields);
 
-        //for testing purposes, should only be in the if(response.ok) block
-        setImage(null);
+        //use if needed for testing purposes, otherwise should only be in the if(response.ok) block
+        /*setImage(null);
         setAnnotations([]);
         setNewAnnotation([]);
         setCanvasMeasures({
           width: window.innerWidth / 2,
           height: window.innerHeight,
-        });
+        });*/
         //============================//
 
         /*const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
@@ -131,31 +135,73 @@ function DocumentLayoutCreate() {
       }
     }
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const fileInput = e.target as HTMLInputElement;
       const file = fileInput.files?.[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new window.Image();
-        img.src = reader.result as string;  //the result is available via reader.result after reader.readAsDataURL is done
-        img.onload = () => {
-          const maxWidth = window.innerWidth / 2;
-          const scale = Math.min(maxWidth / img.width, 1);
+      if (file.type === 'application/pdf') {
+        const img = await renderFirstPage(file);  //the application expects single-page PDFs, which will be displayed as images
+        setImage(img);
 
-          setImage(img);
-          setCanvasMeasures({             //scale the canvas
-            width: img.width * scale, 
-            height: img.height * scale 
-          });
-          setAnnotations([]);
-          setNewAnnotation([]);
-        }
-      };
-      reader.readAsDataURL(file); //tells the FileReader to start reading the file you selected
-                                  //and convert it to Base64-encoded URL string (data URL)
+        const maxWidth = window.innerWidth / 2;
+        const scale = Math.min(maxWidth / img.width, 1);
+
+        setCanvasMeasures({
+          width: img.width * scale,
+          height: img.height * scale,
+        });
+
+        setAnnotations([]);
+        setNewAnnotation([]);
+      }
+      else if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new window.Image();
+          img.src = reader.result as string;  //the result is available via reader.result after reader.readAsDataURL is done
+          img.onload = () => {
+            const maxWidth = window.innerWidth / 2;
+            const scale = Math.min(maxWidth / img.width, 1);
+
+            setImage(img);
+            setCanvasMeasures({             //scale the canvas
+              width: img.width * scale, 
+              height: img.height * scale 
+            });
+            setAnnotations([]);
+            setNewAnnotation([]);
+          }
+        };
+        reader.readAsDataURL(file); //tells the FileReader to start reading the file you selected
+                                    //and convert it to Base64-encoded URL string (data URL)
+      }
       fileInput.value = "";
+    }
+
+    async function renderFirstPage(file: File): Promise<HTMLImageElement> {   //
+      const arrayBuffer = await file.arrayBuffer();     //converts file to binary data
+      const pdf = await getDocument({ data: arrayBuffer }).promise;   //loads and parses the document
+      const page = await pdf.getPage(1);      //returns the first page
+    
+      const viewport = page.getViewport({ scale: 2 });
+    
+      const canvas = document.createElement('canvas');    //dynamically creates a canvas to draw onto
+      const context = canvas.getContext('2d');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+    
+      await page.render({         //draw the page on the canvas
+        canvasContext: context!,
+        viewport,
+      }).promise;
+    
+      //convert canvas to image
+      const img = new window.Image();
+      img.src = canvas.toDataURL();
+      await new Promise((resolve) => (img.onload = resolve));
+    
+      return img;   //this can now be used inside <Image> in react-konva
     }
     
     const annotationsToDraw = [...annotations, ...newAnnotation];
@@ -171,7 +217,7 @@ function DocumentLayoutCreate() {
               onMouseUp={handleMouseUp}
             >
               <Layer>
-                {image && (
+                {image && (     //always an image, both from image and PDF upload
                   <Image
                     image={image}
                     x={0} // Set image position on canvas
@@ -202,7 +248,7 @@ function DocumentLayoutCreate() {
                 <Form.Control
                   id="file-upload-input"
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   style={{ display: "none" }}
                   onChange={ handleFileUpload }
                 />
