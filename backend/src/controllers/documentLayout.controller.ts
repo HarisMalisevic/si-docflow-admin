@@ -7,7 +7,7 @@ class DocumentLayoutsController {
     try {
       const allDocumentLayouts: DocumentLayout[] = await db.document_layouts.findAll();
 
-      if (!allDocumentLayouts) {
+      if (allDocumentLayouts.length === 0) {
         throw new Error("No document layouts found in the database!");
       }
       res.json(allDocumentLayouts);
