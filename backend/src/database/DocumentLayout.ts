@@ -4,11 +4,10 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 interface DocumentLayoutAttributes {
     id?: number;
     name: string;
-    description?: string;
     fields: string;
     document_type?: number;
-    document_width: number;
-    document_height: number;
+    image_width: number;
+    image_height: number;
     created_by?: number;
 }
 
@@ -20,11 +19,10 @@ class DocumentLayout extends Model<DocumentLayoutAttributes, DocumentLayoutCreat
     implements DocumentLayoutAttributes {
     public id!: number;
     public name!: string;
-    public description?: string;
     public fields!: string;
     public document_type?: number;
-    public document_width!: number;
-    public document_height!: number;
+    public image_width!: number;
+    public image_height!: number;
     public created_by?: number;
 }
 
@@ -41,10 +39,6 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-            description: {
-                type: DataTypes.TEXT,
-                allowNull: true,
-            },
             fields: {
                 type: DataTypes.TEXT,
                 allowNull: false,
@@ -53,11 +47,11 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 type: DataTypes.INTEGER,
                 allowNull: true,
             },
-            document_width: {
+            image_width: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
-            document_height: {
+            image_height: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
