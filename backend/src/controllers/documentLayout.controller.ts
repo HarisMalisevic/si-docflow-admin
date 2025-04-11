@@ -71,8 +71,7 @@ class DocumentLayoutsController {
       return;
     }
 
-    res.json({ message: `Document layoutc ${id} removed` });
-  }
+    res.json({ message: `Document layout ${id} removed` });
 }
 
 export default DocumentLayoutsController;
