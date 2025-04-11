@@ -4,7 +4,7 @@ import Annotation from "./Annotation";
 import { ShapeProps } from "./Annotation";
 import { Button } from "react-bootstrap";
 
-function DocumentLayoutCreate() {
+function DocumentLayoutCreate() {   //test
     const [annotations, setAnnotations] = useState<ShapeProps[]>([]);
     const [newAnnotation, setNewAnnotation] = useState<ShapeProps[]>([]);
 
