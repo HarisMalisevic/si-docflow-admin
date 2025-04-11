@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
 import Annotation, { AnnotationProps } from "./Annotation";
-import { ShapeProps } from "./Annotation";
 import { Button, Form } from "react-bootstrap";
 
 function DocumentLayoutCreate() {
@@ -99,9 +98,9 @@ function DocumentLayoutCreate() {
           width: window.innerWidth / 2,
           height: window.innerHeight,
         });
-        //
+        //============================//
 
-        /*const response = await fetch("/api/document-layouts", {   //should be this route
+        /*const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
           method: "POST",
           headers: {
               "Content-Type": "application/json",
@@ -146,7 +145,7 @@ function DocumentLayoutCreate() {
           const scale = Math.min(maxWidth / img.width, 1);
 
           setImage(img);
-          setCanvasMeasures({             //scale the canvas (and the image)
+          setCanvasMeasures({             //scale the canvas
             width: img.width * scale, 
             height: img.height * scale 
           });
