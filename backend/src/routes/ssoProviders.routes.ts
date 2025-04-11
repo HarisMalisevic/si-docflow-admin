@@ -6,17 +6,20 @@ import AuthMiddleware from "../middleware/AuthMiddleware";
 const router = Router();
 
 router.get(
-  "/sso-provider",
+  "/",
+  AuthMiddleware.isLoggedIn,
   AuthMiddleware.isSuperAdmin,
   SsoProviderController.getAllSSOProviders
 );
 router.post(
-  "/sso-provider",
+  "/",
+  AuthMiddleware.isLoggedIn,
   AuthMiddleware.isSuperAdmin,
   SsoProviderController.addSSOProvider
 );
 router.delete(
-  "/sso-provider/:id",
+  "/:id",
+  AuthMiddleware.isLoggedIn,
   AuthMiddleware.isSuperAdmin,
   SsoProviderController.deleteSSOProvider
 );

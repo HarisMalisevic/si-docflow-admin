@@ -35,17 +35,16 @@ class DocumentLayoutsController {
       return;
     } 
 
-    const newDocumentLayout = DocumentLayout.build({
-      id: jsonReq.id,
-      name: jsonReq.name,
-      description: jsonReq.description,
-      metadata: jsonReq.metadata,
-      document_type: jsonReq.document_type,
-      created_by: jsonReq.created_by
-    });
-
     try {
-      await db.document_layouts.create(newDocumentLayout);
+      await db.document_layouts.create({
+        id: jsonReq.id,
+        name: jsonReq.name,
+        description: jsonReq.description,
+        metadata: jsonReq.metadata,
+        document_type: jsonReq.document_type,
+        created_by: jsonReq.created_by,
+      });
+      
       res.status(200).json({ message: "Document layout added successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to add document layout", error });
