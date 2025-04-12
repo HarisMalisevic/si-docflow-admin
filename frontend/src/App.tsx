@@ -6,14 +6,15 @@ import AppNavbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
 import HomeRedirect from "./components/HomeRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AddSSOProviderForm from "./components/AddSSOProviderForm"; // ✅ DODANO
 
 function App() {
   return (
     <div>
-
       <ProtectedRoute>
         <AppNavbar />
       </ProtectedRoute>
+
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route
@@ -21,6 +22,14 @@ function App() {
           element={
             <ProtectedRoute>
               <DocumentTypeViewer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sso-provider"
+          element={
+            <ProtectedRoute>
+              <AddSSOProviderForm />
             </ProtectedRoute>
           }
         />
