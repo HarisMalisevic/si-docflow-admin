@@ -1,11 +1,10 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import Stack from "react-bootstrap/Stack";
-import Form from "react-bootstrap/Form";
-import Button from "react-bootstrap/Button";
-import Spinner from "react-bootstrap/Spinner";
+import { Button, Dropdown, Stack, Form, Spinner } from "react-bootstrap";
 import "../App.css";
 import GoogleLogo from "../assets/GoogleLogo.svg";
+import MicrosoftLogo from "../assets/MicrosoftLogo.png";
+import LinkedInLogo from "../assets/LinkedInLogo.png";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -14,6 +13,9 @@ function LoginForm() {
   const handleGoogleLogin = (): void => {
     // Zamijeniti sa rutom za google login
     window.location.href = "/auth/google";
+  };
+  const handleSSOLogin = (provider: string) => {
+    window.location.href = `/auth/${provider}`;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -76,6 +78,55 @@ function LoginForm() {
             />
             Log in with Google
           </Button>
+
+          <Dropdown>
+            <Dropdown.Toggle
+              variant="light"
+              className="d-flex align-items-center justify-content-center w-100 border"
+              size="lg"
+            >
+              Log in with other SSO
+            </Dropdown.Toggle>
+
+            <Dropdown.Menu className="w-100 p-2">
+              <Dropdown.Item as="div" className="p-0">
+                <Button
+                  variant="light"
+                  className="btn-google d-flex align-items-center justify-content-center w-100 border"
+                  size="lg"
+                  onClick={() => handleSSOLogin("microsoft")}
+                  disabled={isLoading}
+                >
+                  <img
+                    src={MicrosoftLogo}
+                    alt="Microsoft logo"
+                    width="18"
+                    height="18"
+                    className="me-2"
+                  />
+                  Log in with Microsoft
+                </Button>
+              </Dropdown.Item>
+              <Dropdown.Item as="div" className="p-0 mt-2">
+                <Button
+                  variant="light"
+                  className="btn-google d-flex align-items-center justify-content-center w-100 border"
+                  size="lg"
+                  onClick={() => handleSSOLogin("linkedin")}
+                  disabled={isLoading}
+                >
+                  <img
+                    src={LinkedInLogo}
+                    alt="LinkedIn logo"
+                    width="18"
+                    height="18"
+                    className="me-2"
+                  />
+                  Log in with LinkedIn
+                </Button>
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
 
           <div className="d-flex align-items-center my-2">
             <hr className="flex-grow-1" />
