@@ -43,6 +43,9 @@ function AppNavbar() {
               <Nav.Link as={Link} to="/document-types">
                 Document Types
               </Nav.Link>
+              <Nav.Link as={Link} to="/document-layouts">
+                Document Layouts
+              </Nav.Link>
             </Nav>
             <Nav>
               <Nav.Link onClick={handleLogout} style={{ cursor: "pointer" }}>

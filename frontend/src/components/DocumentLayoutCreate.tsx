@@ -1,61 +1,78 @@
 import { useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
 import Annotation, { AnnotationProps } from "./Annotation";
-import { Button, Form } from "react-bootstrap";
+import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 // @ts-ignore
 GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.mjs';
 
 function DocumentLayoutCreate() {
-    const [annotations, setAnnotations] = useState<AnnotationProps[]>([]);
-    const [newAnnotation, setNewAnnotation] = useState<AnnotationProps[]>([]);
-    const [fieldName, setFieldName] = useState("");
+  const [annotations, setAnnotations] = useState<AnnotationProps[]>([]);
+  const [newAnnotation, setNewAnnotation] = useState<AnnotationProps[]>([]);
+  const [fieldName, setFieldName] = useState("");
+  const [layoutName, setLayoutName] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for error message
+  const [documentType, setDocumentType] = useState<string>(""); // State for document type
+  const [uploadError, setUploadError] = useState<string | null>(null); // State for upload error
+  const [layoutNameError, setLayoutNameError] = useState<string | null>(null);
 
-    type CanvasMeasures = {
-        width: number;
-        height: number;
-    };
+  type CanvasMeasures = {
+    width: number;
+    height: number;
+  };
 
-    const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
-        width: window.innerWidth / 2,
-        height: window.innerHeight,
-    });
+  const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
+    width: window.innerWidth / 2,
+    height: window.innerHeight,
+  });
 
-    const handleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
-        if(annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
-          annotations.pop();
-        }
-
-        const { x, y } = event.target.getStage().getPointerPosition();
-        setNewAnnotation([{ 
-          shapeProps: { x, y, width: 0, height: 0 }, 
-          saved: false
-        }]);
-    };
-
-    const [image, setImage] = useState<HTMLImageElement | null>(null);
-      
-    const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
-    if (newAnnotation.length === 1) {
-        const sx = newAnnotation[0].shapeProps.x; // start x
-        const sy = newAnnotation[0].shapeProps.y; // start y
-        const { x, y } = event.target.getStage().getPointerPosition();
-        setNewAnnotation([{
-          shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
-          saved: false
-        }]);
+  const handleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
+    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
+      annotations.pop();
     }
-    };
-    
-    const handleMouseUp = () => {     //to finalize the rectangle when the mouse is released
-    if (newAnnotation.length === 1) {
-        setAnnotations((prev) => [...prev, ...newAnnotation]); // Save the annotation to the state
-        setNewAnnotation([]); // Reset newAnnotation state
-    }
-    };
 
-    const saveAnnotation = () => {
+    const { x, y } = event.target.getStage().getPointerPosition();
+    setNewAnnotation([{
+      shapeProps: { x, y, width: 0, height: 0 },
+      saved: false
+    }]);
+  };
+
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
+
+  const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
+    if (newAnnotation.length === 1) {
+      const sx = newAnnotation[0].shapeProps.x; // start x
+      const sy = newAnnotation[0].shapeProps.y; // start y
+      const { x, y } = event.target.getStage().getPointerPosition();
+      setNewAnnotation([{
+        shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
+        saved: false
+      }]);
+    }
+  };
+
+  const handleMouseUp = () => {     //to finalize the rectangle when the mouse is released
+    if (newAnnotation.length === 1) {
+      setAnnotations((prev) => [...prev, ...newAnnotation]); // Save the annotation to the state
+      setNewAnnotation([]); // Reset newAnnotation state
+      console.log(newAnnotation);
+    }
+  };
+
+  const saveAnnotation = () => {
+    if (newAnnotation.length === 0 && annotations.length === 0) {
+      setErrorMessage("Please create an annotation before saving.");
+      return;
+    }
+
+    if (!fieldName.trim()) {
+      setErrorMessage("Please enter a field name before saving.");
+      return;
+    }
+
+    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
       const updatedAnnotations = [...annotations];
       updatedAnnotations[updatedAnnotations.length - 1] = {
         ...updatedAnnotations[updatedAnnotations.length - 1],
@@ -69,225 +86,359 @@ function DocumentLayoutCreate() {
 
       setFieldName("");
       setAnnotations(updatedAnnotations);
+      setErrorMessage(null); // Clear the error message
+    } else {
+      setErrorMessage("Please create an annotation before saving.");
     }
+  };
 
-    const clearAll = () => {
+  const clearAll = () => {
+    setAnnotations([]);
+  }
+
+  const saveLayout = async () => {
+    try {
+      if (annotations.length === 0 && !layoutName.trim()) {
+        setErrorMessage("Please add at least one annotation before saving the layout.");
+        setLayoutNameError("Please enter a layout name before saving.");
+        return;
+      }
+      else if (annotations.length === 0) {
+        setErrorMessage("Please add at least one annotation before saving the layout.");
+        setLayoutNameError(null);
+        return;
+      }
+      else if (!layoutName.trim()) {
+        setLayoutNameError("Please enter a layout name before saving.");
+        return;
+      }
+      setLayoutNameError(null);
+      if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
+        annotations.pop();
+      }
+
+      let annotationsFields = annotations.map((annotation) => {
+        return {
+          name: annotation.name,
+          upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
+          lower_right: [annotation.shapeProps.x + annotation.shapeProps.width, annotation.shapeProps.y + annotation.shapeProps.height],
+        };
+      });
+
+      let fields = JSON.stringify(annotationsFields);   //stringified annotations
+
+      console.log(annotationsFields);
+      console.log(fields);
+
+      //use if needed for testing purposes, otherwise should only be in the if(response.ok) block
+      /*setImage(null);
       setAnnotations([]);
-    }
+      setNewAnnotation([]);
+      setCanvasMeasures({
+        width: window.innerWidth / 2,
+        height: window.innerHeight,
+      });
+      setDocumentType("")*/
 
-    const saveLayout = async () => {
-      try {
-        if(annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
-          annotations.pop();
-        }
+      
+      //==============ZA SLANJE U BAZU ==============//
+      //===== sve annotatione su sacuvane u fields, layoutName je ime layouta, documentType je tip dokumenta
+      /*const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            //name - user should input before saving the layout
+            //fields - done
+            //document_type - user should choose when uploading a file
+            //image_width, image_height - canvas measures
+        }),
+      });
 
-        let annotationsFields = annotations.map((annotation) => {
-          return {
-            name: annotation.name,
-            upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
-            lower_right: [annotation.shapeProps.x + annotation.shapeProps.width, annotation.shapeProps.y + annotation.shapeProps.height],
-          };
-        });
-
-        let fields = JSON.stringify(annotationsFields);   //stringified annotations
-
-        console.log(annotationsFields);
-        console.log(fields);
-
-        //use if needed for testing purposes, otherwise should only be in the if(response.ok) block
-        /*setImage(null);
+      if(response.ok) {
+        //remove the uploaded image and previous annotations, reset canvas
+        setImage(null);
         setAnnotations([]);
         setNewAnnotation([]);
         setCanvasMeasures({
           width: window.innerWidth / 2,
           height: window.innerHeight,
-        });*/
-        //============================//
-
-        /*const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
-          method: "POST",
-          headers: {
-              "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-              //name - user should input before saving the layout
-              //fields - done
-              //document_type - user should choose when uploading a file
-              //image_width, image_height - canvas measures
-          }),
         });
+        setDocumentType("");
+      } 
+      else {
+        console.error("Failed to save layout");
+      }*/
+    } catch (error) {
+      console.error("Error while saving layout: ", error);
+    }
+  }
 
-        if(response.ok) {
-          //remove the uploaded image and previous annotations, reset canvas
-          setImage(null);
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileInput = e.target as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    if (!documentType) {
+      setUploadError("Please select a document type before uploading.");
+      return;
+    }
+
+    setUploadError(null); // Clear the error if the document type is selected
+
+    if (file.type === 'application/pdf') {
+      const img = await renderFirstPage(file);  //the application expects single-page PDFs, which will be displayed as images
+      setImage(img);
+
+      const maxWidth = window.innerWidth / 2;
+      const scale = Math.min(maxWidth / img.width, 1);
+
+      setCanvasMeasures({
+        width: img.width * scale,
+        height: img.height * scale,
+      });
+
+      setAnnotations([]);
+      setNewAnnotation([]);
+    }
+    else if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new window.Image();
+        img.src = reader.result as string;  //the result is available via reader.result after reader.readAsDataURL is done
+        img.onload = () => {
+          const maxWidth = window.innerWidth / 2;
+          const scale = Math.min(maxWidth / img.width, 1);
+
+          setImage(img);
+          setCanvasMeasures({             //scale the canvas
+            width: img.width * scale,
+            height: img.height * scale
+          });
           setAnnotations([]);
           setNewAnnotation([]);
-          setCanvasMeasures({
-            width: window.innerWidth / 2,
-            height: window.innerHeight,
-          });
-        } 
-        else {
-          console.error("Failed to save layout");
-        }*/
-      } catch (error) {
-        console.error("Error while saving layout: ", error);
-      }
+        }
+      };
+      reader.readAsDataURL(file); //tells the FileReader to start reading the file you selected
+      //and convert it to Base64-encoded URL string (data URL)
     }
+    fileInput.value = "";
+  }
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const fileInput = e.target as HTMLInputElement;
-      const file = fileInput.files?.[0];
-      if (!file) return;
+  async function renderFirstPage(file: File): Promise<HTMLImageElement> {   //
+    const arrayBuffer = await file.arrayBuffer();     //converts file to binary data
+    const pdf = await getDocument({ data: arrayBuffer }).promise;   //loads and parses the document
+    const page = await pdf.getPage(1);      //returns the first page
 
-      if (file.type === 'application/pdf') {
-        const img = await renderFirstPage(file);  //the application expects single-page PDFs, which will be displayed as images
-        setImage(img);
+    const viewport = page.getViewport({ scale: 2 });
 
-        const maxWidth = window.innerWidth / 2;
-        const scale = Math.min(maxWidth / img.width, 1);
+    const canvas = document.createElement('canvas');    //dynamically creates a canvas to draw onto
+    const context = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
 
-        setCanvasMeasures({
-          width: img.width * scale,
-          height: img.height * scale,
-        });
+    await page.render({         //draw the page on the canvas
+      canvasContext: context!,
+      viewport,
+    }).promise;
 
-        setAnnotations([]);
-        setNewAnnotation([]);
-      }
-      else if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const img = new window.Image();
-          img.src = reader.result as string;  //the result is available via reader.result after reader.readAsDataURL is done
-          img.onload = () => {
-            const maxWidth = window.innerWidth / 2;
-            const scale = Math.min(maxWidth / img.width, 1);
+    //convert canvas to image
+    const img = new window.Image();
+    img.src = canvas.toDataURL();
+    await new Promise((resolve) => (img.onload = resolve));
 
-            setImage(img);
-            setCanvasMeasures({             //scale the canvas
-              width: img.width * scale, 
-              height: img.height * scale 
-            });
-            setAnnotations([]);
-            setNewAnnotation([]);
-          }
-        };
-        reader.readAsDataURL(file); //tells the FileReader to start reading the file you selected
-                                    //and convert it to Base64-encoded URL string (data URL)
-      }
-      fileInput.value = "";
-    }
+    return img;   //this can now be used inside <Image> in react-konva
+  }
 
-    async function renderFirstPage(file: File): Promise<HTMLImageElement> {   //
-      const arrayBuffer = await file.arrayBuffer();     //converts file to binary data
-      const pdf = await getDocument({ data: arrayBuffer }).promise;   //loads and parses the document
-      const page = await pdf.getPage(1);      //returns the first page
-    
-      const viewport = page.getViewport({ scale: 2 });
-    
-      const canvas = document.createElement('canvas');    //dynamically creates a canvas to draw onto
-      const context = canvas.getContext('2d');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-    
-      await page.render({         //draw the page on the canvas
-        canvasContext: context!,
-        viewport,
-      }).promise;
-    
-      //convert canvas to image
-      const img = new window.Image();
-      img.src = canvas.toDataURL();
-      await new Promise((resolve) => (img.onload = resolve));
-    
-      return img;   //this can now be used inside <Image> in react-konva
-    }
-    
-    const annotationsToDraw = [...annotations, ...newAnnotation];
-    
-    return (
-        <div style={{ display: "flex", flexDirection: "row" }}>
-          <div id="fileDisplay">
-            <Stage
-              width={canvasMeasures.width}
-              height={canvasMeasures.height}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
+  const annotationsToDraw = [...annotations, ...newAnnotation];
+
+  return (
+    <Container fluid>
+      <Row className="mb-3">
+        <Col>
+          <Form.Group controlId="document-type">
+            <Form.Label style={{ marginLeft: "50px" }}>Select Document Type</Form.Label>
+            <Form.Control
+              as="select"
+              onChange={(e) => setDocumentType(e.target.value)}
+              value={documentType}
+              style={{ width: "200px", marginLeft: "50px" }}
             >
-              <Layer>
-                {image && (     //always an image, both from image and PDF upload
-                  <Image
-                    image={image}
-                    x={0} // Set image position on canvas
-                    y={0}
-                    width={canvasMeasures.width} // Adjust image size to fill the canvas
-                    height={canvasMeasures.height}
-                  />
-                )}
-                {annotationsToDraw.map((annotation, i) => {
-                  return (
-                    <Annotation
-                      key={i}
-                      {...annotation}
+              <option value="">Select Type</option>
+              <option value="image">Image</option>
+              <option value="pdf">PDF</option>
+            </Form.Control>
+          </Form.Group>
+          <Form.Group controlId="file-upload" className="mt-3">
+            <Form.Label htmlFor="file-upload-input" style={{ cursor: "pointer", marginLeft: "50px" }}>
+              <Button
+                as="span"
+                variant="primary"
+                disabled={!documentType}
+                onClick={(e) => {
+                  if (!documentType) {
+                    setUploadError("Please select a document type before uploading.");
+                    e.preventDefault(); // Prevent the file input from being triggered
+                  }
+                }}
+              >
+                Upload {documentType || "File"}
+              </Button>
+            </Form.Label>
+            <Form.Control
+              id="file-upload-input"
+              type="file"
+              accept={documentType === "image" ? "image/*" : "application/pdf"}
+              style={{ display: "none" }}
+              onChange={handleFileUpload}
+            />
+            {/* Display error message next to the button */}
+            {uploadError && (
+              <div className="text-danger mt-2" style={{ marginLeft: "50px" }}>
+                {uploadError}
+              </div>
+            )}
+          </Form.Group>
+        </Col>
+      </Row>
+      {image &&
+        <Row className="d-flex flex-wrap justify-content-center align-items-start">
+          {/* Canvas Column */}
+          <Col
+            md={7}
+            className="responsive-col"
+            style={{
+              marginLeft: "50px",
+              minWidth: `${canvasMeasures.width}px`,
+            }}
+          >
+            <div
+              style={{
+                border: "2px solid #000", // Add a border around the canvas
+                borderRadius: "5px", // Optional: Add rounded corners
+                padding: "10px", // Optional: Add padding inside the border
+                backgroundColor: "#f8f9fa", // Optional: Add a light background color
+                display: "inline-block", // Ensure the border wraps tightly around the canvas
+              }}
+            >
+              <Stage
+                width={canvasMeasures.width}
+                height={canvasMeasures.height}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+              >
+                <Layer>
+                  {image && (
+                    <Image
+                      image={image}
+                      x={0}
+                      y={0}
+                      width={canvasMeasures.width}
+                      height={canvasMeasures.height}
                     />
-                  );
-                })}
-              </Layer>
-            </Stage>
-          </div>         
+                  )}
+                  {annotationsToDraw.map((annotation, i) => (
+                    <Annotation key={i} {...annotation} />
+                  ))}
+                </Layer>
+              </Stage>
+            </div>
+          </Col>
 
-          <div id="buttonsAndForms">
-            <div id="buttons" style={{ marginBottom: "30px", display: "flex", flexDirection: "row" }}>
-              <Form.Group controlId="file-upload">
-                <Form.Label htmlFor="file-upload-input" style={{ cursor: "pointer" }}>
-                  <Button as="span" variant="primary">Upload Image</Button>
-                </Form.Label>
-
+          {/* Form Column */}
+          <Col
+            md={5}
+            className="responsive-col mx-auto"
+            style={{ width: "475px", marginTop: "20px" }}
+          >
+            <h4>Layout Properties</h4>
+            <Form onSubmit={(e) => e.preventDefault()}>
+              <Form.Group controlId="layoutName">
+                <Form.Label>Layout Name</Form.Label>
                 <Form.Control
-                  id="file-upload-input"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  style={{ display: "none" }}
-                  onChange={ handleFileUpload }
+                  type="text"
+                  placeholder="Enter layout name"
+                  value={layoutName}
+                  onChange={(e) => setLayoutName(e.target.value)}
                 />
               </Form.Group>
-
-              <Button
-                variant="primary"
-                onClick={ saveLayout }
-              >
-                Save Layout
-              </Button>
-
-              <Button
-                variant="danger"
-                onClick={ clearAll }
-              >
-                Clear All
-              </Button>
-            </div>
-            
-            <h4>Field Properties</h4>
-            <Form>
-              <Form.Group controlId="fieldName">
-                <Form.Label>Field Name</Form.Label>
-                <Form.Control
+            </Form>
+            {layoutNameError && (
+              <div className="text-danger mt-2">{layoutNameError}</div>
+            )}
+            <h4 style={{ marginTop: "20px" }}>Field Properties</h4>
+            <Form onSubmit={(e) => e.preventDefault()}>
+              <Form.Group as={Row} controlId="fieldName" className="align-items-center">
+                <Col xs={8}>
+                  <Form.Label>Field Name</Form.Label>
+                  <Form.Control
                     type="text"
                     placeholder="Enter field name"
                     value={fieldName}
                     onChange={(e) => setFieldName(e.target.value)}
-                />
+                  />
+                </Col>
+                <Col xs={4}>
+                  <Button
+                    variant="success"
+                    onClick={saveAnnotation}
+                    className="mt-4"
+                  >
+                    Save Field
+                  </Button>
+                </Col>
               </Form.Group>
-              <br></br>
-              <Button variant="primary" type="button"onClick={ saveAnnotation }>
-                  Save Field
-              </Button>
             </Form>
-          </div> 
-        </div>
-    );  
+            {errorMessage && (
+              <div className="text-danger mt-2">{errorMessage}</div>
+            )}
+            {annotations.filter((annotation) => annotation.saved).length > 0 && (
+              <div className="mt-3">
+                <h5>Added Fields:</h5>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Field Name</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {annotations
+                      .filter((annotation) => annotation.saved)
+                      .map((annotation, index) => (
+                        <tr key={index}>
+                          <td>{index + 1}</td>
+                          <td>{annotation.name || "Unnamed Field"}</td>
+                          <td>
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              onClick={() => {
+                                const updatedAnnotations = annotations.filter((_, i) => i !== index);
+                                setAnnotations(updatedAnnotations);
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+            <div className="mt-3">
+              <Button variant="success" onClick={saveLayout}  className="me-2">Save Layout</Button>
+              <Button variant="primary" onClick={clearAll}>Clear All</Button>
+            </div>
+          </Col>
+        </Row>
+      }
+    </Container>
+  );
 }
 
 export default DocumentLayoutCreate;
