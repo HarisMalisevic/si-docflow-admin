@@ -16,7 +16,7 @@ APP.use(express.json());
 
 
 (async () => {
-  //await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
+  // await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
   configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 
