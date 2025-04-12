@@ -6,6 +6,7 @@ import AppNavbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
 import HomeRedirect from "./components/HomeRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DocumentLayoutCreate from "./components/DocumentLayoutCreate";
 
 function App() {
   return (
@@ -26,6 +27,8 @@ function App() {
         />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/logout" element={<LoginForm />} />
+        
+        <Route path="/document-layouts" element={<DocumentLayoutCreate />} />
       </Routes>
     </div>
   );
