@@ -57,7 +57,7 @@ class DocumentLayoutsController {
       return;
     }
 
-    const userID: number = (req.user as { id: number }).id;""
+    const userID: number = (req.user as { id: number }).id;
 
     try {
       await db.document_layouts.create({
