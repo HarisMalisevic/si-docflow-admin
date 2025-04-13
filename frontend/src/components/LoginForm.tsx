@@ -57,7 +57,7 @@ function LoginForm() {
           style={{ width: "100%" }}
         >
           <h2 className="text-center fw-bold mb-3">
-            Welcome to <br /> DocumentManager
+            Welcome to DocFlow
           </h2>
 
           <Button
