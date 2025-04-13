@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
 import Annotation, { AnnotationProps } from "./Annotation";
 import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
@@ -13,19 +13,38 @@ function DocumentLayoutCreate() {
   const [fieldName, setFieldName] = useState("");
   const [layoutName, setLayoutName] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // State for error message
-  const [documentType, setDocumentType] = useState<string>(""); // State for document type
+  const [documentType, setDocumentType] = useState<number | null>(null); // State for document type
   const [uploadError, setUploadError] = useState<string | null>(null); // State for upload error
   const [layoutNameError, setLayoutNameError] = useState<string | null>(null);
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
+  const [showLayoutForm, setShowLayoutForm] = useState(false);
 
   type CanvasMeasures = {
     width: number;
     height: number;
   };
 
+  type DocumentType = {
+    id: number;
+    name: string;
+    description?: string;
+    created_by?: number;
+  }
+
   const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
     width: window.innerWidth / 2,
     height: window.innerHeight,
   });
+
+  const getDocumentTypes = async () => {
+    try{
+      const response = await fetch("/api/document-types");
+      const data = await response.json();
+      setDocumentTypes(data);
+    } catch (error) {
+      console.error("Error while fetching document types: ", error);
+    }
+  }
 
   const handleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
     if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
@@ -97,22 +116,24 @@ function DocumentLayoutCreate() {
   }
 
   const saveLayout = async () => {
-    try {
-      if (annotations.length === 0 && !layoutName.trim()) {
-        setErrorMessage("Please add at least one annotation before saving the layout.");
-        setLayoutNameError("Please enter a layout name before saving.");
-        return;
-      }
-      else if (annotations.length === 0) {
-        setErrorMessage("Please add at least one annotation before saving the layout.");
-        setLayoutNameError(null);
-        return;
-      }
-      else if (!layoutName.trim()) {
-        setLayoutNameError("Please enter a layout name before saving.");
-        return;
-      }
+    if (annotations.length === 0 || (annotations.length === 1 && !annotations[annotations.length - 1].saved)) {
+      setErrorMessage("Please add at least one annotation before saving the layout.");
       setLayoutNameError(null);
+      return;
+    }
+
+    if (!showLayoutForm) {
+      setShowLayoutForm(true);
+      return;
+    }
+
+    if (!layoutName.trim()) {
+      setLayoutNameError("Please enter a layout name before saving.");
+      return;
+    }
+    setLayoutNameError(null);
+
+    try {
       if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
         annotations.pop();
       }
@@ -126,23 +147,8 @@ function DocumentLayoutCreate() {
       });
 
       let fields = JSON.stringify(annotationsFields);   //stringified annotations
-
-      console.log(annotationsFields);
-      console.log(fields);
-
-      //use if needed for testing purposes, otherwise should only be in the if(response.ok) block
-      /*setImage(null);
-      setAnnotations([]);
-      setNewAnnotation([]);
-      setCanvasMeasures({
-        width: window.innerWidth / 2,
-        height: window.innerHeight,
-      });
-      setDocumentType("")*/
-
       
       //==============ZA SLANJE U BAZU ==============//
-      //===== sve annotatione su sacuvane u fields, layoutName je ime layouta, documentType je tip dokumenta
       const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
         method: "POST",
         headers: {
@@ -167,7 +173,9 @@ function DocumentLayoutCreate() {
           width: window.innerWidth / 2,
           height: window.innerHeight,
         });
-        setDocumentType("");
+        setDocumentType(null);
+        setLayoutName("");
+        setShowLayoutForm(false);
       } 
       else {
         console.error("Failed to save layout");
@@ -226,6 +234,8 @@ function DocumentLayoutCreate() {
       //and convert it to Base64-encoded URL string (data URL)
     }
     fileInput.value = "";
+    setLayoutName("");
+    setShowLayoutForm(false);
   }
 
   async function renderFirstPage(file: File): Promise<HTMLImageElement> {   //
@@ -255,6 +265,10 @@ function DocumentLayoutCreate() {
 
   const annotationsToDraw = [...annotations, ...newAnnotation];
 
+  useEffect(() => {
+    getDocumentTypes();
+  }, []);
+
   return (
     <Container fluid>
       <Row className="mb-3">
@@ -263,13 +277,16 @@ function DocumentLayoutCreate() {
             <Form.Label style={{ marginLeft: "50px" }}>Select Document Type</Form.Label>
             <Form.Control
               as="select"
-              onChange={(e) => setDocumentType(e.target.value)}
-              value={documentType}
+              onChange={(e) => setDocumentType(e.target.value ? Number(e.target.value) : null)}   //e.target.value is always a string
+              value={documentType ?? ""}
               style={{ width: "200px", marginLeft: "50px" }}
             >
               <option value="">Select Type</option>
-              <option value="image">Image</option>
-              <option value="pdf">PDF</option>
+              {documentTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
             </Form.Control>
           </Form.Group>
           <Form.Group controlId="file-upload" className="mt-3">
@@ -285,13 +302,13 @@ function DocumentLayoutCreate() {
                   }
                 }}
               >
-                Upload {documentType || "File"}
+                Upload File
               </Button>
             </Form.Label>
             <Form.Control
               id="file-upload-input"
               type="file"
-              accept={documentType === "image" ? "image/*" : "application/pdf"}
+              accept="image/*, application/pdf"
               style={{ display: "none" }}
               onChange={handleFileUpload}
             />
@@ -353,88 +370,94 @@ function DocumentLayoutCreate() {
           <Col
             md={5}
             className="responsive-col mx-auto"
-            style={{ width: "475px", marginTop: "20px" }}
+            style={{ width: "475px" }}
           >
-            <h4>Layout Properties</h4>
-            <Form onSubmit={(e) => e.preventDefault()}>
-              <Form.Group controlId="layoutName">
-                <Form.Label>Layout Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter layout name"
-                  value={layoutName}
-                  onChange={(e) => setLayoutName(e.target.value)}
-                />
-              </Form.Group>
-            </Form>
-            {layoutNameError && (
-              <div className="text-danger mt-2">{layoutNameError}</div>
-            )}
-            <h4 style={{ marginTop: "20px" }}>Field Properties</h4>
-            <Form onSubmit={(e) => e.preventDefault()}>
-              <Form.Group as={Row} controlId="fieldName" className="align-items-center">
-                <Col xs={8}>
-                  <Form.Label>Field Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter field name"
-                    value={fieldName}
-                    onChange={(e) => setFieldName(e.target.value)}
-                  />
-                </Col>
-                <Col xs={4}>
-                  <Button
-                    variant="success"
-                    onClick={saveAnnotation}
-                    className="mt-4"
-                  >
-                    Save Field
-                  </Button>
-                </Col>
-              </Form.Group>
-            </Form>
-            {errorMessage && (
-              <div className="text-danger mt-2">{errorMessage}</div>
-            )}
-            {annotations.filter((annotation) => annotation.saved).length > 0 && (
-              <div className="mt-3">
-                <h5>Added Fields:</h5>
-                <Table striped bordered hover>
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Field Name</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {annotations
-                      .filter((annotation) => annotation.saved)
-                      .map((annotation, index) => (
-                        <tr key={index}>
-                          <td>{index + 1}</td>
-                          <td>{annotation.name || "Unnamed Field"}</td>
-                          <td>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => {
-                                const updatedAnnotations = annotations.filter((_, i) => i !== index);
-                                setAnnotations(updatedAnnotations);
-                              }}
-                            >
-                              Delete
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </Table>
-              </div>
-            )}
             <div className="mt-3">
               <Button variant="success" onClick={saveLayout}  className="me-2">Save Layout</Button>
-              <Button variant="primary" onClick={clearAll}>Clear All</Button>
+              <Button variant="danger" onClick={clearAll}>Clear All</Button>
+            </div>
+
+            {showLayoutForm && (<div id="layoutForm">
+              <h4 style={{ marginTop: "20px" }}>Layout Properties</h4>
+              <Form onSubmit={(e) => e.preventDefault()}>
+                <Form.Group controlId="layoutName">
+                  <Form.Label>Layout Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    placeholder="Enter layout name"
+                    value={layoutName}
+                    onChange={(e) => setLayoutName(e.target.value)}
+                  />
+                </Form.Group>
+              </Form>
+              {layoutNameError && (
+                <div className="text-danger mt-2">{layoutNameError}</div>
+              )}
+            </div>)}
+
+            <div id="fieldForm">
+              <h4 style={{ marginTop: "35px" }}>Field Properties</h4>
+              <Form onSubmit={(e) => e.preventDefault()}>
+                <Form.Group as={Row} controlId="fieldName" className="align-items-center">
+                  <Col xs={8}>
+                    <Form.Label>Field Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter field name"
+                      value={fieldName}
+                      onChange={(e) => setFieldName(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs={4}>
+                    <Button
+                      variant="primary"
+                      onClick={saveAnnotation}
+                      className="mt-4"
+                    >
+                      Save Field
+                    </Button>
+                  </Col>
+                </Form.Group>
+              </Form>
+              {errorMessage && (
+                <div className="text-danger mt-2">{errorMessage}</div>
+              )}
+              {annotations.filter((annotation) => annotation.saved).length > 0 && (
+                <div className="mt-3">
+                  <h5>Added Fields:</h5>
+                  <Table striped bordered hover>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Field Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {annotations
+                        .filter((annotation) => annotation.saved)
+                        .map((annotation, index) => (
+                          <tr key={index}>
+                            <td>{index + 1}</td>
+                            <td>{annotation.name || "Unnamed Field"}</td>
+                            <td>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => {
+                                  const updatedAnnotations = annotations.filter((_, i) => i !== index);
+                                  setAnnotations(updatedAnnotations);
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </Table>
+                </div>
+              )}
             </div>
           </Col>
         </Row>
