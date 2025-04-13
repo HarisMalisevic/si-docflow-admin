@@ -8,7 +8,7 @@ class AuthMiddleware {
     static isLoggedIn(req: Request, res: Response, next: NextFunction): Promise<void> | void {
         const cookies = req.headers.cookie;
         const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
-        console.log("Extracted JWT:", jwtCookie);
+        //console.log("Extracted JWT:", jwtCookie);
 
         if (typeof jwtCookie === "undefined" || jwtCookie === null) {
             res.status(401).send({ error: "Unauthorized: No jwtCookie provided" });
