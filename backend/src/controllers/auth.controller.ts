@@ -87,7 +87,7 @@ class AuthController {
 
         try {
 
-            passport.authenticate(ssoProvider.name, {
+            passport.authenticate(ssoProvider.display_name, {
                 scope: ["profile", "email"],
             })(req, res, (err: any) => {
                 if (err) {

@@ -7,6 +7,8 @@ import createGoogleStrategy from './googleAuthStrategy';
 
 async function configurePassport(passport: PassportStatic) {
 
+  const GOOGLE_API_NAME = "google";
+
   const ssoProviders: SSOProvider[] = await db.sso_providers.findAll();
 
   if (!ssoProviders || ssoProviders.length === 0) {
@@ -14,10 +16,10 @@ async function configurePassport(passport: PassportStatic) {
   }
 
   for (const ssoProvider of ssoProviders) { // Ostavio sam Google da koristi GoogleStrategy, a ostale da koriste genericki AuthStrategy
-    if (ssoProvider.name === "google") {
+    if (ssoProvider.api_name === GOOGLE_API_NAME) {
       passport.use("google", await createGoogleStrategy());
     } else {
-      passport.use(ssoProvider.name, await createAuthStrategy(ssoProvider));
+      passport.use(ssoProvider.api_name, await createAuthStrategy(ssoProvider));
     }
   }
 
