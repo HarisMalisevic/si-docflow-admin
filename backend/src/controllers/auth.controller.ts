@@ -83,7 +83,7 @@ class AuthController {
         console.log("SSO Login:", sso_provider_name);
 
         const ssoProvider: SSOProvider = await db.sso_providers.findOne({
-            where: { name: sso_provider_name }
+            where: { display_name: sso_provider_name }
         });
 
         if (!ssoProvider) {
