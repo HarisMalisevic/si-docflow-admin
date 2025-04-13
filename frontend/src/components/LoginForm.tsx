@@ -1,14 +1,40 @@
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Dropdown, Stack, Form, Spinner } from "react-bootstrap";
 import "../App.css";
 import GoogleLogo from "../assets/GoogleLogo.svg";
-import MicrosoftLogo from "../assets/MicrosoftLogo.png";
-import LinkedInLogo from "../assets/LinkedInLogo.png";
 
 function LoginForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const [otherSSOProviders, setOtherSSOProviders] = useState<
+    { name: string; callback_url: string }[] | null
+  >(null);
+
+  const fetchSSOProviders = async () => {
+    try {
+      const response = await fetch("/api/sso-providers/preview", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      let data = await response.json();
+
+      data = data.filter((provider: any) => provider.name.toLowerCase() !== "google");
+
+      setOtherSSOProviders(data);
+      console.log("Other SSO Providers:", data);
+    } catch (error) {
+      console.error("Error fetching SSO Providers:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchSSOProviders();
+  }, []);
 
   const handleGoogleLogin = (): void => {
     // Zamijeniti sa rutom za google login
@@ -59,7 +85,7 @@ function LoginForm() {
           style={{ width: "100%" }}
         >
           <h2 className="text-center fw-bold mb-3">
-            Welcome to <br /> DocumentManager
+            Welcome to <br /> Docflow
           </h2>
 
           <Button
@@ -89,42 +115,32 @@ function LoginForm() {
             </Dropdown.Toggle>
 
             <Dropdown.Menu className="w-100 p-2">
-              <Dropdown.Item as="div" className="p-0">
-                <Button
-                  variant="light"
-                  className="btn-google d-flex align-items-center justify-content-center w-100 border"
-                  size="lg"
-                  onClick={() => handleSSOLogin("microsoft")}
-                  disabled={isLoading}
-                >
-                  <img
-                    src={MicrosoftLogo}
-                    alt="Microsoft logo"
-                    width="18"
-                    height="18"
-                    className="me-2"
-                  />
-                  Log in with Microsoft
-                </Button>
-              </Dropdown.Item>
-              <Dropdown.Item as="div" className="p-0 mt-2">
-                <Button
-                  variant="light"
-                  className="btn-google d-flex align-items-center justify-content-center w-100 border"
-                  size="lg"
-                  onClick={() => handleSSOLogin("linkedin")}
-                  disabled={isLoading}
-                >
-                  <img
-                    src={LinkedInLogo}
-                    alt="LinkedIn logo"
-                    width="18"
-                    height="18"
-                    className="me-2"
-                  />
-                  Log in with LinkedIn
-                </Button>
-              </Dropdown.Item>
+              {otherSSOProviders && otherSSOProviders.length > 0 ? (
+                otherSSOProviders.map((provider: any) => (
+                  <Dropdown.Item as="div" className="p-0 mt-2" key={provider.name}>
+                    <Button
+                      variant="light"
+                      className="btn-google d-flex align-items-center justify-content-center w-100 border"
+                      size="lg"
+                      onClick={() => handleSSOLogin(provider.name)}
+                      disabled={isLoading}
+                    >
+                      {/* <img
+                        src={provider.logoUrl}
+                        alt={`${provider.name} logo`}
+                        width="18"
+                        height="18"
+                        className="me-2"
+                      /> */}
+                      Log in with {provider.name}
+                    </Button>
+                  </Dropdown.Item>
+                ))
+              ) : (
+                <Dropdown.Item as="div" className="text-center text-muted">
+                  No SSO providers available
+                </Dropdown.Item>
+              )}
             </Dropdown.Menu>
           </Dropdown>
 
