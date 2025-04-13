@@ -2,9 +2,12 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import db from '../database/db';
 import { Strategy as passportStrategy } from 'passport';
 
+export const GOOGLE_API_NAME = "google";
 
 export default async function createGoogleStrategy(): Promise<passportStrategy> {
-    const googleProvider = await db.sso_providers.findOne({ where: { name: "google" } });
+
+
+    const googleProvider = await db.sso_providers.findOne({ where: { api_name: GOOGLE_API_NAME } });
 
     if (!googleProvider) {
         throw new Error("Google OAuth provider not found in database!");

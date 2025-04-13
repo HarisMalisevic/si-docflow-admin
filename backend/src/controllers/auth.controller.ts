@@ -6,12 +6,16 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import SSOProvider from "database/SSOProvider";
 import configurePassport from "auth/passportConfig";
+import { GOOGLE_API_NAME } from "../auth/googleAuthStrategy";
 
 class AuthController {
+
+
     static async googleLogin(req: Request, res: Response): Promise<void> {
 
 
-        passport.authenticate("google", {
+
+        passport.authenticate(GOOGLE_API_NAME, {
             scope: ["profile", "email"],
         })(req, res, (err: any) => {
             if (err) {
@@ -29,7 +33,7 @@ class AuthController {
         // Preusmjeravanje na dashboard
 
         // Ovo se pozove iz googleAuthStrategy.ts done(err, user, info) - nakon što Google pozove callback
-        passport.authenticate("google", { session: false }, (err: any, user: any, info: any) => {
+        passport.authenticate(GOOGLE_API_NAME, { session: false }, (err: any, user: any, info: any) => {
             if (err || !user) {
                 return res.status(401).send({ error: "Authentication failed" });
             }
@@ -89,11 +93,11 @@ class AuthController {
 
         try {
 
-            passport.authenticate(ssoProvider.name, {
+            passport.authenticate(ssoProvider.api_name, {
                 scope: ["email"],
             })(req, res, (err: any) => {
                 if (err) {
-                    res.status(500).send({ error: "Authentication failed " + err});
+                    res.status(500).send({ error: "Authentication failed " + err });
                 }
             });
 
@@ -118,7 +122,7 @@ class AuthController {
             return;
         }
 
-        passport.authenticate(ssoProvider.name, { session: false }, (err: any, user: any, info: any) => {
+        passport.authenticate(ssoProvider.api_name, { session: false }, (err: any, user: any, info: any) => {
             if (err || !user) {
                 return res.status(401).send({ error: "Authentication failed " + err });
             }

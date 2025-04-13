@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import db from './db'; // Importing the database connection and models
 import ssoProviders_default from './sso_init'; // Importing the default SSO providers, EXAMPLE: in sso_init.ts.example.
@@ -58,7 +57,8 @@ function fill_sso_providers() {
         ssoProviders_default.forEach((provider) => {
             ssoProviders_PromiseList.push(
                 db.sso_providers.create({
-                    name: provider.name,
+                    display_name: provider.display_name,
+                    api_name: provider.api_name,
                     client_id: provider.clientId,
                     client_secret: provider.clientSecret,
                     callback_url: provider.callbackURL,
@@ -66,7 +66,7 @@ function fill_sso_providers() {
                     token_url: provider.tokenURL,
                 })
             );
-            console.log("SSO provider created:", provider.name)
+            console.log("SSO provider created:", provider.api_name)
         });
 
         Promise.all(ssoProviders_PromiseList)

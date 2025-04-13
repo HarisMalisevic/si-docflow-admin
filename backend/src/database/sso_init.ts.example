@@ -1,7 +1,8 @@
 const ssoProviders_default = [
     {
         id: null,
-        name: 'Google',
+        display_name: 'Google',
+        api_name: 'google',
         clientId: 'your-google-client-id',
         clientSecret: 'your-google-client-secret',
         callbackURL: 'your-google-callback-url',
@@ -11,7 +12,8 @@ const ssoProviders_default = [
     },
     {
         id: null,
-        name: 'LinkedIn',
+        display_name: 'LinkedIn',
+        api_name: 'linkedin',
         clientId: 'your-linkedin-client-id',
         clientSecret: 'your-linkedin-client-secret',
         callbackURL: 'your-linkedin-callback-url',
