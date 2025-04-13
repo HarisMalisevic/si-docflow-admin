@@ -2,7 +2,7 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
 // Define the attributes for DocumentLayout
 interface DocumentLayoutAttributes {
-    id?: number;
+    id: number;
     name: string;
     fields: string;
     document_type?: number;
