@@ -7,6 +7,7 @@ import LoginForm from "./components/LoginForm";
 import HomeRedirect from "./components/HomeRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
 import DocumentLayoutCreate from "./components/DocumentLayoutCreate";
+import HomePage from "./components/HomePage";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="/logout" element={<LoginForm />} />
         
         <Route path="/document-layouts" element={<DocumentLayoutCreate />} />
+        <Route path="/home" element={<HomePage />} />
       </Routes>
     </div>
   );
