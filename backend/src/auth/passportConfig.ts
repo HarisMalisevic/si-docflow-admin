@@ -1,13 +1,27 @@
 import db from '../database/db';
-import dotenv from 'dotenv';
-import createGoogleStrategy from './googleAuthStrategy';
+import createAuthStrategy from './AuthStrategy';
 import { PassportStatic } from 'passport';
+import SSOProvider from 'database/SSOProvider';
+import createGoogleStrategy from './googleAuthStrategy';
+import { GOOGLE_API_NAME } from './googleAuthStrategy';
 
-dotenv.config();
 
 async function configurePassport(passport: PassportStatic) {
 
-  passport.use(await createGoogleStrategy());
+
+  const ssoProviders: SSOProvider[] = await db.sso_providers.findAll();
+
+  if (!ssoProviders || ssoProviders.length === 0) {
+    throw new Error("No SSO providers found in the database.");
+  }
+
+  for (const ssoProvider of ssoProviders) { // Ostavio sam Google da koristi GoogleStrategy, a ostale da koriste genericki AuthStrategy
+    if (ssoProvider.api_name === GOOGLE_API_NAME) {
+      passport.use(GOOGLE_API_NAME, await createGoogleStrategy());
+    } else {
+      passport.use(ssoProvider.api_name, await createAuthStrategy(ssoProvider));
+    }
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   passport.serializeUser((user: any, done) => {

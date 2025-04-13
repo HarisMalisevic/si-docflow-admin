@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import db from './db'; // Importing the database connection and models
+import ssoProviders_default from './sso_init'; // Importing the default SSO providers, EXAMPLE: in sso_init.ts.example.
+
+// THIS FILE MUST NOT BE IMPORTED OR USED IN PRODUCTION ENVIRONMENT!
+// THIS FILE IS FOR TESTING PURPOSES ONLY!
 
 function fill_document_types() {
     return new Promise<void>(function (resolve, reject) {
@@ -51,25 +54,19 @@ function fill_sso_providers() {
     return new Promise<void>(function (resolve, reject) {
         const ssoProviders_PromiseList: Promise<any>[] = [];
 
-        const ssoProviders_default = [
-            {
-                name: "Google",
-                client_id: process.env.GOOGLE_CLIENT_ID,
-                client_secret: process.env.GOOGLE_CLIENT_SECRET,
-                callback_url: process.env.GOOGLE_CALLBACK_URL,
-            }
-        ];
-
         ssoProviders_default.forEach((provider) => {
             ssoProviders_PromiseList.push(
                 db.sso_providers.create({
-                    name: provider.name,
-                    client_id: provider.client_id,
-                    client_secret: provider.client_secret,
-                    callback_url: provider.callback_url,
+                    display_name: provider.display_name,
+                    api_name: provider.api_name,
+                    client_id: provider.clientId,
+                    client_secret: provider.clientSecret,
+                    callback_url: provider.callbackURL,
+                    authorization_url: provider.authorizationURL,
+                    token_url: provider.tokenURL,
                 })
             );
-            console.log("SSO provider created:", provider.name)
+            console.log("SSO provider created:", provider.api_name)
         });
 
         Promise.all(ssoProviders_PromiseList)
