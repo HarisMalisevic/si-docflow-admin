@@ -80,7 +80,7 @@ function SSOProviderCreate() {
               <Form.Control
                 type="text"
                 name="api_name"
-                placeholder="google, gitgub..."
+                placeholder="google, github..."
                 required
               />
             </Form.Group>
