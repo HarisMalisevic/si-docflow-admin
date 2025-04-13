@@ -51,11 +51,11 @@ export function initSSOProvider(sequelize: Sequelize) {
             },
             authorization_url: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             token_url: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
         },
         {
