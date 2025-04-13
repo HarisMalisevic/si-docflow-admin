@@ -9,6 +9,7 @@ function AddSSOProviderForm() {
   const [responseMessage, setResponseMessage] = useState<string>("");
 
   const formRef = useRef<HTMLFormElement>(null);
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
@@ -20,6 +21,8 @@ function AddSSOProviderForm() {
       client_id: formData.get("client_id"),
       client_secret: formData.get("client_secret"),
       callback_url: formData.get("callback_url"),
+      authorization_url: formData.get("authorization_url"),
+      token_url: formData.get("token_url"),
     };
 
     try {
@@ -52,11 +55,8 @@ function AddSSOProviderForm() {
       className="d-flex justify-content-center align-items-center"
       style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}
     >
-      <div style={{ width: "100%", maxWidth: "400px" }}>
-        <Stack
-          gap={3}
-          className="p-4 p-md-5 border rounded-4 bg-white shadow"
-        >
+      <div style={{ width: "100%", maxWidth: "500px" }}>
+        <Stack gap={3} className="p-4 p-md-5 border rounded-4 bg-white shadow">
           <h2 className="text-center fw-bold mb-3">Add SSO Provider</h2>
 
           {responseMessage && (
@@ -100,6 +100,26 @@ function AddSSOProviderForm() {
                 type="url"
                 name="callback_url"
                 placeholder="https://yourapp.com/auth/callback"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="authorizationUrl">
+              <Form.Label>Authorization URL</Form.Label>
+              <Form.Control
+                type="url"
+                name="authorization_url"
+                placeholder="https://provider.com/oauth/authorize"
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="tokenUrl">
+              <Form.Label>Token URL</Form.Label>
+              <Form.Control
+                type="url"
+                name="token_url"
+                placeholder="https://provider.com/oauth/token"
                 required
               />
             </Form.Group>
