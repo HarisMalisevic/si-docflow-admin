@@ -74,10 +74,10 @@ class AuthController {
     }
 
     static async ssoLogin(req: Request, res: Response): Promise<void> {
-        const { sso_provider_id } = req.params;
+        const { sso_provider_name } = req.params;
 
         const ssoProvider: SSOProvider = await db.ssoProviders.findOne({
-            where: { id: sso_provider_id }
+            where: { name: sso_provider_name }
         });
 
         if (!ssoProvider) {
