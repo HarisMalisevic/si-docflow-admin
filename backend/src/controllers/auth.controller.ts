@@ -76,7 +76,9 @@ class AuthController {
     static async ssoLogin(req: Request, res: Response): Promise<void> {
         const { sso_provider_name } = req.params;
 
-        const ssoProvider: SSOProvider = await db.ssoProviders.findOne({
+        console.log("SSO Provider Name:", sso_provider_name);
+
+        const ssoProvider: SSOProvider = await db.sso_providers.findOne({
             where: { name: sso_provider_name }
         });
 
