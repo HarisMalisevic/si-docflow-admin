@@ -13,7 +13,7 @@ const HomeRedirect = () => {
                 const data = await response.json();
 
                 if (data.loggedIn) {
-                    navigate("/home"); // TODO: Zamijeniti sa homepage
+                    navigate("/home");
                 } else {
                     navigate("/login");
                 }
