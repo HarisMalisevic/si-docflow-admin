@@ -4,6 +4,8 @@ import { Request, Response } from "express";
 import db from "../database/db";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import SSOProvider from "database/SSOProvider";
+import configurePassport from "auth/passportConfig";
 
 class AuthController {
     static async googleLogin(req: Request, res: Response): Promise<void> {
@@ -69,6 +71,57 @@ class AuthController {
             res.redirect("/");
         });
 
+    }
+
+    static async ssoLogin(req: Request, res: Response): Promise<void> {
+        const { sso_provider_id } = req.params;
+
+        const ssoProvider: SSOProvider = await db.ssoProviders.findOne({
+            where: { id: sso_provider_id }
+        });
+
+        if (!ssoProvider) {
+            res.status(404).send({ error: "SSO provider not found" });
+            return
+        }
+
+        try {
+
+            passport.authenticate(ssoProvider.name, {
+                scope: ["profile", "email"],
+            })(req, res, (err: any) => {
+                if (err) {
+                    res.status(500).send({ error: "Authentication failed" });
+                }
+            });
+
+
+        } catch (error) {
+            console.error("Error in ssoLogin:", error);
+            res.status(500).send({ error: "Internal server error" });
+        }
+    }
+
+    static async ssoCallback(req: Request, res: Response): Promise<void> {
+        passport.authenticate("oauth2", { session: false }, (err: any, user: any, info: any) => {
+            if (err || !user) {
+                return res.status(401).send({ error: "Authentication failed" });
+            }
+
+            try {
+                // Generate a JWT token for the authenticated user
+                const token = jwt.sign({ id: user.id }, process.env.SESSION_SECRET!);
+                console.log("User.id:", user.id, " - generated token: ", token);
+
+                res.cookie("jwt", token, { httpOnly: true, secure: true, maxAge: 3600000 });
+                // Token lasts for 1 hour, browser deletes if after expiration
+
+                // Redirect to the dashboard or send a success response
+                res.redirect("/");
+            } catch (error) {
+                res.status(500).send({ error: "Internal server error" });
+            }
+        })(req, res);
     }
 }
 
