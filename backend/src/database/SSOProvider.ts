@@ -7,8 +7,8 @@ interface SSOProviderAttributes {
     client_id: string;
     client_secret: string;
     callback_url: string;
-    authorizationURL: string;
-    tokenURL: string;
+    authorization_url: string;
+    token_url: string;
 }
 
 // Define the creation attributes (optional fields for new instances)
@@ -21,8 +21,8 @@ class SSOProvider extends Model<SSOProviderAttributes, SSOProviderCreationAttrib
     public client_id!: string;
     public client_secret!: string;
     public callback_url!: string;
-    public authorizationURL!: string;
-    public tokenURL!: string;
+    public authorization_url!: string;
+    public token_url!: string;
 }
 
 export function initSSOProvider(sequelize: Sequelize) {
@@ -49,11 +49,11 @@ export function initSSOProvider(sequelize: Sequelize) {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-            authorizationURL: {
+            authorization_url: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-            tokenURL: {
+            token_url: {
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
