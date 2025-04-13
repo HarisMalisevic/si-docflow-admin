@@ -2,21 +2,16 @@ import db from "../database/db";
 import { Request, Response } from "express";
 import DocumentLayout from "../database/DocumentLayout";
 
-interface Field {
-  name: string;
-  upper_left: { x: number; y: number };
-  lower_right: { x: number; y: number };
-}
 interface CreateDocumentLayoutBody {
   name: string;
-  fields: Field[];
+  fields: string;
   document_type?: number;
   image_width: number;
   image_height: number;
 }
 
 class DocumentLayoutsController {
-  static async getAllDocumentLayouts(req: Request, res: Response) {
+  static async getAll(req: Request, res: Response) {
     try {
       const allDocumentLayouts: DocumentLayout[] =
         await db.document_layouts.findAll();
@@ -29,7 +24,7 @@ class DocumentLayoutsController {
     }
   }
 
-  static async createDocumentLayout(req: Request, res: Response) {
+  static async create(req: Request, res: Response) {
     const jsonReq: CreateDocumentLayoutBody = req.body || {};
 
     if (!jsonReq.name) {
@@ -74,8 +69,6 @@ class DocumentLayoutsController {
 
     const userID: number = (req.user as { id: number }).id;
 
-    console.log("User ID: ", userID);
-
     try {
       console.log("Creating document layout with data: ", jsonReq);
       await db.document_layouts.create({
@@ -94,7 +87,7 @@ class DocumentLayoutsController {
     }
   }
 
-  static async deleteDocumentLayout(req: Request, res: Response) {
+  static async delete(req: Request, res: Response) {
     const { id } = req.params;
 
     const numericId = parseInt(id, 10);
