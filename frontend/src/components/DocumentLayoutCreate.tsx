@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
 import Annotation, { AnnotationProps } from "./Annotation";
-import { Button, Col, Container, Form, Row, Table } from "react-bootstrap";
+import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 // @ts-ignore
@@ -17,7 +17,7 @@ function DocumentLayoutCreate() {
   const [uploadError, setUploadError] = useState<string | null>(null); // State for upload error
   const [layoutNameError, setLayoutNameError] = useState<string | null>(null);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
-  const [showLayoutForm, setShowLayoutForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   type CanvasMeasures = {
     width: number;
@@ -115,18 +115,20 @@ function DocumentLayoutCreate() {
     setAnnotations([]);
   }
 
-  const saveLayout = async () => {
+  const showLayoutForm = () => {
     if (annotations.length === 0 || (annotations.length === 1 && !annotations[annotations.length - 1].saved)) {
       setErrorMessage("Please add at least one annotation before saving the layout.");
       setLayoutNameError(null);
       return;
     }
 
-    if (!showLayoutForm) {
-      setShowLayoutForm(true);
-      return;
+    if (!showModal) {
+      setShowModal(true);
+      setLayoutNameError(null);
     }
+  }
 
+  const saveLayout = async () => {    
     if (!layoutName.trim()) {
       setLayoutNameError("Please enter a layout name before saving.");
       return;
@@ -175,7 +177,7 @@ function DocumentLayoutCreate() {
         });
         setDocumentType(null);
         setLayoutName("");
-        setShowLayoutForm(false);
+        setShowModal(false);
       } 
       else {
         console.error("Failed to save layout");
@@ -235,7 +237,7 @@ function DocumentLayoutCreate() {
     }
     fileInput.value = "";
     setLayoutName("");
-    setShowLayoutForm(false);
+    setShowModal(false);
   }
 
   async function renderFirstPage(file: File): Promise<HTMLImageElement> {   //
@@ -373,30 +375,12 @@ function DocumentLayoutCreate() {
             style={{ width: "475px" }}
           >
             <div className="mt-3">
-              <Button variant="success" onClick={saveLayout}  className="me-2">Save Layout</Button>
+              <Button variant="success" onClick={showLayoutForm}  className="me-2">Save Layout</Button>
               <Button variant="danger" onClick={clearAll}>Clear All</Button>
             </div>
 
-            {showLayoutForm && (<div id="layoutForm">
-              <h4 style={{ marginTop: "20px" }}>Layout Properties</h4>
-              <Form onSubmit={(e) => e.preventDefault()}>
-                <Form.Group controlId="layoutName">
-                  <Form.Label>Layout Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter layout name"
-                    value={layoutName}
-                    onChange={(e) => setLayoutName(e.target.value)}
-                  />
-                </Form.Group>
-              </Form>
-              {layoutNameError && (
-                <div className="text-danger mt-2">{layoutNameError}</div>
-              )}
-            </div>)}
-
             <div id="fieldForm">
-              <h4 style={{ marginTop: "35px" }}>Field Properties</h4>
+              <h4 style={{ marginTop: "30px" }}>Field Properties</h4>
               <Form onSubmit={(e) => e.preventDefault()}>
                 <Form.Group as={Row} controlId="fieldName" className="align-items-center">
                   <Col xs={8}>
@@ -459,6 +443,30 @@ function DocumentLayoutCreate() {
                 </div>
               )}
             </div>
+
+            <Modal show={showModal} onHide={() => setShowModal(false)}>
+              <Modal.Header closeButton>
+                <Modal.Title>Save Layout</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <Form onSubmit={(e) => e.preventDefault()}>
+                  <Form.Group controlId="layoutName">
+                    <Form.Label>Layout Name</Form.Label>
+                    <Form.Control
+                      type="text"
+                      placeholder="Enter layout name"
+                      value={layoutName}
+                      onChange={(e) => setLayoutName(e.target.value)}
+                    />
+                  </Form.Group>
+                </Form>
+                {layoutNameError && (
+                  <div className="text-danger mt-2">{layoutNameError}</div>
+                )}
+                <Button style={{ marginTop: "20px" }} variant="success" onClick={saveLayout} className="me-2">Save Layout</Button>
+              </Modal.Body>
+            </Modal>
+
           </Col>
         </Row>
       }
