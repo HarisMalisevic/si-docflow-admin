@@ -17,14 +17,13 @@ function AppNavbar() {
           throw new Error("Logout failed");
         }
         console.log("Successfully logged out");
-
-      }).then(() => {
+      })
+      .then(() => {
         window.location.reload(); // Refresh the site
       })
       .catch((error) => {
         console.error("Error during logout:", error);
-      })
-
+      });
   };
 
   return (

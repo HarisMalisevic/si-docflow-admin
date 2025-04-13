@@ -39,15 +39,13 @@ class SsoProviderController {
       return;
     }
 
-    const newSSOProvider = SSOProvider.build({
-      name: jsonReq.name,
-      client_id: jsonReq.client_id,
-      client_secret: jsonReq.client_secret,
-      callback_url: jsonReq.callback_url,
-    })
-
     try {
-      await db.sso_providers.create(newSSOProvider);
+      await db.sso_providers.create({
+        name: jsonReq.name,
+        client_id: jsonReq.client_id,
+        client_secret: jsonReq.client_secret,
+        callback_url: jsonReq.callback_url
+      });
       res.status(200).json({ message: "SSO provider added successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to add SSO provider", error });
