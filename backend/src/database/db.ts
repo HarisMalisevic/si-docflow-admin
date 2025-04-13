@@ -5,6 +5,7 @@ import { initDocumentType } from './DocumentType';
 import { initAdminUser } from './AdminUser';
 import { initSSOProvider } from './SSOProvider';
 import { initDocumentLayout } from './DocumentLayout';
+import { initAccessRight } from './AccessRight';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -32,6 +33,7 @@ db.document_types = initDocumentType(sequelize_obj);
 db.admin_users = initAdminUser(sequelize_obj);
 db.sso_providers = initSSOProvider(sequelize_obj);
 db.document_layouts = initDocumentLayout(sequelize_obj);
+db.access_rights = initAccessRight(sequelize_obj);
 
 
 // Relacije
