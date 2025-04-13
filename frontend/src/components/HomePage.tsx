@@ -27,9 +27,9 @@ function HomePage() {
               variant="secondary"
               size="lg"
               className="p-3 fs-3 d-flex align-items-center justify-content-center gap-2"
-              onClick={() => navigate("/document-labels")}
+              onClick={() => navigate("/document-layouts")}
             >
-              <span>Document Labels</span>
+              <span>Document Layouts</span>
             </Button>
           </div>
         </Col>
