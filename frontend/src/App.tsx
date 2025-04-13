@@ -6,7 +6,7 @@ import AppNavbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
 import HomeRedirect from "./components/HomeRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
-import AddSSOProviderForm from "./components/AddSSOProviderForm";
+import SSOProviderCreate from "./components/SSOProviderCreate";
 import DocumentLayoutCreate from "./components/DocumentLayoutCreate";
 
 function App() {
@@ -30,7 +30,7 @@ function App() {
           path="/sso-providers"
           element={
             <ProtectedRoute>
-              <AddSSOProviderForm />
+              <SSOProviderCreate />
             </ProtectedRoute>
           }
         />

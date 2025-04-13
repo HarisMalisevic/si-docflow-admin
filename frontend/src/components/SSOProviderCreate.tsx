@@ -4,7 +4,7 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Spinner from "react-bootstrap/Spinner";
 
-function AddSSOProviderForm() {
+function SSOProviderCreate() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [responseMessage, setResponseMessage] = useState<string>("");
 
@@ -17,7 +17,8 @@ function AddSSOProviderForm() {
 
     const formData = new FormData(formRef.current!);
     const newProvider = {
-      name: formData.get("name"),
+      display_name: formData.get("display_name"),
+      api_name: formData.get("api_name"),
       client_id: formData.get("client_id"),
       client_secret: formData.get("client_secret"),
       callback_url: formData.get("callback_url"),
@@ -26,7 +27,7 @@ function AddSSOProviderForm() {
     };
 
     try {
-      const response = await fetch("/api/sso-providers/sso-provider", {
+      const response = await fetch("/api/sso-providers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,12 +65,22 @@ function AddSSOProviderForm() {
           )}
 
           <Form onSubmit={handleSubmit} ref={formRef}>
-            <Form.Group className="mb-3" controlId="ssoName">
-              <Form.Label>Provider Name</Form.Label>
+            <Form.Group className="mb-3" controlId="ssoDisplayName">
+              <Form.Label>Provider Display Name</Form.Label>
               <Form.Control
                 type="text"
-                name="name"
+                name="display_name"
                 placeholder="Google, GitHub..."
+                required
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="ssoApiName">
+              <Form.Label>Provider API Name</Form.Label>
+              <Form.Control
+                type="text"
+                name="api_name"
+                placeholder="google, gitgub..."
                 required
               />
             </Form.Group>
@@ -99,7 +110,7 @@ function AddSSOProviderForm() {
               <Form.Control
                 type="url"
                 name="callback_url"
-                placeholder="https://yourapp.com/auth/callback"
+                placeholder="https://yourapp.com/auth/provider/callback"
                 required
               />
             </Form.Group>
@@ -109,7 +120,7 @@ function AddSSOProviderForm() {
               <Form.Control
                 type="url"
                 name="authorization_url"
-                placeholder="https://provider.com/oauth/authorize"
+                placeholder="https://provider.com/oauth/v2/authorization"
                 required
               />
             </Form.Group>
@@ -119,7 +130,7 @@ function AddSSOProviderForm() {
               <Form.Control
                 type="url"
                 name="token_url"
-                placeholder="https://provider.com/oauth/token"
+                placeholder="https://provider.com/oauth/v2/authorization"
                 required
               />
             </Form.Group>
@@ -155,4 +166,4 @@ function AddSSOProviderForm() {
   );
 }
 
-export default AddSSOProviderForm;
+export default SSOProviderCreate;
