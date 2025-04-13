@@ -40,8 +40,9 @@ function LoginForm() {
     // Zamijeniti sa rutom za google login
     window.location.href = "/auth/google";
   };
-  const handleSSOLogin = (provider: string) => {
-    window.location.href = `/auth/${provider}`;
+  
+  const handleSSOLogin = (provider_name: string) => {
+    window.location.href = `/auth/${provider_name}/login`;
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
