@@ -9,19 +9,24 @@ router.get(
   "/",
   AuthMiddleware.isLoggedIn,
   AuthMiddleware.isSuperAdmin,
-  SsoProviderController.getAllSSOProviders
+  SsoProviderController.getAll
 );
 router.post(
   "/",
   AuthMiddleware.isLoggedIn,
   AuthMiddleware.isSuperAdmin,
-  SsoProviderController.addSSOProvider
+  SsoProviderController.add
 );
 router.delete(
   "/:id",
   AuthMiddleware.isLoggedIn,
   AuthMiddleware.isSuperAdmin,
-  SsoProviderController.deleteSSOProvider
+  SsoProviderController.delete
+);
+
+router.get(
+  "/preview",
+  SsoProviderController.preview
 );
 
 export default router;
