@@ -83,7 +83,7 @@ class SsoProviderController {
 
       const previewData = allSSOProviders.map(provider => ({
         name: provider.name,
-        callback_url: provider.callback_url
+        authorization_url: provider.authorization_url,
       }));
 
       res.json(previewData);

@@ -20,7 +20,7 @@ export default async function createAuthStrategy(ssoProvider: SSOProvider): Prom
                 // Check if the user already exists
                 const existingUser = await await db.admin_users.findOne({
                     where: {
-                        sso_id: profile.id,
+                        sso_id: accessToken,
                         sso_provider: ssoProvider.id,
                     }
                 });
@@ -29,6 +29,8 @@ export default async function createAuthStrategy(ssoProvider: SSOProvider): Prom
                     return done(null, existingUser);
                 }
 
+                console.log("Profile:", profile)
+                
                 // Register a new user if they don't exist
                 const newUser = await db.admin_users.create({
                     email: profile.emails?.[0].value,
