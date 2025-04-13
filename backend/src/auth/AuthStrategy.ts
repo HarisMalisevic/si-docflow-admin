@@ -16,7 +16,7 @@ export default async function createAuthStrategy(ssoProvider: SSOProvider): Prom
         async (accessToken: string, refreshToken: string, profile: Profile, done: VerifyCallback) => {
             try {
                 // Check if the user already exists
-                const existingUser = await await db.admin_users.findOne({
+                const existingUser = await db.admin_users.findOne({
                     where: {
                         sso_id: profile.id,
                         sso_provider: ssoProvider.id,
