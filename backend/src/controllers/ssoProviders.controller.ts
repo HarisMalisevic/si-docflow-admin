@@ -1,6 +1,7 @@
 import db from "../database/db";
 import { Request, Response } from "express";
 import SSOProvider from "../database/SSOProvider";
+import { json } from "sequelize";
 
 class SsoProviderController {
   static async getAllSSOProviders(req: Request, res: Response) {
@@ -23,6 +24,8 @@ class SsoProviderController {
       client_id: string;
       client_secret: string;
       callback_url: string;
+      authorization_url: string;
+      token_url: string;
     } = req.body || {};
 
     if (!jsonReq.name) {
@@ -37,14 +40,22 @@ class SsoProviderController {
     } else if (!jsonReq.callback_url) {
       res.status(400).json({ message: "Callback_url is required" });
       return;
-    }
+    } else if (!jsonReq.authorization_url) {
+      res.status(400).json({ message: "Authorization_url is required" });
+      return;
+    } else if (!jsonReq.token_url) {
+      res.status(400).json({ message: "Token_url is required" });
+      return;
+    } 
 
     try {
       await db.sso_providers.create({
         name: jsonReq.name,
         client_id: jsonReq.client_id,
         client_secret: jsonReq.client_secret,
-        callback_url: jsonReq.callback_url
+        callback_url: jsonReq.callback_url,
+        authorization_url: jsonReq.authorization_url,
+        token_url: jsonReq.token_url
       });
       res.status(200).json({ message: "SSO provider added successfully" });
     } catch (error) {
