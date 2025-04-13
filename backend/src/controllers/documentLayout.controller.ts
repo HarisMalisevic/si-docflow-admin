@@ -11,11 +11,12 @@ interface CreateDocumentLayoutBody {
 }
 
 class DocumentLayoutsController {
-  static async getAllDocumentLayouts(req: Request, res: Response) {
+  static async getAll(req: Request, res: Response) {
     try {
       const allDocumentLayouts: DocumentLayout[] =
         await db.document_layouts.findAll();
 
+      console.log("All document layouts: ", JSON.stringify(allDocumentLayouts));
       res.json(allDocumentLayouts);
     } catch (error) {
       console.error("Error fetching document layouts: ", error);
@@ -23,7 +24,7 @@ class DocumentLayoutsController {
     }
   }
 
-  static async createDocumentLayout(req: Request, res: Response) {
+  static async create(req: Request, res: Response) {
     const jsonReq: CreateDocumentLayoutBody = req.body || {};
 
     if (!jsonReq.name) {
@@ -34,6 +35,15 @@ class DocumentLayoutsController {
       res.status(400).json({ message: "Fields is required" });
       return;
     }
+
+    if (
+      jsonReq.document_type !== undefined &&
+      (typeof jsonReq.document_type !== "number" || isNaN(jsonReq.document_type))
+    ) {
+      res.status(400).json({ message: "Document type must be a number" });
+      return;
+    }
+
     if (
       jsonReq.image_width === undefined ||
       jsonReq.image_width === null ||
@@ -60,24 +70,24 @@ class DocumentLayoutsController {
     const userID: number = (req.user as { id: number }).id;
 
     try {
+      console.log("Creating document layout with data: ", jsonReq);
       await db.document_layouts.create({
         name: jsonReq.name,
         fields: jsonReq.fields,
         image_width: jsonReq.image_width,
         image_height: jsonReq.image_height,
         created_by: userID,
-        ...(jsonReq.document_type !== undefined && {
-          document_type: jsonReq.document_type,
-        }),
+        document_type: jsonReq.document_type !== undefined ? jsonReq.document_type : null,
       });
-
+      console.log("Document layout created successfully");
       res.status(200).json({ message: "Document layout added successfully" });
     } catch (error) {
+      console.error("Error creating document layout: ", error);
       res.status(500).json({ message: "Failed to add document layout", error });
     }
   }
 
-  static async deleteDocumentLayout(req: Request, res: Response) {
+  static async delete(req: Request, res: Response) {
     const { id } = req.params;
 
     const numericId = parseInt(id, 10);
