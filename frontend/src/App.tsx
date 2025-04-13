@@ -40,6 +40,9 @@ function App() {
         
         <Route path="/document-layouts" element={<DocumentLayoutCreate />} />
         <Route path="/home" element={<HomePage />} />
+        
+        {/*redirect unknown routes*/}
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </div>
   );
