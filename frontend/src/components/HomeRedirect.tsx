@@ -5,7 +5,7 @@ const HomeRedirect = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const checkLoginStatus = async () => {
+        async function checkLoginStatus() {
             try {
                 const response = await fetch("/api/auth/status", {
                     credentials: "include", // Include cookies in the request
@@ -13,7 +13,7 @@ const HomeRedirect = () => {
                 const data = await response.json();
 
                 if (data.loggedIn) {
-                    navigate("/document-types"); // TODO: Zamijeniti sa homepage
+                    navigate("/home"); // TODO: Zamijeniti sa homepage
                 } else {
                     navigate("/login");
                 }
