@@ -40,10 +40,10 @@ function AppNavbar() {
                 Home
               </Nav.Link> */}
               <Nav.Link as={Link} to="/document-types">
-                Document Types
+                Types
               </Nav.Link>
               <Nav.Link as={Link} to="/document-layouts">
-                Document Layouts
+                Layouts
               </Nav.Link>
             </Nav>
             <Nav>
