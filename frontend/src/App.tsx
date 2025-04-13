@@ -6,15 +6,16 @@ import AppNavbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
 import HomeRedirect from "./components/HomeRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SSOProviderCreate from "./components/SSOProviderCreate";
 import DocumentLayoutCreate from "./components/DocumentLayoutCreate";
 
 function App() {
   return (
     <div>
-
       <ProtectedRoute>
         <AppNavbar />
       </ProtectedRoute>
+
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route
@@ -22,6 +23,14 @@ function App() {
           element={
             <ProtectedRoute>
               <DocumentTypeViewer />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sso-providers"
+          element={
+            <ProtectedRoute>
+              <SSOProviderCreate />
             </ProtectedRoute>
           }
         />

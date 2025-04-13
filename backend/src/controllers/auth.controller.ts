@@ -6,12 +6,16 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import SSOProvider from "database/SSOProvider";
 import configurePassport from "auth/passportConfig";
+import { GOOGLE_API_NAME } from "../auth/googleAuthStrategy";
 
 class AuthController {
+
+
     static async googleLogin(req: Request, res: Response): Promise<void> {
 
 
-        passport.authenticate("google", {
+
+        passport.authenticate(GOOGLE_API_NAME, {
             scope: ["profile", "email"],
         })(req, res, (err: any) => {
             if (err) {
@@ -29,7 +33,7 @@ class AuthController {
         // Preusmjeravanje na dashboard
 
         // Ovo se pozove iz googleAuthStrategy.ts done(err, user, info) - nakon što Google pozove callback
-        passport.authenticate("google", { session: false }, (err: any, user: any, info: any) => {
+        passport.authenticate(GOOGLE_API_NAME, { session: false }, (err: any, user: any, info: any) => {
             if (err || !user) {
                 return res.status(401).send({ error: "Authentication failed" });
             }
@@ -76,7 +80,9 @@ class AuthController {
     static async ssoLogin(req: Request, res: Response): Promise<void> {
         const { sso_provider_name } = req.params;
 
-        const ssoProvider: SSOProvider = await db.ssoProviders.findOne({
+        console.log("SSO Login:", sso_provider_name);
+
+        const ssoProvider: SSOProvider = await db.sso_providers.findOne({
             where: { name: sso_provider_name }
         });
 
@@ -87,11 +93,11 @@ class AuthController {
 
         try {
 
-            passport.authenticate(ssoProvider.name, {
-                scope: ["profile", "email"],
+            passport.authenticate(ssoProvider.api_name, {
+                scope: ["email"],
             })(req, res, (err: any) => {
                 if (err) {
-                    res.status(500).send({ error: "Authentication failed" });
+                    res.status(500).send({ error: "Authentication failed " + err });
                 }
             });
 
@@ -103,9 +109,22 @@ class AuthController {
     }
 
     static async ssoCallback(req: Request, res: Response): Promise<void> {
-        passport.authenticate("oauth2", { session: false }, (err: any, user: any, info: any) => {
+        const { sso_provider_name } = req.params;
+
+        console.log("SSO Callback:", sso_provider_name);
+
+        const ssoProvider: SSOProvider = await db.sso_providers.findOne({
+            where: { name: sso_provider_name }
+        });
+
+        if (!ssoProvider) {
+            res.status(404).send({ error: "SSO provider not found" });
+            return;
+        }
+
+        passport.authenticate(ssoProvider.api_name, { session: false }, (err: any, user: any, info: any) => {
             if (err || !user) {
-                return res.status(401).send({ error: "Authentication failed" });
+                return res.status(401).send({ error: "Authentication failed " + err });
             }
 
             try {
@@ -114,7 +133,7 @@ class AuthController {
                 console.log("User.id:", user.id, " - generated token: ", token);
 
                 res.cookie("jwt", token, { httpOnly: true, secure: true, maxAge: 3600000 });
-                // Token lasts for 1 hour, browser deletes if after expiration
+                // Token lasts for 1 hour, browser deletes it after expiration
 
                 // Redirect to the dashboard or send a success response
                 res.redirect("/");

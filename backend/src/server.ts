@@ -45,7 +45,6 @@ APP.use("/auth", authRoutes);
 APP.get("/api/message", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
   const cookies = req.headers.cookie;
   const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
-  console.log("Extracted JWT:", jwtCookie);
 
   res.json({ message: "Hello from backend!" });
 });
@@ -53,7 +52,14 @@ APP.get("/api/message", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, 
 // API Routes
 APP.use("/api/document-types", documentTypeRoutes);
 
+// API route to check if the user is logged in
 APP.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
+  res.json({ loggedIn: true, user: req.user });
+});
+
+// API route to check if logged in user is super admin
+APP.get("/api/auth/status/super", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
+  console.log("User is super admin:", req.user);
   res.json({ loggedIn: true, user: req.user });
 });
 
