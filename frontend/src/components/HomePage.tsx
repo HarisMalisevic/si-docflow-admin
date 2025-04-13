@@ -38,7 +38,7 @@ function HomePage() {
             </Col>
             <Col className="d-flex justify-content-start">
               <Button
-                variant="secondary"
+                variant="primary"
                 size="lg"
                 className="w-50 d-flex align-items-center justify-content-center border"
                 onClick={() => navigate("/document-layouts")}
