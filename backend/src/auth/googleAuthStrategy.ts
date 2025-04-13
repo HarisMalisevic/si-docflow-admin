@@ -4,7 +4,7 @@ import { Strategy as passportStrategy } from 'passport';
 
 
 export default async function createGoogleStrategy(): Promise<passportStrategy> {
-    const googleProvider = await db.sso_providers.findOne({ where: { name: "Google" } });
+    const googleProvider = await db.sso_providers.findOne({ where: { name: "google" } });
 
     if (!googleProvider) {
         throw new Error("Google OAuth provider not found in database!");
