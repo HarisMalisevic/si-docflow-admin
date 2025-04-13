@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import SSOProvider from "../database/SSOProvider";
 
 class SsoProviderController {
-  static async getAllSSOProviders(req: Request, res: Response) {
+  static async getAll(req: Request, res: Response) {
     try {
       const allSSOProviders: SSOProvider[] = await db.sso_providers.findAll();
 
@@ -17,7 +17,7 @@ class SsoProviderController {
     }
   }
 
-  static async addSSOProvider(req: Request, res: Response) {
+  static async add(req: Request, res: Response) {
     const jsonReq: {
       name: string;
       client_id: string;
@@ -52,7 +52,7 @@ class SsoProviderController {
     }
   }
 
-  static async deleteSSOProvider(req: Request, res: Response) {
+  static async delete(req: Request, res: Response) {
     const { id } = req.params;
 
     try {
@@ -71,6 +71,27 @@ class SsoProviderController {
     }
 
     res.json({ message: `SSO provider ${id} removed` });
+  }
+
+  static async preview(req: Request, res: Response) {
+    try {
+      const allSSOProviders: SSOProvider[] = await db.sso_providers.findAll();
+
+      if (!allSSOProviders) {
+        throw new Error("No SSO providers found in the database!");
+      }
+
+      const previewData = allSSOProviders.map(provider => ({
+        name: provider.name,
+        callback_url: provider.callback_url
+      }));
+
+      res.json(previewData);
+
+    } catch (error) {
+      console.error("Error fetching SSO providers: ", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 }
 
