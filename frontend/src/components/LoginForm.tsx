@@ -23,7 +23,7 @@ function LoginForm() {
 
       let data = await response.json();
 
-      data = data.filter((provider: any) => provider.name.toLowerCase() !== "google");
+      data = data.filter((provider: any) => provider.display_name.toLowerCase() !== "google");
 
       setOtherSSOProviders(data);
       console.log("Other SSO Providers:", data);
@@ -118,22 +118,22 @@ function LoginForm() {
             <Dropdown.Menu className="w-100 p-2">
               {otherSSOProviders && otherSSOProviders.length > 0 ? (
                 otherSSOProviders.map((provider: any) => (
-                  <Dropdown.Item as="div" className="p-0 mt-2" key={provider.name}>
+                  <Dropdown.Item as="div" className="p-0 mt-2" key={provider.display_name}>
                     <Button
                       variant="light"
                       className="btn-google d-flex align-items-center justify-content-center w-100 border"
                       size="lg"
-                      onClick={() => handleSSOLogin(provider.name)}
+                      onClick={() => handleSSOLogin(provider.display_name)}
                       disabled={isLoading}
                     >
                       {/* <img
                         src={provider.logoUrl}
-                        alt={`${provider.name} logo`}
+                        alt={`${provider.display_name} logo`}
                         width="18"
                         height="18"
                         className="me-2"
                       /> */}
-                      Log in with {provider.name}
+                      Log in with {provider.display_name}
                     </Button>
                   </Dropdown.Item>
                 ))
