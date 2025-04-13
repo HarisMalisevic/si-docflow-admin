@@ -48,11 +48,11 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 allowNull: true,
             },
             image_width: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.DOUBLE,
                 allowNull: false,
             },
             image_height: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.DOUBLE,
                 allowNull: false,
             },
             created_by: {
