@@ -1,7 +1,6 @@
 import db from "../database/db";
 import { Request, Response } from "express";
 import SSOProvider from "../database/SSOProvider";
-import { json } from "sequelize";
 
 class SsoProviderController {
   static async getAll(req: Request, res: Response) {
