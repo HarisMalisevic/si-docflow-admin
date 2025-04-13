@@ -122,10 +122,30 @@ function DocumentLayoutCreate() {
       return;
     }
 
+    if (!documentType) {
+      setUploadError("Please select a valid document type before saving the layout.");
+      return;
+    }
+
     if (!showModal) {
       setShowModal(true);
       setLayoutNameError(null);
+      setUploadError(null);
     }
+  }
+
+  const reset = () => {
+    //remove the uploaded image and previous annotations, reset canvas
+    setImage(null);
+    setAnnotations([]);
+    setNewAnnotation([]);
+    setCanvasMeasures({
+      width: window.innerWidth / 2,
+      height: window.innerHeight,
+    });
+    setDocumentType(null);
+    setLayoutName("");
+    setShowModal(false);
   }
 
   const saveLayout = async () => {    
@@ -167,17 +187,7 @@ function DocumentLayoutCreate() {
       });
 
       if(response.ok) {
-        //remove the uploaded image and previous annotations, reset canvas
-        setImage(null);
-        setAnnotations([]);
-        setNewAnnotation([]);
-        setCanvasMeasures({
-          width: window.innerWidth / 2,
-          height: window.innerHeight,
-        });
-        setDocumentType(null);
-        setLayoutName("");
-        setShowModal(false);
+        reset();
       } 
       else {
         console.error("Failed to save layout");
@@ -188,14 +198,14 @@ function DocumentLayoutCreate() {
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileInput = e.target as HTMLInputElement;
-    const file = fileInput.files?.[0];
-    if (!file) return;
-
     if (!documentType) {
       setUploadError("Please select a document type before uploading.");
       return;
     }
+
+    const fileInput = e.target as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    if (!file) return;
 
     setUploadError(null); // Clear the error if the document type is selected
 
@@ -279,6 +289,7 @@ function DocumentLayoutCreate() {
             <Form.Label style={{ marginLeft: "50px" }}>Select Document Type</Form.Label>
             <Form.Control
               as="select"
+              disabled={image != null}
               onChange={(e) => setDocumentType(e.target.value ? Number(e.target.value) : null)}   //e.target.value is always a string
               value={documentType ?? ""}
               style={{ width: "200px", marginLeft: "50px" }}
@@ -291,7 +302,7 @@ function DocumentLayoutCreate() {
               ))}
             </Form.Control>
           </Form.Group>
-          <Form.Group controlId="file-upload" className="mt-3">
+          {!image && (<Form.Group controlId="file-upload" className="mt-3">
             <Form.Label htmlFor="file-upload-input" style={{ cursor: "pointer", marginLeft: "50px" }}>
               <Button
                 as="span"
@@ -320,7 +331,19 @@ function DocumentLayoutCreate() {
                 {uploadError}
               </div>
             )}
-          </Form.Group>
+          </Form.Group>)}
+          {image && (<Button
+            as="span"
+            variant="secondary"
+            style={{ marginLeft: "50px", marginTop: "15px" }}
+            onClick={() => {
+              const confirmReset = window.confirm("Are you sure you want to discard the unsaved layout?");
+              if (confirmReset) reset();
+              else return;
+            }}
+          >
+            Reset
+          </Button>)}
         </Col>
       </Row>
       {image &&
