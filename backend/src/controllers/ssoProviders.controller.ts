@@ -1,7 +1,6 @@
 import db from "../database/db";
 import { Request, Response } from "express";
 import SSOProvider from "../database/SSOProvider";
-import { json } from "sequelize";
 
 class SsoProviderController {
   static async getAll(req: Request, res: Response) {
@@ -20,7 +19,8 @@ class SsoProviderController {
 
   static async add(req: Request, res: Response) {
     const jsonReq: {
-      name: string;
+      display_name: string;
+      api_name: string;
       client_id: string;
       client_secret: string;
       callback_url: string;
@@ -28,8 +28,13 @@ class SsoProviderController {
       token_url: string;
     } = req.body || {};
 
-    if (!jsonReq.name) {
-      res.status(400).json({ message: "Name is required" });
+    console.log("jsonReq", jsonReq);
+
+    if (!jsonReq.display_name) {
+      res.status(400).json({ message: "Display name is required" });
+      return;
+    } else if (!jsonReq.api_name) {
+      res.status(400).json({ message: "API name is required" });
       return;
     } else if (!jsonReq.client_id) {
       res.status(400).json({ message: "Client_id is required" });
@@ -46,11 +51,12 @@ class SsoProviderController {
     } else if (!jsonReq.token_url) {
       res.status(400).json({ message: "Token_url is required" });
       return;
-    } 
+    }
 
     try {
       await db.sso_providers.create({
-        name: jsonReq.name,
+        display_name: jsonReq.display_name,
+        api_name: jsonReq.api_name,
         client_id: jsonReq.client_id,
         client_secret: jsonReq.client_secret,
         callback_url: jsonReq.callback_url,
