@@ -39,6 +39,7 @@ function DocumentTypeViewer() {
         try {
             const response = await fetch("/api/document-types", {
                 method: "POST",
+                credentials: "include", // Ensures cookies are sent with the request
                 headers: {
                     "Content-Type": "application/json",
                 },

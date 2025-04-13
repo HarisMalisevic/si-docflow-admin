@@ -143,16 +143,18 @@ function DocumentLayoutCreate() {
       
       //==============ZA SLANJE U BAZU ==============//
       //===== sve annotatione su sacuvane u fields, layoutName je ime layouta, documentType je tip dokumenta
-      /*const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
+      const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
+        "Content-Type": "application/json",
         },
+        credentials: "include", // Ensures cookies are sent with the request
         body: JSON.stringify({
-            //name - user should input before saving the layout
-            //fields - done
-            //document_type - user should choose when uploading a file
-            //image_width, image_height - canvas measures
+          name: layoutName,
+          fields: fields,
+          image_width: canvasMeasures.width,
+          image_height: canvasMeasures.height,
+          document_type: documentType,
         }),
       });
 
@@ -169,7 +171,7 @@ function DocumentLayoutCreate() {
       } 
       else {
         console.error("Failed to save layout");
-      }*/
+      }
     } catch (error) {
       console.error("Error while saving layout: ", error);
     }
