@@ -1,6 +1,6 @@
 import express from "express";
 import path from 'path';
-import db_init from './database/DB_initialization';
+//import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
