@@ -7,6 +7,8 @@ import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 // @ts-ignore
 GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.mjs';
 
+
+
 function DocumentLayoutCreate() {
   const [annotations, setAnnotations] = useState<AnnotationProps[]>([]);
   const [newAnnotation, setNewAnnotation] = useState<AnnotationProps[]>([]);
@@ -18,6 +20,7 @@ function DocumentLayoutCreate() {
   const [layoutNameError, setLayoutNameError] = useState<string | null>(null);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   type CanvasMeasures = {
     width: number;
@@ -81,39 +84,56 @@ function DocumentLayoutCreate() {
   };
 
   const saveAnnotation = () => {
-    if (newAnnotation.length === 0 && annotations.length === 0) {
-      setErrorMessage("Please create an annotation before saving.");
-      return;
-    }
-
     if (!fieldName.trim()) {
       setErrorMessage("Please enter a field name before saving.");
       return;
     }
 
-    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
+    if (editingIndex !== null) {
+      // Update the existing annotation
       const updatedAnnotations = [...annotations];
-      updatedAnnotations[updatedAnnotations.length - 1] = {
-        ...updatedAnnotations[updatedAnnotations.length - 1],
-        shapeProps: {
-          ...updatedAnnotations[updatedAnnotations.length - 1].shapeProps,
-          stroke: "blue",
-        },
-        saved: true,
+      updatedAnnotations[editingIndex] = {
+        ...updatedAnnotations[editingIndex],
         name: fieldName,
       };
-
-      setFieldName("");
       setAnnotations(updatedAnnotations);
-      setErrorMessage(null); // Clear the error message
+      setEditingIndex(null); 
+      setFieldName("");
+      setErrorMessage(null); 
     } else {
-      setErrorMessage("Please create an annotation before saving.");
+      if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
+        const updatedAnnotations = [...annotations];
+        updatedAnnotations[updatedAnnotations.length - 1] = {
+          ...updatedAnnotations[updatedAnnotations.length - 1],
+          shapeProps: {
+            ...updatedAnnotations[updatedAnnotations.length - 1].shapeProps,
+            stroke: "blue",
+          },
+          saved: true,
+          name: fieldName,
+        };
+  
+        setFieldName("");
+        setAnnotations(updatedAnnotations);
+        setErrorMessage(null); // Clear the error message
+      } else {
+        setErrorMessage("Please create an annotation before saving.");
+      }
     }
   };
 
   const clearAll = () => {
     setAnnotations([]);
+    setFieldName("");
   }
+
+  const editAnotation = (index: number) => {
+    const annotationToEdit = annotations[index];
+    setFieldName(annotationToEdit.name || ""); 
+    setEditingIndex(index); 
+
+    // Ja sam ovdje samo stavila da se mijenja naziv annotationa, a ti dodaj za mijenjanje pozicija annotationa
+  };
 
   const showLayoutForm = () => {
     if (annotations.length === 0 || (annotations.length === 1 && !annotations[annotations.length - 1].saved)) {
@@ -395,11 +415,21 @@ function DocumentLayoutCreate() {
           <Col
             md={5}
             className="responsive-col mx-auto"
-            style={{ width: "475px" }}
+            style={{ width: "550px"}}
           >
             <div className="mt-3">
               <Button variant="success" onClick={showLayoutForm}  className="me-2">Save Layout</Button>
-              <Button variant="danger" onClick={clearAll}>Clear All</Button>
+              <Button 
+                variant="danger" 
+                onClick={()=>{
+                  const confirmReset = window.confirm("Are you sure you want to delete all saved fields?");
+                  if (confirmReset) clearAll();
+                  else return;
+                }}
+              >
+                Clear All
+              </Button>
+
             </div>
 
             <div id="fieldForm">
@@ -421,7 +451,7 @@ function DocumentLayoutCreate() {
                       onClick={saveAnnotation}
                       className="mt-4"
                     >
-                      Save Field
+                      {editingIndex !== null ? "Update Field" : "Save Field"}
                     </Button>
                   </Col>
                 </Form.Group>
@@ -437,7 +467,9 @@ function DocumentLayoutCreate() {
                       <tr>
                         <th>#</th>
                         <th>Field Name</th>
-                        <th>Actions</th>
+                        <th>Field Coordinates</th>
+                        <th style={{ borderRight: "none" }}> Actions</th>
+                        <th style={{ borderLeft: "none" }}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -447,10 +479,24 @@ function DocumentLayoutCreate() {
                           <tr key={index}>
                             <td>{index + 1}</td>
                             <td>{annotation.name || "Unnamed Field"}</td>
-                            <td>
+                            <td>X: {annotation.shapeProps.x.toFixed(2)} Y: {annotation.shapeProps.y.toFixed(2)}</td>
+                            <td style={{ borderRight: "none" }}>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                style={{ width: "65px"}}
+                                onClick={() => {
+                                  editAnotation(index); 
+                                }}
+                              >
+                                Edit
+                              </Button>
+                            </td>
+                            <td style={{ borderLeft: "none" }}>
                               <Button
                                 variant="danger"
                                 size="sm"
+                                style={{ width: "65px"}}
                                 onClick={() => {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);
@@ -486,7 +532,17 @@ function DocumentLayoutCreate() {
                 {layoutNameError && (
                   <div className="text-danger mt-2">{layoutNameError}</div>
                 )}
-                <Button style={{ marginTop: "20px" }} variant="success" onClick={saveLayout} className="me-2">Save Layout</Button>
+                <Button 
+                  style={{ marginTop: "20px" }} 
+                  variant="success" 
+                  onClick={() => {
+                    window.alert("Layout has been successfully saved!");
+                    saveLayout();
+                  }}
+                  className="me-2"
+                  >
+                    Save Layout
+                  </Button>
               </Modal.Body>
             </Modal>
 
