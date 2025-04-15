@@ -32,11 +32,6 @@ API_ROUTER.get("/", (req, res) => {
     res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
 });
 
-// Serve React frontend for any unknown routes
-API_ROUTER.get("*", (req, res) => {
-    res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
-});
-
 // Auth Routes
 API_ROUTER.use("/auth", authRoutes);
 
@@ -56,5 +51,10 @@ API_ROUTER.get("/api/auth/status/super", AuthMiddleware.isLoggedIn, AuthMiddlewa
 API_ROUTER.use("/api/document-types", documentTypeRoutes);
 API_ROUTER.use("/api/sso-providers", ssoProvidersRoutes);
 API_ROUTER.use("/api/document-layouts", documentLayoutRoutes)
+
+// Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
+API_ROUTER.get("*", (req, res) => {
+    res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
+});
 
 export default API_ROUTER;
