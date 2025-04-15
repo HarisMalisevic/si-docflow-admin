@@ -6,14 +6,17 @@ import AppNavbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
 import HomeRedirect from "./components/HomeRedirect";
 import ProtectedRoute from "./components/ProtectedRoute";
+import SSOProviderCreate from "./components/SSOProviderCreate";
+import DocumentLayoutCreate from "./components/DocumentLayoutCreate";
+import HomePage from "./components/HomePage";
 
 function App() {
   return (
     <div>
-
       <ProtectedRoute>
         <AppNavbar />
       </ProtectedRoute>
+
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route
@@ -24,8 +27,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/sso-providers"
+          element={
+            <ProtectedRoute>
+              <SSOProviderCreate />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/logout" element={<LoginForm />} />
+        
+        <Route path="/document-layouts" element={<DocumentLayoutCreate />} />
+        <Route path="/home" element={<HomePage />} />
+        
+        {/*redirect unknown routes*/}
+        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </div>
   );

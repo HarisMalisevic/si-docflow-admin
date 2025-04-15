@@ -17,3 +17,6 @@ frontend/.env
 
 # Ignore Visual Studio Code settings
 .vscode/
+
+# Ignore db initialization files
+backend/src/database/sso_init.ts

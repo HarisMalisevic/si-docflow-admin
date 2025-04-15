@@ -1,9 +1,11 @@
-import { Sequelize, DataTypes } from 'sequelize';
+import { Sequelize } from 'sequelize';
 import path from 'path';
 import dotenv from 'dotenv';
-import DocumentType from './DocumentType';
-import AdminUsers from './AdminUser';
-import OAuthProvider from './OAuthProvider';
+import { initDocumentType } from './DocumentType';
+import { initAdminUser } from './AdminUser';
+import { initSSOProvider } from './SSOProvider';
+import { initDocumentLayout } from './DocumentLayout';
+import { initAccessRight } from './AccessRight';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -27,22 +29,36 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize_obj;
 
 // Import modela
-db.document_types = DocumentType(sequelize_obj, DataTypes);
-db.admin_users = AdminUsers(sequelize_obj, DataTypes);
-db.oauth_providers = OAuthProvider(sequelize_obj, DataTypes);
+db.document_types = initDocumentType(sequelize_obj);
+db.admin_users = initAdminUser(sequelize_obj);
+db.sso_providers = initSSOProvider(sequelize_obj);
+db.document_layouts = initDocumentLayout(sequelize_obj);
+db.access_rights = initAccessRight(sequelize_obj);
 
 
 // Relacije
-db.oauth_providers.hasMany(db.admin_users, {
-  foreignKey: 'oauth_provider',
+db.sso_providers.hasMany(db.admin_users, {
+  foreignKey: 'sso_provider',
   onDelete: 'CASCADE',
   as: 'admin_users'
 });
 
 db.admin_users.hasMany(db.document_types, {
-  foreignKey: 'admin_user_id',
+  foreignKey: 'created_by',
   onDelete: 'CASCADE',
   as: 'document_types'
 })
+
+db.document_types.hasMany(db.document_layouts, {
+  foreignKey: 'document_type',
+  onDelete: 'CASCADE',
+  as: 'document_layouts'
+});
+
+db.admin_users.hasMany(db.document_layouts, {
+  foreignKey: 'created_by',
+  onDelete: 'CASCADE',
+  as: 'document_layouts'
+});
 
 export default db;

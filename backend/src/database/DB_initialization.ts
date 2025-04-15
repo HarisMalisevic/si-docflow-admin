@@ -1,6 +1,52 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import db from './db'; // Importing the database connection and models
+
+// THIS FILE MUST NOT BE IMPORTED OR USED IN PRODUCTION ENVIRONMENT!
+// THIS FILE IS FOR TESTING PURPOSES ONLY!
+
+
+let ssoProviders_default: any[] = [];
+try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    ssoProviders_default = require('./sso_init').default;
+} catch (error) {
+    console.warn("sso_init module not found, using empty array for ssoProviders_default. " + error);
+}
+
+function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
+
+    return new Promise<void>(function (resolve, reject) {
+        const ssoProviders_PromiseList: Promise<any>[] = [];
+
+        ssoProviders_arg.forEach((provider) => {
+            ssoProviders_PromiseList.push(
+                db.sso_providers.create({
+                    display_name: provider.display_name,
+                    api_name: provider.api_name,
+                    client_id: provider.clientId,
+                    client_secret: provider.clientSecret,
+                    callback_url: provider.callbackURL,
+                    authorization_url: provider.authorizationURL,
+                    token_url: provider.tokenURL,
+                })
+            );
+            console.log("SSO provider created:", provider.api_name)
+        });
+
+        Promise.all(ssoProviders_PromiseList)
+            .then(() => {
+                console.log("SSO providers table filled!")
+                resolve();
+            })
+            .catch((err) => {
+                console.error("Error while resolving SSO providers table", err);
+                reject(err);
+            })
+    });
+
+}
+
+
 
 function fill_document_types() {
     return new Promise<void>(function (resolve, reject) {
@@ -46,44 +92,6 @@ function fill_document_types() {
     });
 }
 
-function fill_oauth_providers() {
-
-    return new Promise<void>(function (resolve, reject) {
-        const oauthProviders_PromiseList: Promise<any>[] = [];
-
-        const oauthProviders_default = [
-            {
-                name: "Google",
-                client_id: process.env.GOOGLE_CLIENT_ID,
-                client_secret: process.env.GOOGLE_CLIENT_SECRET,
-                callback_url: process.env.GOOGLE_CALLBACK_URL,
-            }
-        ];
-
-        oauthProviders_default.forEach((provider) => {
-            oauthProviders_PromiseList.push(
-                db.oauth_providers.create({
-                    name: provider.name,
-                    client_id: provider.client_id,
-                    client_secret: provider.client_secret,
-                    callback_url: provider.callback_url,
-                })
-            );
-            console.log("OAuth provider created:", provider.name)
-        });
-
-        Promise.all(oauthProviders_PromiseList)
-            .then(() => {
-                console.log("OAuth providers table filled!")
-                resolve();
-            })
-            .catch((err) => {
-                console.error("Error while resolving OAuth providers table", err);
-                reject(err);
-            })
-    });
-
-}
 
 function fill_admin_users() {
     return new Promise<void>(function (resolve, reject) {
@@ -93,23 +101,26 @@ function fill_admin_users() {
             {
                 email: "admin@example.com",
                 password: "admin",
-                oauth_provider: null,
-                oauth_id: null,
+                sso_provider: null,
+                sso_id: null,
                 access_token: null,
+                is_super_admin: false,
             },
             {
                 email: "user1@example.com",
                 password: "user1",
-                oauth_provider: null,
-                oauth_id: null,
+                sso_provider: null,
+                sso_id: null,
                 access_token: null,
+                is_super_admin: false,
             },
             {
                 email: "user2@example.com",
                 password: "user2",
-                oauth_provider: null,
-                oauth_id: null,
+                sso_provider: null,
+                sso_id: null,
                 access_token: null,
+                is_super_admin: false,
             }
         ];
 
@@ -118,8 +129,8 @@ function fill_admin_users() {
                 db.admin_users.create({
                     email: user.email,
                     password: user.password,
-                    oauth_provider: user.oauth_provider,
-                    oauth_id: user.oauth_id,
+                    sso_provider: user.sso_provider,
+                    sso_id: user.sso_id,
                     access_token: user.access_token,
                 })
             );
@@ -143,17 +154,17 @@ async function db_init() {
         throw new Error("Sequelize connection is not defined")
     }
     db.sequelize.sync({ force: true }).then(function () {
-        // fill_document_types().then(function () {
-        //     console.log("Table creation done!");
-        // });
+        fill_document_types().then(function () {
+            console.log("Table creation done!");
+        });
 
-        // fill_oauth_providers().then(function () {
-        //     console.log("Table creation done!");
-        // });
+        fill_sso_providers().then(function () {
+            console.log("Table creation done!");
+        });
 
-        // fill_admin_users().then(function () {
-        //     console.log("Table creation done!");
-        // });
+        fill_admin_users().then(function () {
+            console.log("Table creation done!");
+        });
     });
 }
 

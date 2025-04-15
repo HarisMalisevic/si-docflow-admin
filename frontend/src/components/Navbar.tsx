@@ -4,6 +4,32 @@ import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
 import { useNavigate } from "react-router-dom";
 
+var NAV_BAR_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/document-types", label: "Types" },
+  { to: "/document-layouts", label: "Layouts" }
+];
+
+async function isSuperAdmin() {
+  return await fetch("/api/auth/status/super", {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+isSuperAdmin().then((response) => {
+  if (response.ok) {
+    NAV_BAR_LINKS.push({ to: "/sso-providers", label: "SSO Providers" });
+  }
+}).catch((error) => {
+  console.error("Error checking super admin status:", error);
+});
+
+
+
 function AppNavbar() {
   const navigate = useNavigate();
 
@@ -17,14 +43,13 @@ function AppNavbar() {
           throw new Error("Logout failed");
         }
         console.log("Successfully logged out");
-
-      }).then(() => {
+      })
+      .then(() => {
         window.location.reload(); // Refresh the site
       })
       .catch((error) => {
         console.error("Error during logout:", error);
-      })
-
+      });
   };
 
   return (
@@ -37,16 +62,15 @@ function AppNavbar() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              {/* <Nav.Link as={Link} to="/">
-                Home
-              </Nav.Link> */}
-              <Nav.Link as={Link} to="/document-types">
-                Document Types
-              </Nav.Link>
+              {NAV_BAR_LINKS.map((link, index) => (
+                <Nav.Link as={Link} to={link.to} key={index}>
+                  {link.label}
+                </Nav.Link>
+              ))}
             </Nav>
             <Nav>
               <Nav.Link onClick={handleLogout} style={{ cursor: "pointer" }}>
-                Logout
+                Log out
               </Nav.Link>
             </Nav>
           </Navbar.Collapse>

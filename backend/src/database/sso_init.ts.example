@@ -1,0 +1,25 @@
+const ssoProviders_default = [
+    {
+        id: null,
+        display_name: 'Google',
+        api_name: 'google',
+        clientId: 'your-google-client-id',
+        clientSecret: 'your-google-client-secret',
+        callbackURL: 'your-google-callback-url',
+        authorizationURL: 'example-authorization-url',
+        tokenURL: 'example-token-url',
+
+    },
+    {
+        id: null,
+        display_name: 'LinkedIn',
+        api_name: 'linkedin',
+        clientId: 'your-linkedin-client-id',
+        clientSecret: 'your-linkedin-client-secret',
+        callbackURL: 'your-linkedin-callback-url',
+        authorizationURL: 'example-authorization-url',
+        tokenURL: 'example-token-url',
+    }
+];
+
+export default ssoProviders_default;
