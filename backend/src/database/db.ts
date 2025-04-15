@@ -49,6 +49,12 @@ db.admin_users.hasMany(db.document_types, {
   as: 'document_types'
 })
 
+db.admin_users.hasMany(db.access_rights, {
+  foreignKey: 'created_by',
+  onDelete: 'CASCADE',
+  as: 'access_rights'
+})
+
 db.document_types.hasMany(db.document_layouts, {
   foreignKey: 'document_type',
   onDelete: 'CASCADE',
