@@ -6,6 +6,7 @@ import { initAdminUser } from './AdminUser';
 import { initSSOProvider } from './SSOProvider';
 import { initDocumentLayout } from './DocumentLayout';
 import { initAccessRight } from './AccessRight';
+import { initLayoutImage } from './LayoutImage';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -34,6 +35,7 @@ db.admin_users = initAdminUser(sequelize_obj);
 db.sso_providers = initSSOProvider(sequelize_obj);
 db.document_layouts = initDocumentLayout(sequelize_obj);
 db.access_rights = initAccessRight(sequelize_obj);
+db.layout_images = initLayoutImage(sequelize_obj);
 
 
 // Relacije
@@ -57,6 +59,12 @@ db.document_types.hasMany(db.document_layouts, {
 
 db.admin_users.hasMany(db.document_layouts, {
   foreignKey: 'created_by',
+  onDelete: 'CASCADE',
+  as: 'document_layouts'
+});
+
+db.layout_images.hasOne(db.document_layouts, {
+  foreignKey: 'image_id',
   onDelete: 'CASCADE',
   as: 'document_layouts'
 });
