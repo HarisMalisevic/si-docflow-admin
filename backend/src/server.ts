@@ -1,13 +1,8 @@
 import express from "express";
-import path from 'path';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
-import documentTypeRoutes from "./routes/documentType.routes";
-import authRoutes from './routes/auth.routes';
-import ssoProvidersRoutes from './routes/ssoProviders.routes';
-import documentLayoutRoutes from './routes/documentLayout.routes';
-import AuthMiddleware from "./middleware/AuthMiddleware";
+import API_ROUTER from "./routes/apiRouter";
 
 const APP = express();
 const PORT = 5000;
@@ -28,48 +23,7 @@ APP.use(session({
 APP.use(passport.initialize());
 APP.use(passport.session());
 
-// Define the path to the frontend build folder
-const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
-
-// Serve React frontend
-APP.use(express.static(FRONTEND_BUILD_PATH));
-
-APP.get("/", (req, res) => {
-  res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
-});
-
-APP.use("/auth", authRoutes);
-
-// Example API route
-APP.get("/api/message", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
-  const cookies = req.headers.cookie;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
-
-  res.json({ message: "Hello from backend!" });
-});
-
-// API Routes
-APP.use("/api/document-types", documentTypeRoutes);
-
-// API route to check if the user is logged in
-APP.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
-  res.json({ loggedIn: true, user: req.user });
-});
-
-// API route to check if logged in user is super admin
-APP.get("/api/auth/status/super", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
-  console.log("User is super admin:", req.user);
-  res.json({ loggedIn: true, user: req.user });
-});
-
-APP.use("/api/sso-providers", ssoProvidersRoutes);
-APP.use("/api/document-layouts", documentLayoutRoutes)
-
-// Serve React frontend for any unknown routes
-APP.get("*", (req, res) => {
-  res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
-});
+APP.use("/", API_ROUTER);
 
 APP.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
