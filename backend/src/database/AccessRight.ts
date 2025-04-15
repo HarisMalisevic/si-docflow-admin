@@ -5,6 +5,9 @@ interface AccessRightAttributes {
     id: number;
     token: string;
     is_active: boolean;
+    name: string;
+    description: string;
+    created_by: number;
 }
 
 // Define the creation attributes (optional fields during creation)
@@ -16,6 +19,9 @@ class AccessRight extends Model<AccessRightAttributes, AccessRightCreationAttrib
     public id!: number;
     public token!: string;
     public is_active!: boolean;
+    public name!: string;
+    public description!: string;
+    public created_by!: number;
 }
 
 // Initialize the model
@@ -36,6 +42,18 @@ export function initAccessRight(sequelize: Sequelize): typeof AccessRight {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
             },
+            name: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            description: {
+                type: DataTypes.TEXT,
+                allowNull: false,
+            },
+            created_by: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            }
         },
         {
             sequelize,
