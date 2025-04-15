@@ -1,6 +1,7 @@
 import db from "../database/db";
 import { Request, Response } from "express";
 import DocumentLayout from "../database/DocumentLayout";
+import LayoutImage from "database/LayoutImage";
 
 interface CreateDocumentLayoutBody {
   name: string;
@@ -24,7 +25,76 @@ class DocumentLayoutsController {
     }
   }
 
-  static async create(req: Request, res: Response) {
+  static async getById(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const numericId = parseInt(id, 10);
+
+    if (isNaN(numericId)) {
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
+    }
+
+    try {
+      const documentLayout = await db.document_layouts.findOne({
+        where: { id: numericId },
+      });
+
+      if (!documentLayout) {
+        res
+          .status(404)
+          .json({ message: `Document layout with ID ${numericId} not found` });
+        return;
+      }
+
+      res.json(documentLayout);
+
+    } catch (error) {
+      console.error("Error finding document layout:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  static async getImageByLayoutId(req: Request, res: Response) {
+    const { id } = req.params;
+
+    const numericId = parseInt(id, 10);
+
+    if (isNaN(numericId)) {
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
+    }
+
+    try {
+      const documentLayout: DocumentLayout = await db.document_layouts.findOne({
+        where: { id: numericId },
+      });
+
+      if (!documentLayout) {
+        res
+          .status(404)
+          .json({ message: `Document layout with ID ${numericId} not found` });
+        return;
+      }
+
+      const layoutImage: LayoutImage = await db.layout_images.findOne({
+        where: { id: documentLayout.image_id }
+      });
+
+      const layoutImageBlob: Blob = layoutImage.image as Blob;
+
+      // TODO: Provjeriti koji headeri su potrebni za sliku
+      res.setHeader("Content-Type", "image/png"); // TODO: Provjeriti koji je tip slike
+      res.setHeader("Content-Length", layoutImageBlob.size);
+      res.status(200).send(layoutImageBlob);
+
+    } catch (error) {
+      console.error("Error finding document layout:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  static async create(req: Request, res: Response) { //TODO: Change create logic to support image upload
     const jsonReq: CreateDocumentLayoutBody = req.body || {};
 
     if (!jsonReq.name) {
@@ -85,6 +155,10 @@ class DocumentLayoutsController {
       console.error("Error creating document layout: ", error);
       res.status(500).json({ message: "Failed to add document layout", error });
     }
+  }
+
+  static async update(req: Request, res: Response) {
+    // TODO: Implement update logic
   }
 
   static async delete(req: Request, res: Response) {
