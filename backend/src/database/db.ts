@@ -60,19 +60,19 @@ db.admin_users.hasMany(db.access_rights, {
 db.document_types.hasMany(db.document_layouts, {
   foreignKey: 'document_type',
   onDelete: 'CASCADE',
-  as: 'document_layouts'
+  as: 'layouts_by_document_type'
 });
 
 db.admin_users.hasMany(db.document_layouts, {
   foreignKey: 'created_by',
   onDelete: 'CASCADE',
-  as: 'document_layouts'
+  as: 'layouts_created'
 });
 
 db.layout_images.hasOne(db.document_layouts, {
   foreignKey: 'image_id',
   onDelete: 'CASCADE',
-  as: 'document_layouts'
+  as: 'layout'
 });
 
 export default db;
