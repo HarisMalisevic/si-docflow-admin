@@ -6,8 +6,7 @@ interface DocumentLayoutAttributes {
     name: string;
     fields: string;
     document_type?: number;
-    image_width: number;
-    image_height: number;
+    image_id: number;
     created_by?: number;
 }
 
@@ -21,8 +20,7 @@ class DocumentLayout extends Model<DocumentLayoutAttributes, DocumentLayoutCreat
     public name!: string;
     public fields!: string;
     public document_type?: number;
-    public image_width!: number;
-    public image_height!: number;
+    public image_id!: number;
     public created_by?: number;
 }
 
@@ -47,12 +45,8 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 type: DataTypes.INTEGER,
                 allowNull: true,
             },
-            image_width: {
-                type: DataTypes.DOUBLE,
-                allowNull: false,
-            },
-            image_height: {
-                type: DataTypes.DOUBLE,
+            image_id: {
+                type: DataTypes.INTEGER,
                 allowNull: false,
             },
             created_by: {
