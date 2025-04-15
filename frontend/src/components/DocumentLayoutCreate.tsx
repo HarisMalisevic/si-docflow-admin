@@ -21,6 +21,7 @@ function DocumentLayoutCreate() {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [image, setImage] = useState<HTMLImageElement | null>(null);
 
   type CanvasMeasures = {
     width: number;
@@ -60,8 +61,6 @@ function DocumentLayoutCreate() {
       saved: false
     }]);
   };
-
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
 
   const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
     if (newAnnotation.length === 1) {
@@ -125,6 +124,9 @@ function DocumentLayoutCreate() {
   const clearAll = () => {
     setAnnotations([]);
     setFieldName("");
+    setLayoutNameError(null);
+    setUploadError(null);
+    setErrorMessage(null);
   }
 
   const editAnotation = (index: number) => {
@@ -166,6 +168,9 @@ function DocumentLayoutCreate() {
     setDocumentType(null);
     setLayoutName("");
     setShowModal(false);
+    setLayoutNameError(null);
+    setUploadError(null);
+    setErrorMessage(null);
   }
 
   const saveLayout = async () => {    
@@ -207,9 +212,11 @@ function DocumentLayoutCreate() {
       });
 
       if(response.ok) {
+        window.alert("Layout has been successfully saved!");
         reset();
       } 
       else {
+        window.alert("Failed to save layout!");
         console.error("Failed to save layout");
       }
     } catch (error) {
@@ -469,7 +476,6 @@ function DocumentLayoutCreate() {
                         <th>Field Name</th>
                         <th>Field Coordinates</th>
                         <th style={{ borderRight: "none" }}> Actions</th>
-                        <th style={{ borderLeft: "none" }}></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -479,31 +485,33 @@ function DocumentLayoutCreate() {
                           <tr key={index}>
                             <td>{index + 1}</td>
                             <td>{annotation.name || "Unnamed Field"}</td>
-                            <td>X: {annotation.shapeProps.x.toFixed(2)} Y: {annotation.shapeProps.y.toFixed(2)}</td>
-                            <td style={{ borderRight: "none" }}>
-                            <Button
+                            <td>
+                            ({Number(annotation.shapeProps.x.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2))}),  
+                            ({Number(annotation.shapeProps.x.toFixed(2)) + Number(annotation.shapeProps.width.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2))}) <br />
+                            ({Number(annotation.shapeProps.x.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2)) + Number(annotation.shapeProps.height.toFixed(2))}), 
+                            ({Number(annotation.shapeProps.x.toFixed(2)) + Number(annotation.shapeProps.width.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2)) + Number(annotation.shapeProps.height.toFixed(2))})
+                            </td>
+                            <td style={{ display: "flex", flexDirection: "row" }}>
+                            <Button 
                                 variant="primary"
+                                className="me-2"
                                 size="sm"
-                                style={{ width: "65px"}}
                                 onClick={() => {
                                   editAnotation(index); 
                                 }}
                               >
                                 Edit
-                              </Button>
-                            </td>
-                            <td style={{ borderLeft: "none" }}>
-                              <Button
+                            </Button>
+                            <Button
                                 variant="danger"
                                 size="sm"
-                                style={{ width: "65px"}}
                                 onClick={() => {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);
                                 }}
                               >
                                 Delete
-                              </Button>
+                            </Button>
                             </td>
                           </tr>
                         ))}
@@ -536,7 +544,6 @@ function DocumentLayoutCreate() {
                   style={{ marginTop: "20px" }} 
                   variant="success" 
                   onClick={() => {
-                    window.alert("Layout has been successfully saved!");
                     saveLayout();
                   }}
                   className="me-2"
