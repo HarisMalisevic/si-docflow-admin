@@ -1,6 +1,5 @@
 import express from "express";
 import path from 'path';
-//import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
@@ -14,11 +13,11 @@ const APP = express();
 const PORT = 5000;
 APP.use(express.json());
 
-
-(async () => {
-  // await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
-  configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
-})();
+try {
+  configurePassport(passport);
+} catch (error) {
+  console.error("Error configuring passport: Run 'npm run seed' in ./backend to fill sso_providers table", error);
+}
 
 APP.use(session({
   secret: process.env.SESSION_SECRET!,
@@ -44,6 +43,7 @@ APP.use("/auth", authRoutes);
 // Example API route
 APP.get("/api/message", AuthMiddleware.isLoggedIn, AuthMiddleware.isSuperAdmin, (req, res) => {
   const cookies = req.headers.cookie;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const jwtCookie = cookies?.split("; ").find(cookie => cookie.startsWith("jwt="))?.split("=")[1];
 
   res.json({ message: "Hello from backend!" });
