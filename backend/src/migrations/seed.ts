@@ -165,4 +165,6 @@ async function db_seed() {
     });
 }
 
+console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! seed.js/.ts")
+
 db_seed()

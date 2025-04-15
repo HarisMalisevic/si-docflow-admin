@@ -10,4 +10,6 @@ async function db_sync() {
     })
 }
 
+console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! migrate.js/.ts")
+
 db_sync()
