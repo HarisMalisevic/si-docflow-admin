@@ -27,50 +27,56 @@ class DocumentLayoutsController {
   static async create(req: Request, res: Response) {
     const jsonReq: CreateDocumentLayoutBody = req.body || {};
 
-    if (!jsonReq.name) {
-      res.status(400).json({ message: "Name is required" });
-      return;
-    }
-    if (!jsonReq.fields) {
-      res.status(400).json({ message: "Fields is required" });
-      return;
-    }
+    const requiredFields: { key: keyof CreateDocumentLayoutBody; name: string }[] = [
+      { key: "name", name: "Name" },
+      { key: "fields", name: "Fields" },
+    ];
 
-    if (
-      jsonReq.document_type !== undefined &&
-      (typeof jsonReq.document_type !== "number" || isNaN(jsonReq.document_type))
-    ) {
-      res.status(400).json({ message: "Document type must be a number" });
-      return;
-    }
-
-    if (
-      jsonReq.image_width === undefined ||
-      jsonReq.image_width === null ||
-      typeof jsonReq.image_width !== "number" ||
-      jsonReq.image_width <= 0
-    ) {
-      res.status(400).json({
+    const validations = [
+      {
+        condition:
+          jsonReq.document_type !== undefined &&
+          (typeof jsonReq.document_type !== "number" || isNaN(jsonReq.document_type)),
+        message: "Document type must be a number",
+      },
+      {
+        condition:
+          jsonReq.image_width === undefined ||
+          jsonReq.image_width === null ||
+          typeof jsonReq.image_width !== "number" ||
+          jsonReq.image_width <= 0,
         message: "Image width is required and must be a positive number",
-      });
-      return;
-    }
-    if (
-      jsonReq.image_height === undefined ||
-      jsonReq.image_height === null ||
-      typeof jsonReq.image_height !== "number" ||
-      jsonReq.image_height <= 0
-    ) {
-      res.status(400).json({
+      },
+      {
+        condition:
+          jsonReq.image_height === undefined ||
+          jsonReq.image_height === null ||
+          typeof jsonReq.image_height !== "number" ||
+          jsonReq.image_height <= 0,
         message: "Image height is required and must be a positive number",
-      });
-      return;
+
+      }
+    ];
+
+    for (const field of requiredFields) {
+      if (!jsonReq[field.key]) {
+        res.status(400).json({ message: `${field.name} is required` });
+        return;
+      }
+    }
+
+    for (const validation of validations) {
+      if (validation.condition) {
+        res.status(400).json({ message: validation.message });
+        return;
+      }
     }
 
     const userID: number = (req.user as { id: number }).id;
 
     try {
       console.log("Creating document layout with data: ", jsonReq);
+
       await db.document_layouts.create({
         name: jsonReq.name,
         fields: jsonReq.fields,
@@ -79,8 +85,10 @@ class DocumentLayoutsController {
         created_by: userID,
         document_type: jsonReq.document_type !== undefined ? jsonReq.document_type : null,
       });
+
       console.log("Document layout created successfully");
       res.status(200).json({ message: "Document layout added successfully" });
+
     } catch (error) {
       console.error("Error creating document layout: ", error);
       res.status(500).json({ message: "Failed to add document layout", error });
