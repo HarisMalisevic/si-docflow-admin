@@ -48,18 +48,62 @@ class AccessRightsController {
   static async create(req: Request, res: Response) {
     const jsonReq: CreateAccessRights = req.body || {};
 
-    if (!jsonReq.token || jsonReq.token.trim() === "") {
-      res.status(400).json({ message: "Token is required" });
-      return;
-    } else if (jsonReq.is_active === undefined || jsonReq.is_active === null) {
-      res.status(400).json({ message: "Is_active is required" });
-      return;
-    } else if (!jsonReq.name || jsonReq.name.trim() === "") {
-      res.status(400).json({ message: "Name is required" });
-      return;
-    } else if (!jsonReq.description || jsonReq.description.trim() === "") {
-      res.status(400).json({ message: "Description is required" });
-      return;
+    const requiredFields: {
+      key: keyof CreateAccessRights;
+      name: string;
+    }[] = [
+      { key: "token", name: "Token" },
+      { key: "is_active", name: "Is_active" },
+      { key: "name", name: "Name" },
+      { key: "description", name: "Description" },
+    ];
+
+    for (const field of requiredFields) {
+      if (jsonReq[field.key] === undefined || jsonReq[field.key] === null) {
+        res.status(400).json({ message: `${field.name} is required` });
+        return;
+      }
+    }
+
+    const validations: {
+      key: keyof CreateAccessRights;
+      name: string;
+      typeDescription: string;
+      isInvalid: (value: any) => boolean;
+    }[] = [
+      {
+        key: "token",
+        name: "Token",
+        typeDescription: "non-empty string",
+        isInvalid: (value) => typeof value !== "string" || value.trim() === "",
+      },
+      {
+        key: "is_active",
+        name: "Is_active",
+        typeDescription: "boolean",
+        isInvalid: (value) => typeof value !== "boolean",
+      },
+      {
+        key: "name",
+        name: "Name",
+        typeDescription: "non-empty string",
+        isInvalid: (value) => typeof value !== "string" || value.trim() === "",
+      },
+      {
+        key: "description",
+        name: "Description",
+        typeDescription: "non-empty string",
+        isInvalid: (value) => typeof value !== "string" || value.trim() === "",
+      },
+    ];
+    for (const validation of validations) {
+      const value = jsonReq[validation.key];
+      if (validation.isInvalid(value)) {
+        res.status(400).json({
+          message: `${validation.name} must be a ${validation.typeDescription}`,
+        });
+        return;
+      }
     }
 
     const userID: number = (req.user as { id: number }).id;
@@ -90,37 +134,61 @@ class AccessRightsController {
         .json({ message: "Request body cannot be empty for update." });
       return;
     }
+    const typeValidations: {
+      key: keyof UpdateAccessRights;
+      name: string;
+      typeDescription: string;
+      isInvalid: (value: any) => boolean;
+    }[] = [
+      {
+        key: "token",
+        name: "Token",
+        typeDescription: "non-empty string",
+        isInvalid: (value) => typeof value !== "string" || value.trim() === "",
+      },
+      {
+        key: "is_active",
+        name: "Is_active",
+        typeDescription: "boolean",
+        isInvalid: (value) => typeof value !== "boolean",
+      },
+      {
+        key: "name",
+        name: "Name",
+        typeDescription: "non-empty string",
+        isInvalid: (value) => typeof value !== "string" || value.trim() === "",
+      },
+      {
+        key: "description",
+        name: "Description",
+        typeDescription: "non-empty string",
+        isInvalid: (value) => typeof value !== "string" || value.trim() === "",
+      },
+    ];
 
-    if (jsonReq.token !== undefined) {
-      if (!jsonReq.token || jsonReq.token.trim() === "") {
-        res
-          .status(400)
-          .json({ message: "Token, if provided, cannot be empty." });
-        return;
-      }
-    }
-    if (jsonReq.is_active !== undefined) {
-      if (jsonReq.is_active === null) {
-        res
-          .status(400)
-          .json({ message: "Is_active, if provided, cannot be null." });
-        return;
-      }
-    }
-    if (jsonReq.name !== undefined) {
-      if (!jsonReq.name || jsonReq.name.trim() === "") {
-        res
-          .status(400)
-          .json({ message: "Name, if provided, cannot be empty." });
-        return;
-      }
-    }
-    if (jsonReq.description !== undefined) {
-      if (jsonReq.description === null || jsonReq.description.trim() === "") {
-        res
-          .status(400)
-          .json({ message: "Description, if provided, cannot be null." });
-        return;
+    for (const validation of typeValidations) {
+      if (jsonReq[validation.key] !== undefined) {
+        const value = jsonReq[validation.key];
+        if (value === null) {
+          if (
+            validation.key === "is_active" ||
+            validation.key === "token" ||
+            validation.key === "name" ||
+            validation.key === "description"
+          ) {
+            res.status(400).json({
+              message: `${validation.name}, if provided, cannot be null.`,
+            });
+            return;
+          }
+        }
+
+        if (validation.isInvalid(value)) {
+          res.status(400).json({
+            message: `${validation.name} must be a ${validation.typeDescription}`,
+          });
+          return;
+        }
       }
     }
 
