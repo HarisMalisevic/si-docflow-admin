@@ -51,6 +51,8 @@ function DocumentLayoutCreate() {
   }
 
   const handleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
+    if (editingIndex !== null) return;
+    
     if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
       annotations.pop();
     }
@@ -58,27 +60,36 @@ function DocumentLayoutCreate() {
     const { x, y } = event.target.getStage().getPointerPosition();
     setNewAnnotation([{
       shapeProps: { x, y, width: 0, height: 0 },
-      saved: false
+      saved: false,
+      isSelected: false,
+      onChange: () => {}
     }]);
   };
 
   const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
+    if (editingIndex !== null) return;
+    
     if (newAnnotation.length === 1) {
       const sx = newAnnotation[0].shapeProps.x; // start x
       const sy = newAnnotation[0].shapeProps.y; // start y
       const { x, y } = event.target.getStage().getPointerPosition();
       setNewAnnotation([{
         shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
-        saved: false
+        saved: false,
+        isSelected: false,
+        onChange: () => {}
       }]);
     }
   };
 
   const handleMouseUp = () => {     //to finalize the rectangle when the mouse is released
+    if (editingIndex !== null) return;
+    
     if (newAnnotation.length === 1) {
       setAnnotations((prev) => [...prev, ...newAnnotation]); // Save the annotation to the state
       setNewAnnotation([]); // Reset newAnnotation state
       console.log(newAnnotation);
+      setEditingIndex(null);
     }
   };
 
@@ -90,16 +101,24 @@ function DocumentLayoutCreate() {
 
     if (editingIndex !== null) {
       // Update the existing annotation
+      console.log("Editing index: ", editingIndex);
+
       const updatedAnnotations = [...annotations];
       updatedAnnotations[editingIndex] = {
         ...updatedAnnotations[editingIndex],
+        shapeProps: {
+          ...updatedAnnotations[editingIndex].shapeProps,
+          stroke: "blue",
+        },
+        saved: true,
         name: fieldName,
       };
       setAnnotations(updatedAnnotations);
       setEditingIndex(null); 
       setFieldName("");
       setErrorMessage(null); 
-    } else {
+    } 
+    else {
       if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
         const updatedAnnotations = [...annotations];
         updatedAnnotations[updatedAnnotations.length - 1] = {
@@ -133,6 +152,14 @@ function DocumentLayoutCreate() {
     const annotationToEdit = annotations[index];
     setFieldName(annotationToEdit.name || ""); 
     setEditingIndex(index); 
+
+    console.log("Editing index: ", editingIndex);
+
+    annotationToEdit.saved = false;
+    annotationToEdit.shapeProps.stroke = "red";
+
+    console.log("Saved: ", annotationToEdit.saved);
+    console.log("Is selected: ", annotationToEdit.isSelected);
 
     // Ja sam ovdje samo stavila da se mijenja naziv annotationa, a ti dodaj za mijenjanje pozicija annotationa
   };
@@ -171,6 +198,7 @@ function DocumentLayoutCreate() {
     setLayoutNameError(null);
     setUploadError(null);
     setErrorMessage(null);
+    setEditingIndex(null);
   }
 
   const saveLayout = async () => {    
@@ -222,6 +250,8 @@ function DocumentLayoutCreate() {
     } catch (error) {
       console.error("Error while saving layout: ", error);
     }
+
+    setEditingIndex(null);
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -411,7 +441,19 @@ function DocumentLayoutCreate() {
                     />
                   )}
                   {annotationsToDraw.map((annotation, i) => (
-                    <Annotation key={i} {...annotation} />
+                    <Annotation
+                      key={i}
+                      {...annotation}
+                      isSelected={editingIndex === i}
+                      onChange={(newAttrs) => {
+                        const updatedAnnotations = [...annotations];
+                        updatedAnnotations[i] = {
+                          ...updatedAnnotations[i],
+                          shapeProps: newAttrs
+                        };
+                        setAnnotations(updatedAnnotations);
+                      }}
+                    />
                   ))}
                 </Layer>
               </Stage>
