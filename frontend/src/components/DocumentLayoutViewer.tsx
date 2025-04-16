@@ -123,7 +123,7 @@ function DocumentTypeViewer() {
                     <th>#</th>
                     <th>Name</th>
                     <th>Document Type</th>
-                    <th>Actions</th>
+                    <th style={{ width: "170px" }}>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -140,6 +140,7 @@ function DocumentTypeViewer() {
                                 variant="primary"
                                 size="sm"
                                 className="me-2"
+                                style={{ width: "75px" }}
                                 onClick={() => {
                                 // Add logic for redirection to the edit page
                                 }}
@@ -149,6 +150,7 @@ function DocumentTypeViewer() {
                             <Button
                                 variant="danger"
                                 size="sm"
+                                style={{ width: "75px" }}
                                 onClick={() => handleDelete(doc.id)}
                             >
                                 Delete

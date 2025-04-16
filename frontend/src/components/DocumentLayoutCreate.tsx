@@ -471,7 +471,7 @@ function DocumentLayoutCreate() {
                         <th>#</th>
                         <th>Field Name</th>
                         <th>Field Coordinates</th>
-                        <th>Actions</th>
+                        <th style={{ width: "160px"}}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -492,6 +492,7 @@ function DocumentLayoutCreate() {
                                 variant="primary"
                                 className="me-2"
                                 size="sm"
+                                style={{ width: "70px"}}
                                 onClick={() => {
                                   editAnotation(index); 
                                 }}
@@ -501,6 +502,7 @@ function DocumentLayoutCreate() {
                             <Button
                                 variant="danger"
                                 size="sm"
+                                style={{ width: "70px"}}
                                 onClick={() => {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);
