@@ -7,8 +7,6 @@ import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
 // @ts-ignore
 GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.mjs';
 
-
-
 function DocumentLayoutCreate() {
   const [annotations, setAnnotations] = useState<AnnotationProps[]>([]);
   const [newAnnotation, setNewAnnotation] = useState<AnnotationProps[]>([]);
@@ -88,7 +86,6 @@ function DocumentLayoutCreate() {
     if (newAnnotation.length === 1) {
       setAnnotations((prev) => [...prev, ...newAnnotation]); // Save the annotation to the state
       setNewAnnotation([]); // Reset newAnnotation state
-      console.log(newAnnotation);
       setEditingIndex(null);
     }
   };
@@ -101,8 +98,6 @@ function DocumentLayoutCreate() {
 
     if (editingIndex !== null) {
       // Update the existing annotation
-      console.log("Editing index: ", editingIndex);
-
       const updatedAnnotations = [...annotations];
       updatedAnnotations[editingIndex] = {
         ...updatedAnnotations[editingIndex],
@@ -142,10 +137,12 @@ function DocumentLayoutCreate() {
 
   const clearAll = () => {
     setAnnotations([]);
+    setNewAnnotation([]);
     setFieldName("");
     setLayoutNameError(null);
     setUploadError(null);
     setErrorMessage(null);
+    setEditingIndex(null);
   }
 
   const editAnotation = (index: number) => {
@@ -153,15 +150,8 @@ function DocumentLayoutCreate() {
     setFieldName(annotationToEdit.name || ""); 
     setEditingIndex(index); 
 
-    console.log("Editing index: ", editingIndex);
-
     annotationToEdit.saved = false;
     annotationToEdit.shapeProps.stroke = "red";
-
-    console.log("Saved: ", annotationToEdit.saved);
-    console.log("Is selected: ", annotationToEdit.isSelected);
-
-    // Ja sam ovdje samo stavila da se mijenja naziv annotationa, a ti dodaj za mijenjanje pozicija annotationa
   };
 
   const showLayoutForm = () => {
@@ -517,7 +507,7 @@ function DocumentLayoutCreate() {
                         <th>#</th>
                         <th>Field Name</th>
                         <th>Field Coordinates</th>
-                        <th style={{ borderRight: "none" }}> Actions</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -538,7 +528,6 @@ function DocumentLayoutCreate() {
                                 variant="primary"
                                 className="me-2"
                                 size="sm"
-                                style={{ width: "70px"}}
                                 onClick={() => {
                                   editAnotation(index); 
                                 }}
@@ -548,7 +537,6 @@ function DocumentLayoutCreate() {
                             <Button
                                 variant="danger"
                                 size="sm"
-                                style={{ width: "70px"}}
                                 onClick={() => {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);

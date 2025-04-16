@@ -28,16 +28,12 @@ function Annotation(annotationProps: AnnotationProps) {
     useEffect(() => {
         if (!annotationProps.saved && annotationProps.isSelected && transformRef.current && shapeRef.current) {
           transformRef.current.nodes([shapeRef.current]);   //Transformer is attached to the Rect
-          shapeRef.current?.moveToTop();
-          transformRef.current?.getLayer()?.moveToTop();
           transformRef.current.getLayer()?.batchDraw();     //a redraw is forced to update the canvas
-
-          console.log("Transformer attached to:", transformRef.current.nodes());
         }
     }, [annotationProps.isSelected]);   //runs when the annotation is selected
 
     const onMouseEnter = (event: Konva.KonvaEventObject<MouseEvent>) => {
-        if (!annotationProps.saved) {
+        if (!annotationProps.saved && annotationProps.name) {
             event.target.getStage()?.container().style.setProperty("cursor", "move");   //it can be dragged
           }   
     };
@@ -51,7 +47,6 @@ function Annotation(annotationProps: AnnotationProps) {
             <Rect
                 fill="transparent"
                 stroke={annotationProps.shapeProps.stroke || "red"}
-                hitStrokeWidth={6}
                 listening={!annotationProps.saved}
                 ref={shapeRef}
                 {...annotationProps.shapeProps}     //spread only the shapeProps object, not the whole annotationProps because of <Rect>                                               
@@ -60,28 +55,18 @@ function Annotation(annotationProps: AnnotationProps) {
                 onMouseLeave={onMouseLeave}
                 onDragEnd={event => {           //when a rectangle is dragged and then the mouse is released
                     if(!annotationProps.saved && annotationProps.onChange){
-                        console.log(`Drag End - x: ${event.target.x()}, y: ${event.target.y()}`);
-
                         annotationProps.onChange({
                             ...annotationProps.shapeProps,
                             x: event.target.x(),    //change the coordinates during dragging
                             y: event.target.y(),
                         });
                     }
-
-                    shapeRef.current?.moveToTop();
-                    transformRef.current?.getLayer()?.moveToTop();
-
-                    if(transformRef.current) transformRef.current.getLayer()?.batchDraw(); 
                 }}
                 onTransformEnd={() => {         //when a rectangle is resized
                     const node = shapeRef.current;
                     if (!node || annotationProps.saved) return;
 
-                    console.log(`Drag End - x: ${node.x()}, y: ${node.y()}`);
-
-                    const scaleX = node.scaleX();   //Konva doesn't directly change the width and height of the shape, instead it scales it
-                                                    //therefore, the scaling is saved afterwards
+                    const scaleX = node.scaleX();   //Konva doesn't directly change the width and height of the shape, instead it scales it. The changes are saved afterwards.
                     const scaleY = node.scaleY();
 
                     node.scaleX(1);
@@ -96,22 +81,16 @@ function Annotation(annotationProps: AnnotationProps) {
                             height: node.height() * scaleY,
                         });
                     }
-
-                    shapeRef.current?.moveToTop();
-                    transformRef.current?.getLayer()?.moveToTop();
-
-                    if(transformRef.current) transformRef.current.getLayer()?.batchDraw(); 
                 }}
             />
                 {annotationProps.isSelected && !annotationProps.saved &&
                     <Transformer 
                         ref={transformRef} 
                         enabledAnchors={[
-                            "top-left", "top-right",
-                            "bottom-left", "bottom-right"
-                        ]}
-                        padding={2}       
-                        anchorSize={10}    
+                            "top-left", "top-center", "top-right",
+                            "middle-left", "middle-right",
+                            "bottom-left", "bottom-center", "bottom-right"
+                        ]}  
                         rotateEnabled={false}
                     />
                 }

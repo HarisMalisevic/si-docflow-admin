@@ -123,8 +123,7 @@ function DocumentTypeViewer() {
                     <th>#</th>
                     <th>Name</th>
                     <th>Document Type</th>
-                    <th style={{ width: "80px" }}></th>
-                    <th style={{ width: "80px" }}></th>
+                    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -136,27 +135,25 @@ function DocumentTypeViewer() {
                         <td>
                         {documentTypes.find((type) => type.id === doc.document_type)?.name || "Unknown"}
                         </td>
-                        <td style={{ borderRight: "none" }}>
-                        <Button
-                            variant="primary"
-                            size="sm"
-                            style={{ width: "75px" }}
-                            onClick={() => {
-                            // Add logic for redirection to the edit page
-                            }}
-                        >
-                            Edit
-                        </Button>
-                        </td>
-                        <td className="text-center" style={{ borderLeft: "none" }}>
-                        <Button
-                            variant="danger"
-                            size="sm"
-                            style={{ width: "75px" }}
-                            onClick={() => handleDelete(doc.id)}
-                        >
-                            Delete
-                        </Button>
+                        <td style={{ display: "flex", flexDirection: "row" }}>
+                            <Button
+                                variant="primary"
+                                size="sm"
+                                style={{ width: "75px" }}
+                                onClick={() => {
+                                // Add logic for redirection to the edit page
+                                }}
+                            >
+                                Edit
+                            </Button>
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                style={{ width: "75px" }}
+                                onClick={() => handleDelete(doc.id)}
+                            >
+                                Delete
+                            </Button>
                         </td>
                     </tr>
                     ))
