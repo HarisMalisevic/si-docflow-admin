@@ -324,6 +324,8 @@ function DocumentLayoutCreate() {
 
   const annotationsToDraw = [...annotations, ...newAnnotation];
 
+  const roundToTwo = (x: number) => Math.round(x * 100) / 100
+
   useEffect(() => {
     getDocumentTypes();
   }, []);
@@ -518,10 +520,10 @@ function DocumentLayoutCreate() {
                             <td>{index + 1}</td>
                             <td>{annotation.name || "Unnamed Field"}</td>
                             <td>
-                            ({Number(annotation.shapeProps.x.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2))}),  
-                            ({Number(annotation.shapeProps.x.toFixed(2)) + Number(annotation.shapeProps.width.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2))}) <br />
-                            ({Number(annotation.shapeProps.x.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2)) + Number(annotation.shapeProps.height.toFixed(2))}), 
-                            ({Number(annotation.shapeProps.x.toFixed(2)) + Number(annotation.shapeProps.width.toFixed(2))}, {Number(annotation.shapeProps.y.toFixed(2)) + Number(annotation.shapeProps.height.toFixed(2))})
+                            ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y))}),  
+                            ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y))}) <br />
+                            ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}), 
+                            ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))})
                             </td>
                             <td style={{ display: "flex", flexDirection: "row" }}>
                             <Button 
