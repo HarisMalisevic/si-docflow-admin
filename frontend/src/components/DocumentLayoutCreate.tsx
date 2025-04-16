@@ -20,6 +20,7 @@ function DocumentLayoutCreate() {
   const [showModal, setShowModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   type CanvasMeasures = {
     width: number;
@@ -189,6 +190,7 @@ function DocumentLayoutCreate() {
     setUploadError(null);
     setErrorMessage(null);
     setEditingIndex(null);
+    setUploadedFile(null);
   }
 
   const saveLayout = async () => {    
@@ -212,21 +214,22 @@ function DocumentLayoutCreate() {
       });
 
       let fields = JSON.stringify(annotationsFields);   //stringified annotations
+
+      const formData = new FormData();
+      formData.append("name", layoutName);
+      formData.append("fields", fields);
+      formData.append("image_width", canvasMeasures.width.toString());
+      formData.append("image_height", canvasMeasures.height.toString());
+      formData.append("document_type", documentType ? documentType.toString() : "");
+      if(uploadedFile) {
+        formData.append("image", uploadedFile);   //have to use FormData because of the image, otherwise JSON.stringify would just send {}
+      }
       
       //==============ZA SLANJE U BAZU ==============//
       const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
         method: "POST",
-        headers: {
-        "Content-Type": "application/json",
-        },
         credentials: "include", // Ensures cookies are sent with the request
-        body: JSON.stringify({
-          name: layoutName,
-          fields: fields,
-          image_width: canvasMeasures.width,
-          image_height: canvasMeasures.height,
-          document_type: documentType,
-        }),
+        body: formData,
       });
 
       if(response.ok) {
@@ -255,6 +258,7 @@ function DocumentLayoutCreate() {
     if (!file) return;
 
     setUploadError(null); // Clear the error if the document type is selected
+    setUploadedFile(file);
 
     if (file.type === 'application/pdf') {
       const img = await renderFirstPage(file);  //the application expects single-page PDFs, which will be displayed as images
