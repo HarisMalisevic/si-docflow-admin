@@ -1,6 +1,6 @@
 import express from "express";
 import path from 'path';
-//import db_init from './database/DB_initialization';
+// import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
@@ -9,6 +9,7 @@ import authRoutes from './routes/auth.routes';
 import ssoProvidersRoutes from './routes/ssoProviders.routes';
 import documentLayoutRoutes from './routes/documentLayout.routes';
 import AuthMiddleware from "./middleware/AuthMiddleware";
+import accessRightsRoutes from './routes/accessRights.routes';
 
 const APP = express();
 const PORT = 5000;
@@ -16,7 +17,7 @@ APP.use(express.json());
 
 
 (async () => {
-  // await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
+  //await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
   configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 
@@ -64,7 +65,9 @@ APP.get("/api/auth/status/super", AuthMiddleware.isLoggedIn, AuthMiddleware.isSu
 });
 
 APP.use("/api/sso-providers", ssoProvidersRoutes);
-APP.use("/api/document-layouts", documentLayoutRoutes)
+APP.use("/api/document-layouts", documentLayoutRoutes);
+APP.use("/api/access-rights", accessRightsRoutes);
+
 
 // Serve React frontend for any unknown routes
 APP.get("*", (req, res) => {
