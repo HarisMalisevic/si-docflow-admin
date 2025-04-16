@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
-import Annotation, { AnnotationProps } from "./Annotation";
+import { Annotation, AnnotationProps, instanceHandleMouseDown, instanceHandleMouseMove, instanceHandleMouseUp, instanceSaveAnnotation, instanceEditAnotation } from "./Annotation";
 import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
@@ -21,6 +21,11 @@ function DocumentLayoutCreate() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
+    width: window.innerWidth / 2,
+    height: window.innerHeight,
+  });
+  const annotationsToDraw = [...annotations, ...newAnnotation];
 
   type CanvasMeasures = {
     width: number;
@@ -33,11 +38,6 @@ function DocumentLayoutCreate() {
     description?: string;
     created_by?: number;
   }
-
-  const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
-    width: window.innerWidth / 2,
-    height: window.innerHeight,
-  });
 
   const getDocumentTypes = async () => {
     try{
@@ -56,28 +56,16 @@ function DocumentLayoutCreate() {
       annotations.pop();
     }
 
-    const { x, y } = event.target.getStage().getPointerPosition();
-    setNewAnnotation([{
-      shapeProps: { x, y, width: 0, height: 0 },
-      saved: false,
-      isSelected: false,
-      onChange: () => {}
-    }]);
+    const res = instanceHandleMouseDown(event);
+    setNewAnnotation(res);
   };
 
   const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
     if (editingIndex !== null) return;
     
     if (newAnnotation.length === 1) {
-      const sx = newAnnotation[0].shapeProps.x; // start x
-      const sy = newAnnotation[0].shapeProps.y; // start y
-      const { x, y } = event.target.getStage().getPointerPosition();
-      setNewAnnotation([{
-        shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
-        saved: false,
-        isSelected: false,
-        onChange: () => {}
-      }]);
+      const res = instanceHandleMouseMove(event, newAnnotation);
+      setNewAnnotation(res);
     }
   };
 
@@ -85,8 +73,9 @@ function DocumentLayoutCreate() {
     if (editingIndex !== null) return;
     
     if (newAnnotation.length === 1) {
-      setAnnotations((prev) => [...prev, ...newAnnotation]); // Save the annotation to the state
-      setNewAnnotation([]); // Reset newAnnotation state
+      const res = instanceHandleMouseUp(newAnnotation, annotations);
+      setAnnotations(res); 
+      setNewAnnotation([]);
       setEditingIndex(null);
     }
   };
@@ -97,42 +86,15 @@ function DocumentLayoutCreate() {
       return;
     }
 
-    if (editingIndex !== null) {
-      // Update the existing annotation
-      const updatedAnnotations = [...annotations];
-      updatedAnnotations[editingIndex] = {
-        ...updatedAnnotations[editingIndex],
-        shapeProps: {
-          ...updatedAnnotations[editingIndex].shapeProps,
-          stroke: "blue",
-        },
-        saved: true,
-        name: fieldName,
-      };
-      setAnnotations(updatedAnnotations);
+    const res = instanceSaveAnnotation(editingIndex, annotations, fieldName);
+    if(res.length == 0) {
+      setErrorMessage("Please create an annotation before saving.");
+    }
+    else {
+      setAnnotations(res);
       setEditingIndex(null); 
       setFieldName("");
       setErrorMessage(null); 
-    } 
-    else {
-      if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
-        const updatedAnnotations = [...annotations];
-        updatedAnnotations[updatedAnnotations.length - 1] = {
-          ...updatedAnnotations[updatedAnnotations.length - 1],
-          shapeProps: {
-            ...updatedAnnotations[updatedAnnotations.length - 1].shapeProps,
-            stroke: "blue",
-          },
-          saved: true,
-          name: fieldName,
-        };
-  
-        setFieldName("");
-        setAnnotations(updatedAnnotations);
-        setErrorMessage(null); // Clear the error message
-      } else {
-        setErrorMessage("Please create an annotation before saving.");
-      }
     }
   };
 
@@ -147,12 +109,10 @@ function DocumentLayoutCreate() {
   }
 
   const editAnotation = (index: number) => {
-    const annotationToEdit = annotations[index];
-    setFieldName(annotationToEdit.name || ""); 
     setEditingIndex(index); 
-
-    annotationToEdit.saved = false;
-    annotationToEdit.shapeProps.stroke = "red";
+    const res = instanceEditAnotation(index, annotations);
+    const annotationToEdit = res;
+    setFieldName(annotationToEdit.name || ""); 
   };
 
   const showLayoutForm = () => {
@@ -325,8 +285,6 @@ function DocumentLayoutCreate() {
 
     return img;   //this can now be used inside <Image> in react-konva
   }
-
-  const annotationsToDraw = [...annotations, ...newAnnotation];
 
   const roundToTwo = (x: number) => Math.round(x * 100) / 100
 

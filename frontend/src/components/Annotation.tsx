@@ -21,7 +21,7 @@ export type AnnotationProps = {
 };
 
 // Annotation component
-function Annotation(annotationProps: AnnotationProps) {
+export function Annotation(annotationProps: AnnotationProps) {
     const shapeRef = useRef<Konva.Rect>(null);  //points to the Rect rendered in the canvas
     const transformRef = useRef<Konva.Transformer>(null);   //points to the Transformer (the visual box with resize/rotate handles that appears when an annotation is selected)
     
@@ -98,4 +98,77 @@ function Annotation(annotationProps: AnnotationProps) {
     );
 }
 
-export default Annotation;
+export const instanceHandleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
+    const { x, y } = event.target.getStage().getPointerPosition();
+    return [{
+        shapeProps: { x, y, width: 0, height: 0 },
+        saved: false,
+        isSelected: false,
+        onChange: () => {}
+    }];
+};
+
+export const instanceHandleMouseMove = (event: any, newAnnotation: AnnotationProps[]) => { //to update the rectangle's dimensions as the mouse moves    
+    if (newAnnotation.length === 1) {
+      const sx = newAnnotation[0].shapeProps.x; // start x
+      const sy = newAnnotation[0].shapeProps.y; // start y
+      const { x, y } = event.target.getStage().getPointerPosition();
+      return [{
+        shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
+        saved: false,
+        isSelected: false,
+        onChange: () => {}
+      }];
+    }
+    return [];
+};
+
+export const instanceHandleMouseUp = (newAnnotation: AnnotationProps[], annotations: AnnotationProps[]) => {     //to finalize the rectangle when the mouse is released    
+    if (newAnnotation.length === 1) {
+        return [...annotations, ...newAnnotation];
+    }
+    return [];
+};
+
+export const instanceSaveAnnotation = (editingIndex: number | null, annotations: AnnotationProps[], fieldName: string) => {
+    if (editingIndex !== null) {
+      // Update the existing annotation
+      const updatedAnnotations = [...annotations];
+      updatedAnnotations[editingIndex] = {
+        ...updatedAnnotations[editingIndex],
+        shapeProps: {
+          ...updatedAnnotations[editingIndex].shapeProps,
+          stroke: "blue",
+        },
+        saved: true,
+        name: fieldName,
+      };
+      return updatedAnnotations; 
+    } 
+    else {
+      if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
+        const updatedAnnotations = [...annotations];
+        updatedAnnotations[updatedAnnotations.length - 1] = {
+          ...updatedAnnotations[updatedAnnotations.length - 1],
+          shapeProps: {
+            ...updatedAnnotations[updatedAnnotations.length - 1].shapeProps,
+            stroke: "blue",
+          },
+          saved: true,
+          name: fieldName,
+        };
+  
+        return updatedAnnotations;
+      } else {
+        return [];
+      }
+    }
+};
+
+export const instanceEditAnotation = (index: number, annotations: AnnotationProps[]) => {
+    const annotationToEdit = annotations[index];
+    annotationToEdit.saved = false;
+    annotationToEdit.shapeProps.stroke = "red";
+
+    return annotationToEdit;
+};
