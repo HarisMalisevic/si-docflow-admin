@@ -139,7 +139,7 @@ function DocumentTypeViewer() {
                             <Button
                                 variant="primary"
                                 size="sm"
-                                style={{ width: "75px" }}
+                                className="me-2"
                                 onClick={() => {
                                 // Add logic for redirection to the edit page
                                 }}
@@ -149,7 +149,6 @@ function DocumentTypeViewer() {
                             <Button
                                 variant="danger"
                                 size="sm"
-                                style={{ width: "75px" }}
                                 onClick={() => handleDelete(doc.id)}
                             >
                                 Delete
