@@ -471,7 +471,7 @@ function DocumentLayoutCreate() {
                         <th>#</th>
                         <th>Field Name</th>
                         <th>Field Coordinates</th>
-                        <th style={{ width: "160px"}}>Actions</th>
+                        <th >Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -479,20 +479,20 @@ function DocumentLayoutCreate() {
                         .filter((annotation) => annotation.saved)
                         .map((annotation, index) => (
                           <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>{annotation.name || "Unnamed Field"}</td>
-                            <td>
+                            <td className="text-start align-middle">{index + 1}</td>
+                            <td className="text-start align-middle">{annotation.name || "Unnamed Field"}</td>
+                            <td className="text-start align-middle">
                             ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y))}),  
                             ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y))}) <br />
                             ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}), 
                             ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))})
                             </td>
-                            <td style={{ display: "flex", flexDirection: "row" }}>
+                            <td className="text-center align-middle" style={{ whiteSpace: "nowrap" }}>
                             <Button 
                                 variant="primary"
                                 className="me-2"
                                 size="sm"
-                                style={{ width: "70px"}}
+                                style={{ width: "65px"}}
                                 onClick={() => {
                                   editAnotation(index); 
                                 }}
@@ -502,7 +502,7 @@ function DocumentLayoutCreate() {
                             <Button
                                 variant="danger"
                                 size="sm"
-                                style={{ width: "70px"}}
+                                style={{ width: "65px"}}
                                 onClick={() => {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);

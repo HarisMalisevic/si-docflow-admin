@@ -135,7 +135,7 @@ function DocumentTypeViewer() {
                         <td>
                         {documentTypes.find((type) => type.id === doc.document_type)?.name || "Unknown"}
                         </td>
-                        <td style={{ display: "flex", flexDirection: "row" }}>
+                        <td className="text-center align-middle whitespace-nowrap" style={{ whiteSpace: "nowrap", width: "auto" }}>
                             <Button
                                 variant="primary"
                                 size="sm"
