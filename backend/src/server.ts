@@ -1,6 +1,6 @@
 import express from "express";
 import path from 'path';
-//import db_init from './database/DB_initialization';
+import db_init from './database/DB_initialization';
 import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
@@ -16,7 +16,7 @@ APP.use(express.json());
 
 
 (async () => {
-  // await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
+  //await db_init(); //SKLONITI KOMENTAR KADA PRVI PUT INICIJALIZIRAS BAZU ili kad ti treba restart stanja
   configurePassport(passport); // Zakomentarisi ovu linijiu kada prvi put inicijaliziras bazu
 })();
 

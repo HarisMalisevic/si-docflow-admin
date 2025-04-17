@@ -87,8 +87,15 @@ class DocumentLayoutsController {
       const layoutImage: LayoutImage = await db.layout_images.findOne({
         where: { id: documentLayout.image_id }
       });
+      
+      if (!layoutImage) {
+        res
+          .status(404)
+          .json({ message: `Image for layout ID ${numericId} not found` });
+        return;
+      }
 
-      const layoutImageBlob: Blob = layoutImage.image as Blob;
+      const layoutImageBlob = layoutImage.image;
 
       // TODO: Provjeriti koji headeri su potrebni za sliku
       res.setHeader("Content-Type", "image/png"); // TODO: Provjeriti koji je tip slike
@@ -111,13 +118,14 @@ class DocumentLayoutsController {
 
       if (!imageFile || !metadataJson) {
         res.status(400).json({ message: "Missing image or metadata" });
+        return; // Dodao return koji je falio
       }
 
       const metadata = JSON.parse(metadataJson);
       console.log("Parsed metadata: ", metadata);
 
-      // saveImageToDisk - Za potrebe testiranja /backend/uploads
-      //saveImageToDisk(imageFile!).catch((error) => { console.error("Error saving image:", error) });
+      // Opcija za spremanje na disk za test
+      // saveImageToDisk(imageFile).catch((error) => { console.error("Error saving image:", error) });
 
       const {
         name,
@@ -126,15 +134,33 @@ class DocumentLayoutsController {
         image_width,
         image_height
       } = metadata;
+      
+      // 1. PRVO spremamo sliku u layout_images tablicu (ovo je bila greška u originalnom kodu)
+      const newLayoutImage = await db.layout_images.create({
+        image: imageFile.buffer,
+        width: image_width,
+        height: image_height
+      });
+      
+      console.log("New layout image created with id:", newLayoutImage.id);
 
-      // Now you can save metadata + image path to your DB, etc.
-      console.log("Received layout:");
-      console.log({ name, fields, document_type, image_width, image_height });
-
-      // TODO: Spasiti sliku u tabelu layout_images, spasiti metadata u tabelu document_layouts
-
-      res.status(201).json({ message: "Layout saved successfully" });
-      return;
+      // 2. ZATIM spremamo metadata u document_layouts tablicu s referencom na sliku
+      const newDocumentLayout = await db.document_layouts.create({
+        name: name,
+        fields: typeof fields === 'string' ? fields : JSON.stringify(fields),
+        document_type: document_type,
+        image_id: newLayoutImage.id,
+        image_width: image_width,
+        image_height: image_height
+      });
+      
+      console.log("New document layout created with id:", newDocumentLayout.id);
+      
+      res.status(201).json({ 
+        message: "Layout saved successfully",
+        layout_id: newDocumentLayout.id,
+        image_id: newLayoutImage.id
+      });
     } catch (error) {
       console.error("Error saving layout:", error);
       res.status(500).json({ message: "Server error while saving layout" });
@@ -169,8 +195,20 @@ class DocumentLayoutsController {
         return;
       }
 
+      // Prvo sačuvajmo ID slike
+      const imageId = documentLayout.image_id;
+
+      // Obrišimo document layout
       await db.document_layouts.destroy({ where: { id: numericId } });
-      res.json({ message: `Document layout ${numericId} removed` });
+      
+      // Ako postoji slika, obrišimo i nju
+      if (imageId) {
+        await db.layout_images.destroy({ where: { id: imageId } });
+      }
+      
+      res.json({ 
+        message: `Document layout ${numericId} removed with its associated image` 
+      });
     } catch (error) {
       console.error("Error removing document layout:", error);
       res.status(500).json({ message: "Internal server error" });
