@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import db from "../database/db";
 import { Request, Response } from "express";
 import AccessRight from "../database/AccessRight";
@@ -9,7 +10,7 @@ interface CreateAccessRights {
   description: string;
 }
 
-interface UpdateAccessRights extends Partial<CreateAccessRights> {}
+type UpdateAccessRights = Partial<CreateAccessRights>
 
 class AccessRightsController {
   static async getAll(req: Request, res: Response) {
