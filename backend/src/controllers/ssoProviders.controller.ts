@@ -30,27 +30,21 @@ class SsoProviderController {
 
     console.log("jsonReq", jsonReq);
 
-    if (!jsonReq.display_name) {
-      res.status(400).json({ message: "Display name is required" });
-      return;
-    } else if (!jsonReq.api_name) {
-      res.status(400).json({ message: "API name is required" });
-      return;
-    } else if (!jsonReq.client_id) {
-      res.status(400).json({ message: "Client_id is required" });
-      return;
-    } else if (!jsonReq.client_secret) {
-      res.status(400).json({ message: "Client_secret is required" });
-      return;
-    } else if (!jsonReq.callback_url) {
-      res.status(400).json({ message: "Callback_url is required" });
-      return;
-    } else if (!jsonReq.authorization_url) {
-      res.status(400).json({ message: "Authorization_url is required" });
-      return;
-    } else if (!jsonReq.token_url) {
-      res.status(400).json({ message: "Token_url is required" });
-      return;
+    const requiredFields: { key: keyof typeof jsonReq; name: string }[] = [
+      { key: "display_name", name: "Display name" },
+      { key: "api_name", name: "API name" },
+      { key: "client_id", name: "Client_id" },
+      { key: "client_secret", name: "Client_secret" },
+      { key: "callback_url", name: "Callback_url" },
+      { key: "authorization_url", name: "Authorization_url" },
+      { key: "token_url", name: "Token_url" },
+    ];
+
+    for (const field of requiredFields) {
+      if (!jsonReq[field.key]) {
+        res.status(400).json({ message: `${field.name} is required` });
+        return;
+      }
     }
 
     try {

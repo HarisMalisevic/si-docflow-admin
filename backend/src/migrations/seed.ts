@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import db from './db'; // Importing the database connection and models
+import db from '../database/db'; // Importing the database connection and models
 
 // THIS FILE MUST NOT BE IMPORTED OR USED IN PRODUCTION ENVIRONMENT!
 // THIS FILE IS FOR TESTING PURPOSES ONLY!
@@ -46,8 +46,6 @@ function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
 
 }
 
-
-
 function fill_document_types() {
     return new Promise<void>(function (resolve, reject) {
 
@@ -91,7 +89,6 @@ function fill_document_types() {
 
     });
 }
-
 
 function fill_admin_users() {
     return new Promise<void>(function (resolve, reject) {
@@ -149,23 +146,25 @@ function fill_admin_users() {
     });
 }
 
-async function db_init() {
+async function db_seed() {
     if (!db.sequelize) {
         throw new Error("Sequelize connection is not defined")
     }
     db.sequelize.sync({ force: true }).then(function () {
         fill_document_types().then(function () {
-            console.log("Table creation done!");
+            console.log("Document type seeding done!");
         });
 
         fill_sso_providers().then(function () {
-            console.log("Table creation done!");
+            console.log("SSO Provider seeding done!");
         });
 
-        fill_admin_users().then(function () {
-            console.log("Table creation done!");
-        });
+        // fill_admin_users().then(function () {
+        //     console.log("Admin Users seeding done!");
+        // });
     });
 }
 
-export default db_init;
+console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! seed.js/.ts")
+
+db_seed()

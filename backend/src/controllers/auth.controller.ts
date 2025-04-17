@@ -13,8 +13,6 @@ class AuthController {
 
     static async googleLogin(req: Request, res: Response): Promise<void> {
 
-
-
         passport.authenticate(GOOGLE_API_NAME, {
             scope: ["profile", "email"],
         })(req, res, (err: any) => {
