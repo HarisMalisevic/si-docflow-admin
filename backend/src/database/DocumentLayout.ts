@@ -47,8 +47,8 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
             },
             image_id: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
-                unique: true,
+                allowNull: true, // PREPROD: FALSE
+                unique: false, // PREPROD: TRUE
             },
             created_by: {
                 type: DataTypes.INTEGER,

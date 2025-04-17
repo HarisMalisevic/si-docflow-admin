@@ -6,7 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "start": "node build/server.js",
-    "dev": "ts-node src/server.ts"
+    "dev": "ts-node src/server.ts",
+    "migrate": "ts-node src/migrations/migrate.ts",
+    "seed": "ts-node src/migrations/seed.ts"
   },
   "keywords": [],
   "author": "",
