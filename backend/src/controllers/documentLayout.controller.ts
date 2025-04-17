@@ -2,13 +2,20 @@ import db from "../database/db";
 import { Request, Response } from "express";
 import DocumentLayout from "../database/DocumentLayout";
 import LayoutImage from "database/LayoutImage";
+import path from "path";
+import fs from "fs/promises";
 
-interface CreateDocumentLayoutBody {
-  name: string;
-  fields: string;
-  document_type?: number;
-  image_width: number;
-  image_height: number;
+
+async function saveImageToDisk(imageFile: Express.Multer.File) {
+  const SAVE_LOCATION = path.join(__dirname, "../../uploads");
+
+  // Ensure the directory exists
+  await fs.mkdir(SAVE_LOCATION, { recursive: true });
+
+  const imageFilePath = path.join(SAVE_LOCATION, imageFile.originalname);
+
+  // Save the image file to the local disk
+  await fs.writeFile(imageFilePath, imageFile.buffer);
 }
 
 class DocumentLayoutsController {
@@ -94,68 +101,47 @@ class DocumentLayoutsController {
     }
   }
 
-  static async create(req: Request, res: Response) { //TODO: Change create logic to support image upload
-    const jsonReq: CreateDocumentLayoutBody = req.body || {};
-
-    if (!jsonReq.name) {
-      res.status(400).json({ message: "Name is required" });
-      return;
-    }
-    if (!jsonReq.fields) {
-      res.status(400).json({ message: "Fields is required" });
-      return;
-    }
-
-    if (
-      jsonReq.document_type !== undefined &&
-      (typeof jsonReq.document_type !== "number" || isNaN(jsonReq.document_type))
-    ) {
-      res.status(400).json({ message: "Document type must be a number" });
-      return;
-    }
-
-    if (
-      jsonReq.image_width === undefined ||
-      jsonReq.image_width === null ||
-      typeof jsonReq.image_width !== "number" ||
-      jsonReq.image_width <= 0
-    ) {
-      res.status(400).json({
-        message: "Image width is required and must be a positive number",
-      });
-      return;
-    }
-    if (
-      jsonReq.image_height === undefined ||
-      jsonReq.image_height === null ||
-      typeof jsonReq.image_height !== "number" ||
-      jsonReq.image_height <= 0
-    ) {
-      res.status(400).json({
-        message: "Image height is required and must be a positive number",
-      });
-      return;
-    }
-
-    const userID: number = (req.user as { id: number }).id;
+  static async create(req: Request, res: Response) {//TODO: Change create logic to support image upload
 
     try {
-      console.log("Creating document layout with data: ", jsonReq);
-      await db.document_layouts.create({
-        name: jsonReq.name,
-        fields: jsonReq.fields,
-        image_width: jsonReq.image_width,
-        image_height: jsonReq.image_height,
-        created_by: userID,
-        document_type: jsonReq.document_type !== undefined ? jsonReq.document_type : null,
-      });
-      console.log("Document layout created successfully");
-      res.status(200).json({ message: "Document layout added successfully" });
+      // Extract the file and metadata
+
+      const imageFile = req.file;
+      const metadataJson = req.body.metadata;
+
+      if (!imageFile || !metadataJson) {
+        res.status(400).json({ message: "Missing image or metadata" });
+      }
+
+      const metadata = JSON.parse(metadataJson);
+      console.log("Parsed metadata: ", metadata);
+
+      // saveImageToDisk - Za potrebe testiranja /backend/uploads
+      //saveImageToDisk(imageFile!).catch((error) => { console.error("Error saving image:", error) });
+
+      const {
+        name,
+        fields,
+        document_type,
+        image_width,
+        image_height
+      } = metadata;
+
+      // Now you can save metadata + image path to your DB, etc.
+      console.log("Received layout:");
+      console.log({ name, fields, document_type, image_width, image_height });
+
+      // TODO: Spasiti sliku u tabelu layout_images, spasiti metadata u tabelu document_layouts
+
+      res.status(201).json({ message: "Layout saved successfully" });
+      return;
     } catch (error) {
-      console.error("Error creating document layout: ", error);
-      res.status(500).json({ message: "Failed to add document layout", error });
+      console.error("Error saving layout:", error);
+      res.status(500).json({ message: "Server error while saving layout" });
+      return;
     }
-  }
+  };
+
 
   static async update(req: Request, res: Response) {
     // TODO: Implement update logic
