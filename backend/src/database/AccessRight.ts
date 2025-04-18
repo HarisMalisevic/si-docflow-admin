@@ -25,7 +25,7 @@ class AccessRight
   public name!: string;
   public description!: string;
   public created_by!: number;
-  public updated_by!: number;
+  public updated_by!: number | null;
 }
 
 // Initialize the model
