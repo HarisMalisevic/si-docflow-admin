@@ -205,7 +205,9 @@ class AccessRightsController {
         return;
       }
 
-      accessRightsWithId.set(jsonReq);
+      const userID: number = (req.user as { id: number }).id;
+
+      accessRightsWithId.set({ ...jsonReq, updated_by: userID});
 
       await accessRightsWithId.save();
       res.status(200).json(accessRightsWithId);
