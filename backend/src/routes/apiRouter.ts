@@ -3,6 +3,7 @@ import documentTypeRoutes from "../routes/documentType.routes";
 import authRoutes from '../routes/auth.routes';
 import ssoProvidersRoutes from '../routes/ssoProviders.routes';
 import documentLayoutRoutes from '../routes/documentLayout.routes';
+import accessRights from "../routes/accessRights.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 import path from 'path';
 
@@ -86,6 +87,12 @@ API_ROUTER.use(
     "/api/document-layouts",
     documentLayoutRoutes
 );
+
+API_ROUTER.use(
+    "/api/access-rights",
+    accessRights
+);
+
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get(
