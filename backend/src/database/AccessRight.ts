@@ -8,7 +8,7 @@ interface AccessRightAttributes {
   name: string;
   description: string;
   created_by: number;
-  updated_by: number;
+  updated_by: number | null;
 }
 
 // Define the creation attributes (optional fields during creation)
