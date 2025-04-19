@@ -156,7 +156,7 @@ class DocumentLayoutsController {
       // 2. Spremamo metadata u document_layouts tabelu s referencom na sliku
       const newDocumentLayout = await db.document_layouts.create({
         name: name,
-        fields: JSON.stringify(fields),
+        fields: fields,
         document_type: document_type,
         image_id: newLayoutImage.id,
         created_by: userID,
@@ -211,7 +211,7 @@ class DocumentLayoutsController {
 
       const editedLayout = { // Must be plain object, not instance of DocumentLayout
         name: req.body.name || documentLayout.name,
-        fields: JSON.stringify(req.body.fields) || documentLayout.fields,
+        fields: req.body.fields || documentLayout.fields,
         document_type: req.body.document_type || documentLayout.document_type,
         image_id: documentLayout.image_id,
         updated_by: userID, // UserID of the user who made the changes
