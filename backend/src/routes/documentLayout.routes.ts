@@ -19,7 +19,7 @@ router.get(
     AuthMiddleware.isLoggedIn,
     DocumentLayoutController.getById
 );
-router.put(
+router.get(
     "/:id/image",
     AuthMiddleware.isLoggedIn,
     DocumentLayoutController.getImageByLayoutId
