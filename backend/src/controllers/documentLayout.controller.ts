@@ -6,6 +6,7 @@ import path from "path";
 import fs from "fs/promises";
 
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function saveImageToDisk(imageFile: Express.Multer.File) {
   const SAVE_LOCATION = path.join(__dirname, "../../uploads");
 
@@ -87,7 +88,7 @@ class DocumentLayoutsController {
       const layoutImage: LayoutImage = await db.layout_images.findOne({
         where: { id: documentLayout.image_id }
       });
-      
+
       if (!layoutImage) {
         res
           .status(404)
@@ -108,7 +109,7 @@ class DocumentLayoutsController {
     }
   }
 
-  static async create(req: Request, res: Response) {//TODO: Change create logic to support image upload
+  static async create(req: Request, res: Response) {
 
     try {
       // Extract the file and metadata
@@ -118,7 +119,7 @@ class DocumentLayoutsController {
 
       if (!imageFile || !metadataJson) {
         res.status(400).json({ message: "Missing image or metadata" });
-        return; // Dodao return koji je falio
+        return;
       }
 
       const metadata = JSON.parse(metadataJson);
@@ -134,17 +135,22 @@ class DocumentLayoutsController {
         image_width,
         image_height
       } = metadata;
-      
-      // 1. PRVO spremamo sliku u layout_images tablicu (ovo je bila greška u originalnom kodu)
+
+      if (!name || !fields || !document_type || !image_width || !image_height) {
+        res.status(400).json({ message: "Missing required metadata fields" });
+        return;
+      }
+
+      // 1. Spremamo sliku u layout_images tabelu
       const newLayoutImage = await db.layout_images.create({
         image: imageFile.buffer,
         width: image_width,
         height: image_height
       });
-      
+
       console.log("New layout image created with id:", newLayoutImage.id);
 
-      // 2. ZATIM spremamo metadata u document_layouts tablicu s referencom na sliku
+      // 2. Spremamo metadata u document_layouts tabelu s referencom na sliku
       const newDocumentLayout = await db.document_layouts.create({
         name: name,
         fields: typeof fields === 'string' ? fields : JSON.stringify(fields),
@@ -153,14 +159,15 @@ class DocumentLayoutsController {
         image_width: image_width,
         image_height: image_height
       });
-      
+
       console.log("New document layout created with id:", newDocumentLayout.id);
-      
-      res.status(201).json({ 
+
+      res.status(201).json({
         message: "Layout saved successfully",
         layout_id: newDocumentLayout.id,
         image_id: newLayoutImage.id
       });
+
     } catch (error) {
       console.error("Error saving layout:", error);
       res.status(500).json({ message: "Server error while saving layout" });
@@ -200,15 +207,16 @@ class DocumentLayoutsController {
 
       // Obrišimo document layout
       await db.document_layouts.destroy({ where: { id: numericId } });
-      
+
       // Ako postoji slika, obrišimo i nju
       if (imageId) {
         await db.layout_images.destroy({ where: { id: imageId } });
       }
-      
-      res.json({ 
-        message: `Document layout ${numericId} removed with its associated image` 
+
+      res.json({
+        message: `Document layout ${numericId} removed with its associated image`
       });
+
     } catch (error) {
       console.error("Error removing document layout:", error);
       res.status(500).json({ message: "Internal server error" });
