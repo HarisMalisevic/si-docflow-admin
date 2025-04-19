@@ -214,7 +214,7 @@ class DocumentLayoutsController {
         fields: JSON.stringify(req.body.fields) || documentLayout.fields,
         document_type: req.body.document_type || documentLayout.document_type,
         image_id: documentLayout.image_id,
-        created_by: userID, // UserID of the user who made the changes
+        updated_by: userID, // UserID of the user who made the changes
         // updatedAt is automatically set by Sequelize
       };
 

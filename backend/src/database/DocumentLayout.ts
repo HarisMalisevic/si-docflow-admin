@@ -8,6 +8,7 @@ interface DocumentLayoutAttributes {
     document_type?: number;
     image_id: number;
     created_by?: number;
+    updated_by?: number;
 }
 
 // Define the creation attributes (optional fields during creation)
@@ -22,6 +23,7 @@ class DocumentLayout extends Model<DocumentLayoutAttributes, DocumentLayoutCreat
     public document_type?: number;
     public image_id!: number;
     public created_by?: number;
+    public updated_by?: number;
 }
 
 // Initialize the model
@@ -51,6 +53,10 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 unique: false, // PREPROD: TRUE
             },
             created_by: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
+            updated_by: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
             },

@@ -75,6 +75,12 @@ db.admin_users.hasMany(db.document_layouts, {
   as: 'layouts_created'
 });
 
+db.admin_users.hasMany(db.document_layouts, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'layouts_updated'
+});
+
 db.layout_images.hasOne(db.document_layouts, {
   foreignKey: 'image_id',
   onDelete: 'CASCADE',
