@@ -99,6 +99,8 @@ class DocumentLayoutsController {
       }
 
       res.setHeader("Content-Type", "image/png");
+      res.setHeader("X-Image-Width", layoutImage.width);
+      res.setHeader("X-Image-Height", layoutImage.height);
       res.status(200).send(layoutImage.image);
 
     } catch (error) {
