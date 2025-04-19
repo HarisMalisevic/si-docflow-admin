@@ -126,7 +126,6 @@ class DocumentLayoutsController {
       }
 
       const metadata = JSON.parse(metadataJson);
-      console.log("Parsed metadata: ", metadata);
 
       // For DEBUGGING purposes, you can save the image to disk
       // saveImageToDisk(imageBuffer, metadata.name).catch((error) => { console.error("Error saving image:", error) });
@@ -212,7 +211,7 @@ class DocumentLayoutsController {
       const editedLayout = { // Must be plain object, not instance of DocumentLayout
         name: req.body.name || documentLayout.name,
         fields: req.body.fields || documentLayout.fields,
-        document_type: req.body.document_type || documentLayout.document_type,
+        document_type: documentLayout.document_type,
         image_id: documentLayout.image_id,
         updated_by: userID, // UserID of the user who made the changes
         // updatedAt is automatically set by Sequelize

@@ -82,9 +82,11 @@ function DocumentLayoutCreate() {
       });
 
       if (response.ok) {
+        window.alert("Layout has been successfully saved!");
         reset();
       }
       else {
+        window.alert("Failed to save layout!");
         console.error("Failed to save layout");
       }
     } catch (error) {

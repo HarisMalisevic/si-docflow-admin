@@ -141,9 +141,7 @@ function DocumentTypeViewer() {
                                 size="sm"
                                 className="me-2"
                                 style={{ width: "75px" }}
-                                onClick={() => {
-                                // Add logic for redirection to the edit page
-                                }}
+                                onClick={() => navigate(`edit/${doc.id}`)}
                             >
                                 Edit
                             </Button>
