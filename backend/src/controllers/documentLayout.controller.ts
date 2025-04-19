@@ -146,7 +146,7 @@ class DocumentLayoutsController {
 
       // 1. Spremamo sliku u layout_images tabelu
       const newLayoutImage: LayoutImage = await db.layout_images.create({
-        image: imageBuffer.buffer,
+        image: imageBuffer,
         width: image_width,
         height: image_height
       });
