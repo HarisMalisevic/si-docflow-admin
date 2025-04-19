@@ -75,10 +75,12 @@ class DocumentLayoutsController {
 
     try {
       const documentLayout: DocumentLayout = await db.document_layouts.findOne({
+        attributes: ['image_id'], // Fetch only the image_id
         where: { id: numericId },
       });
 
-      if (!documentLayout) {
+
+      if (!documentLayout || !documentLayout.image_id) {
         res
           .status(404)
           .json({ message: `Document layout with ID ${numericId} not found` });
@@ -89,19 +91,15 @@ class DocumentLayoutsController {
         where: { id: documentLayout.image_id }
       });
 
-      if (!layoutImage) {
+      if (!layoutImage || !layoutImage.image) {
         res
           .status(404)
           .json({ message: `Image for layout ID ${numericId} not found` });
         return;
       }
 
-      const layoutImageBlob = layoutImage.image;
-
-      // TODO: Provjeriti koji headeri su potrebni za sliku
-      res.setHeader("Content-Type", "image/png"); // TODO: Provjeriti koji je tip slike
-      res.setHeader("Content-Length", layoutImageBlob.size);
-      res.status(200).send(layoutImageBlob);
+      res.setHeader("Content-Type", "image/png");
+      res.status(200).send(layoutImage.image);
 
     } catch (error) {
       console.error("Error finding document layout:", error);
@@ -114,10 +112,10 @@ class DocumentLayoutsController {
     try {
       // Extract the file and metadata
 
-      const imageFile = req.file;
+      const imageBuffer = req.file?.buffer;
       const metadataJson = req.body.metadata;
 
-      if (!imageFile || !metadataJson) {
+      if (!imageBuffer || !metadataJson) {
         res.status(400).json({ message: "Missing image or metadata" });
         return;
       }
@@ -142,8 +140,8 @@ class DocumentLayoutsController {
       }
 
       // 1. Spremamo sliku u layout_images tabelu
-      const newLayoutImage = await db.layout_images.create({
-        image: imageFile.buffer,
+      const newLayoutImage: LayoutImage = await db.layout_images.create({
+        image: imageBuffer.buffer,
         width: image_width,
         height: image_height
       });
