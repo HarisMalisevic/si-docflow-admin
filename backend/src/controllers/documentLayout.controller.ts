@@ -7,16 +7,17 @@ import fs from "fs/promises";
 
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function saveImageToDisk(imageFile: Express.Multer.File) {
+async function saveImageToDisk(imageBuffer: Buffer, fileName_png: string) {
   const SAVE_LOCATION = path.join(__dirname, "../../uploads");
 
   // Ensure the directory exists
   await fs.mkdir(SAVE_LOCATION, { recursive: true });
 
-  const imageFilePath = path.join(SAVE_LOCATION, imageFile.originalname);
+  const imageFilePath = path.join(SAVE_LOCATION, `${fileName_png}.png`);
+  console.log("Saving image to:", imageFilePath);
 
-  // Save the image file to the local disk
-  await fs.writeFile(imageFilePath, imageFile.buffer);
+  // Save the image buffer to the local disk
+  await fs.writeFile(imageFilePath, imageBuffer);
 }
 
 class DocumentLayoutsController {
@@ -112,6 +113,8 @@ class DocumentLayoutsController {
   static async create(req: Request, res: Response) {
 
     try {
+      const userID: number = (req.user as { id: number }).id;
+
       // Extract the file and metadata
 
       const imageBuffer = req.file?.buffer;
@@ -125,8 +128,8 @@ class DocumentLayoutsController {
       const metadata = JSON.parse(metadataJson);
       console.log("Parsed metadata: ", metadata);
 
-      // Opcija za spremanje na disk za test
-      // saveImageToDisk(imageFile).catch((error) => { console.error("Error saving image:", error) });
+      // For DEBUGGING purposes, you can save the image to disk
+      // saveImageToDisk(imageBuffer, metadata.name).catch((error) => { console.error("Error saving image:", error) });
 
       const {
         name,
@@ -153,11 +156,10 @@ class DocumentLayoutsController {
       // 2. Spremamo metadata u document_layouts tabelu s referencom na sliku
       const newDocumentLayout = await db.document_layouts.create({
         name: name,
-        fields: typeof fields === 'string' ? fields : JSON.stringify(fields),
+        fields: JSON.stringify(fields),
         document_type: document_type,
         image_id: newLayoutImage.id,
-        image_width: image_width,
-        image_height: image_height
+        created_by: userID,
       });
 
       console.log("New document layout created with id:", newDocumentLayout.id);
@@ -175,9 +177,61 @@ class DocumentLayoutsController {
     }
   };
 
-
   static async update(req: Request, res: Response) {
-    // TODO: Implement update logic
+
+    const { id: layoutID } = req.params;
+
+    const userID: number = (req.user as { id: number }).id;
+
+    if (!userID) {
+      res.status(401).json({ message: "Unauthorized: User ID is missing" });
+      return;
+    }
+
+    const numericId = parseInt(layoutID, 10);
+
+    if (isNaN(numericId)) {
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
+    }
+
+    console.log("Update request for ID:", numericId);
+
+    try {
+      const documentLayout: DocumentLayout = await db.document_layouts.findOne({
+        where: { id: numericId },
+      });
+
+      if (!documentLayout) {
+        res
+          .status(404)
+          .json({ message: `Document layout with ID ${numericId} not found` });
+        return;
+      }
+
+      const editedLayout = { // Must be plain object, not instance of DocumentLayout
+        name: req.body.name || documentLayout.name,
+        fields: JSON.stringify(req.body.fields) || documentLayout.fields,
+        document_type: req.body.document_type || documentLayout.document_type,
+        image_id: documentLayout.image_id,
+        created_by: userID, // UserID of the user who made the changes
+        // updatedAt is automatically set by Sequelize
+      };
+
+      // Update the document layout with the new data
+      await db.document_layouts.update(editedLayout, {
+        where: { id: numericId },
+      });
+
+      console.log("Edited layout:", documentLayout.name);
+      res.json({ message: `Document layout ${numericId} updated` });
+
+    } catch (error) {
+      console.error("Error updating document layout:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+
+
   }
 
   static async delete(req: Request, res: Response) {

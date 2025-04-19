@@ -31,7 +31,7 @@ router.post(
     DocumentLayoutController.create
 );
 router.put(
-    "/:id",
+    "/:id/update",
     AuthMiddleware.isLoggedIn,
     DocumentLayoutController.update
 );
