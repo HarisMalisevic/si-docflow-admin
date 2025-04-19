@@ -4,6 +4,7 @@ import { Annotation, AnnotationProps, instanceHandleMouseDown, instanceHandleMou
 import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import { useNavigate } from "react-router-dom";
 // @ts-ignore
 GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.mjs';
 
@@ -25,6 +26,8 @@ function DocumentLayoutCreate() {
     height: window.innerHeight,
   });
   const annotationsToDraw = [...annotations, ...newAnnotation];
+
+  const navigate = useNavigate();
 
   type CanvasMeasures = {
     width: number;
@@ -83,7 +86,8 @@ function DocumentLayoutCreate() {
 
       if (response.ok) {
         window.alert("Layout has been successfully saved!");
-        reset();
+        setShowModal(false);
+        navigate("/document-layouts");
       }
       else {
         window.alert("Failed to save layout!");
@@ -94,7 +98,6 @@ function DocumentLayoutCreate() {
     }
 
     setEditingIndex(null);
-
   }
 
   const getDocumentTypes = async () => {
@@ -220,12 +223,16 @@ function DocumentLayoutCreate() {
     }
     setLayoutNameError(null);
 
+    //handle unsaved annotations
+    const updatedAnnotations = [];
 
-    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
-      annotations.pop();
+    for(let i = 0; i < annotations.length; i++) {
+        if(annotations[i].saved) {
+          updatedAnnotations.push(annotations[i]);    //only keep if saved
+        }
     }
 
-    let annotationsFields = annotations.map((annotation) => {
+    let annotationsFields = updatedAnnotations.map((annotation) => {
       return {
         name: annotation.name,
         upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
@@ -533,6 +540,7 @@ function DocumentLayoutCreate() {
                                 onClick={() => {
                                   editAnotation(index); 
                                 }}
+                                disabled={ editingIndex != null }
                               >
                                 Edit
                             </Button>
@@ -544,6 +552,7 @@ function DocumentLayoutCreate() {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);
                                 }}
+                                disabled={ editingIndex != null }
                               >
                                 Delete
                             </Button>

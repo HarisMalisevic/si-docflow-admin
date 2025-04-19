@@ -26,7 +26,8 @@ function DocumentLayoutEdit() {
     const annotationsToDraw = [...annotations, ...newAnnotation];
     const [layoutPreviewImage, setImage] = useState<HTMLImageElement | null>(null);
     const [imageUrl, setImageUrl] = useState<string | null>(null);
-    const [layout, setLayout] = useState<DocumentLayout | null>(null);
+    const [changesMade, setChangesMade] = useState(false);
+    const [initialAnnotations, setInitialAnnotations] = useState<AnnotationProps[]>([]);
 
     const navigate = useNavigate();
 
@@ -35,21 +36,10 @@ function DocumentLayoutEdit() {
         height: number;
     };
 
-    type DocumentLayout = {
-        id: number,
-        name: string,
-        fields: string,
-        document_type?: number,
-        image_id: number,
-        created_by?: number,
-        updated_by?: number,
-    };
-
     const fetchDocumentLayout = async () => {
         try {
             const response = await fetch(`/api/document-layouts/${id}`);
             const data = await response.json();
-            setLayout(data);
 
             const fields = data.fields ? JSON.parse(data.fields) : [];
 
@@ -70,6 +60,12 @@ function DocumentLayoutEdit() {
             });
 
             setAnnotations(annotationsFields);
+            setInitialAnnotations(
+                annotationsFields.map(field => ({
+                  ...field,
+                  shapeProps: { ...field.shapeProps },
+                }))
+            );              
             setLayoutName(data.name ? data.name : "");
         } catch (error) {
             console.error("Error fetching document layout: ", error);
@@ -134,6 +130,28 @@ function DocumentLayoutEdit() {
         }
     };
 
+    const areShapePropsEqual = (annotationsA: AnnotationProps[], annotationsB: AnnotationProps[]): boolean => {
+        if (annotationsA.length !== annotationsB.length) {
+          return false;
+        }
+      
+        for (let i = 0; i < annotationsA.length; i++) {
+          const aShape = annotationsA[i].shapeProps;
+          const bShape = annotationsB[i].shapeProps;
+      
+          if (
+            aShape.x !== bShape.x ||
+            aShape.y !== bShape.y ||
+            aShape.width !== bShape.width ||
+            aShape.height !== bShape.height
+          ) {
+            return false;
+          }
+        }
+      
+        return true;
+    }
+
     const saveAnnotation = () => {
         if (!fieldName.trim()) {
           setErrorMessage("Please enter a field name before saving.");
@@ -145,6 +163,14 @@ function DocumentLayoutEdit() {
           setErrorMessage("Please create an annotation before saving.");
         }
         else {
+          if(!changesMade){
+            if (editingIndex !== null && initialAnnotations[editingIndex].name !== res[editingIndex].name) {
+                setChangesMade(true);
+            } else {
+                setChangesMade(!areShapePropsEqual(initialAnnotations, res));
+            }   
+          }
+
           setAnnotations(res);
           setEditingIndex(null); 
           setFieldName("");
@@ -159,6 +185,7 @@ function DocumentLayoutEdit() {
         setLayoutNameError(null);
         setErrorMessage(null);
         setEditingIndex(null);
+        setChangesMade(true);
     }
 
     const editAnotation = (index: number) => {
@@ -221,13 +248,25 @@ function DocumentLayoutEdit() {
           return;
         }
         setLayoutNameError(null);
-    
-    
-        if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
-          annotations.pop();
+        
+        //handle unsaved annotations
+        const updatedAnnotations = [];
+
+        for(let i = 0; i < annotations.length; i++) {
+            if(!annotations[i].saved) {
+                if(editingIndex === i) {      
+                    updatedAnnotations.push({
+                        ...initialAnnotations[i],       //return to the last saved state (before editing)
+                        shapeProps: { ...initialAnnotations[i].shapeProps }
+                    });
+                }
+            }
+            else {
+                updatedAnnotations.push(annotations[i]);    //keep the annotation as is
+            }
         }
     
-        let annotationsFields = annotations.map((annotation) => {
+        let annotationsFields = updatedAnnotations.map((annotation) => {
           return {
             name: annotation.name,
             upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
@@ -247,6 +286,11 @@ function DocumentLayoutEdit() {
 
     const roundToTwo = (x: number) => Math.round(x * 100) / 100
 
+    const discardChanges = () => {
+        setAnnotations(initialAnnotations);
+        setChangesMade(false);
+    };
+
     useEffect(() => {
         async function fetchData() {
             await fetchDocumentLayout();
@@ -262,30 +306,26 @@ function DocumentLayoutEdit() {
         };
     }, []);
 
-    useEffect(() => {
-        if (annotations) {
-            console.log("Loaded previous layout annotations: ", annotations);
-        }
-      }, [annotations]);
+    useEffect(() => {}, [annotations]);
 
     return (
         <Container fluid>
-        {/*<Row className="mb-3">
+        {<Row className="mb-3">
             <Col>
-                {layoutPreviewImage && (<Button
+                {changesMade && (<Button
                     as="span"
                     variant="secondary"
                     style={{ marginLeft: "50px", marginTop: "15px" }}
                     onClick={() => {
-                    const confirmReset = window.confirm("Are you sure you want to discard the unsaved layout?");
-                    if (confirmReset) reset();
-                    else return;
+                        const confirmReset = window.confirm("Are you sure you want to discard all changes?");
+                        if (confirmReset) discardChanges();
+                        else return;
                     }}
                 >
-                    Reset
+                    Discard Changes
                 </Button>)}
             </Col>
-        </Row>*/}
+        </Row>}
         {layoutPreviewImage &&
             <Row className="d-flex flex-wrap justify-content-center align-items-start">
             {/* Canvas Column */}
@@ -423,8 +463,9 @@ function DocumentLayoutEdit() {
                                     size="sm"
                                     style={{ width: "65px"}}
                                     onClick={() => {
-                                    editAnotation(index); 
+                                        editAnotation(index); 
                                     }}
+                                    disabled={ editingIndex != null }
                                 >
                                     Edit
                                 </Button>
@@ -433,9 +474,11 @@ function DocumentLayoutEdit() {
                                     size="sm"
                                     style={{ width: "65px"}}
                                     onClick={() => {
-                                    const updatedAnnotations = annotations.filter((_, i) => i !== index);
-                                    setAnnotations(updatedAnnotations);
+                                        setChangesMade(true);
+                                        const updatedAnnotations = annotations.filter((_, i) => i !== index);
+                                        setAnnotations(updatedAnnotations);
                                     }}
+                                    disabled={ editingIndex != null }
                                 >
                                     Delete
                                 </Button>
