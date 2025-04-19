@@ -3,7 +3,7 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 // Define the attributes for DocumentLayout
 interface LayoutImageAttributes {
     id: number;
-    image: Blob;
+    image: Buffer;
     width: number;
     height: number;
 }
@@ -15,7 +15,7 @@ type LayoutImageCreationAttributes = Optional<LayoutImageAttributes, "id">
 class LayoutImage extends Model<LayoutImageAttributes, LayoutImageCreationAttributes>
     implements LayoutImageAttributes {
     public id!: number;
-    public image!: Blob;
+    public image!: Buffer;
     public width!: number;
     public height!: number;
 }
@@ -30,7 +30,7 @@ export function initLayoutImage(sequelize: Sequelize): typeof LayoutImage {
                 primaryKey: true,
             },
             image: {
-                type: DataTypes.BLOB,
+                type: DataTypes.BLOB("medium"), // Medium - up to 16MB
                 allowNull: false,
             },
             width: {
