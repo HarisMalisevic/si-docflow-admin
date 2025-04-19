@@ -54,7 +54,13 @@ db.admin_users.hasMany(db.document_types, {
 db.admin_users.hasMany(db.access_rights, {
   foreignKey: 'created_by',
   onDelete: 'CASCADE',
-  as: 'access_rights'
+  as: 'access_rights_created'
+})
+
+db.admin_users.hasMany(db.access_rights, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'access_rights_updated'
 })
 
 db.document_types.hasMany(db.document_layouts, {
@@ -67,6 +73,12 @@ db.admin_users.hasMany(db.document_layouts, {
   foreignKey: 'created_by',
   onDelete: 'CASCADE',
   as: 'layouts_created'
+});
+
+db.admin_users.hasMany(db.document_layouts, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'layouts_updated'
 });
 
 db.layout_images.hasOne(db.document_layouts, {

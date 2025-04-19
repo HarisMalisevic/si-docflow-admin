@@ -19,7 +19,6 @@ function DocumentLayoutCreate() {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
     width: window.innerWidth / 2,
@@ -39,8 +38,67 @@ function DocumentLayoutCreate() {
     created_by?: number;
   }
 
+  function imageToBlob(imgElement: HTMLImageElement): Promise<Blob> {
+
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = imgElement.naturalWidth;
+      canvas.height = imgElement.naturalHeight;
+      const canvasContext = canvas.getContext("2d") as CanvasRenderingContext2D;
+      canvasContext.drawImage(imgElement, 0, 0);
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          throw new Error("Failed to convert image to Blob");
+        }
+        resolve(blob);
+      }, "image/png"); // Blol je PNG!
+    });
+  }
+
+
+  async function postDocumentLayout(layoutName: string, fields: string, document_type: number, image_width: number, image_height: number, image: HTMLImageElement) {
+
+    try {
+
+      const blob = await imageToBlob(image); // image is your HTMLImageElement
+
+      const formData = new FormData();
+      formData.append("image", blob, `${layoutName}.png`); // name it as a file
+
+      formData.append("metadata", JSON.stringify({
+        name: layoutName,
+        fields: fields,
+        document_type: documentType,
+        image_width: canvasMeasures.width,
+        image_height: canvasMeasures.height
+      }));
+
+      //==============ZA SLANJE U BAZU ==============//
+      const response = await fetch("/api/document-layouts", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        reset();
+      }
+      else {
+        console.error("Failed to save layout");
+      }
+    } catch (error) {
+      console.error("Error while saving layout: ", error);
+    }
+
+    setEditingIndex(null);
+
+  }
+
+
+
   const getDocumentTypes = async () => {
-    try{
+    try {
       const response = await fetch("/api/document-types");
       const data = await response.json();
       setDocumentTypes(data);
@@ -59,6 +117,8 @@ function DocumentLayoutCreate() {
     const res = instanceHandleMouseDown(event);
     setNewAnnotation(res);
   };
+
+  const [layoutPreviewImage, setImage] = useState<HTMLImageElement | null>(null);
 
   const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
     if (editingIndex !== null) return;
@@ -153,58 +213,35 @@ function DocumentLayoutCreate() {
     setUploadedFile(null);
   }
 
-  const saveLayout = async () => {    
+  const saveLayout = async () => {
     if (!layoutName.trim()) {
       setLayoutNameError("Please enter a layout name before saving.");
       return;
     }
     setLayoutNameError(null);
 
-    try {
-      if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
-        annotations.pop();
-      }
 
-      let annotationsFields = annotations.map((annotation) => {
-        return {
-          name: annotation.name,
-          upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
-          lower_right: [annotation.shapeProps.x + annotation.shapeProps.width, annotation.shapeProps.y + annotation.shapeProps.height],
-        };
-      });
-
-      let fields = JSON.stringify(annotationsFields);   //stringified annotations
-
-      const formData = new FormData();
-      formData.append("name", layoutName);
-      formData.append("fields", fields);
-      formData.append("image_width", canvasMeasures.width.toString());
-      formData.append("image_height", canvasMeasures.height.toString());
-      formData.append("document_type", documentType ? documentType.toString() : "");
-      if(uploadedFile) {
-        formData.append("image", uploadedFile);   //have to use FormData because of the image, otherwise JSON.stringify would just send {}
-      }
-      
-      //==============ZA SLANJE U BAZU ==============//
-      const response = await fetch("/api/document-layouts", {   //check if the route is correct, should be this one
-        method: "POST",
-        credentials: "include", // Ensures cookies are sent with the request
-        body: formData,
-      });
-
-      if(response.ok) {
-        window.alert("Layout has been successfully saved!");
-        reset();
-      } 
-      else {
-        window.alert("Failed to save layout!");
-        console.error("Failed to save layout");
-      }
-    } catch (error) {
-      console.error("Error while saving layout: ", error);
+    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
+      annotations.pop();
     }
 
-    setEditingIndex(null);
+    let annotationsFields = annotations.map((annotation) => {
+      return {
+        name: annotation.name,
+        upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
+        lower_right: [annotation.shapeProps.x + annotation.shapeProps.width, annotation.shapeProps.y + annotation.shapeProps.height],
+      };
+    });
+
+    let fields = JSON.stringify(annotationsFields);   //stringified annotations
+
+    if (!layoutPreviewImage) {
+      setErrorMessage("Please upload an image before saving the layout.");
+      return;
+    }
+
+    postDocumentLayout(layoutName, fields, documentType!, canvasMeasures.width, canvasMeasures.height, layoutPreviewImage); //image is HTMLImageElement
+
   }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -300,7 +337,7 @@ function DocumentLayoutCreate() {
             <Form.Label style={{ marginLeft: "50px" }}>Select Document Type</Form.Label>
             <Form.Control
               as="select"
-              disabled={image != null}
+              disabled={layoutPreviewImage != null}
               onChange={(e) => setDocumentType(e.target.value ? Number(e.target.value) : null)}   //e.target.value is always a string
               value={documentType ?? ""}
               style={{ width: "200px", marginLeft: "50px" }}
@@ -313,7 +350,7 @@ function DocumentLayoutCreate() {
               ))}
             </Form.Control>
           </Form.Group>
-          {!image && (<Form.Group controlId="file-upload" className="mt-3">
+          {!layoutPreviewImage && (<Form.Group controlId="file-upload" className="mt-3">
             <Form.Label htmlFor="file-upload-input" style={{ cursor: "pointer", marginLeft: "50px" }}>
               <Button
                 as="span"
@@ -343,7 +380,7 @@ function DocumentLayoutCreate() {
               </div>
             )}
           </Form.Group>)}
-          {image && (<Button
+          {layoutPreviewImage && (<Button
             as="span"
             variant="secondary"
             style={{ marginLeft: "50px", marginTop: "15px" }}
@@ -357,7 +394,7 @@ function DocumentLayoutCreate() {
           </Button>)}
         </Col>
       </Row>
-      {image &&
+      {layoutPreviewImage &&
         <Row className="d-flex flex-wrap justify-content-center align-items-start">
           {/* Canvas Column */}
           <Col
@@ -385,9 +422,9 @@ function DocumentLayoutCreate() {
                 onMouseUp={handleMouseUp}
               >
                 <Layer>
-                  {image && (
+                  {layoutPreviewImage && (
                     <Image
-                      image={image}
+                      image={layoutPreviewImage}
                       x={0}
                       y={0}
                       width={canvasMeasures.width}
