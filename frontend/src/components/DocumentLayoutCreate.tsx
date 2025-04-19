@@ -95,8 +95,6 @@ function DocumentLayoutCreate() {
 
   }
 
-
-
   const getDocumentTypes = async () => {
     try {
       const response = await fetch("/api/document-types");

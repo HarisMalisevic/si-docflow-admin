@@ -26,7 +26,7 @@ class DocumentLayoutsController {
       const allDocumentLayouts: DocumentLayout[] =
         await db.document_layouts.findAll();
 
-      console.log("All document layouts: ", JSON.stringify(allDocumentLayouts));
+      //console.log("All document layouts: ", JSON.stringify(allDocumentLayouts));
       res.json(allDocumentLayouts);
     } catch (error) {
       console.error("Error fetching document layouts: ", error);
