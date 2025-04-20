@@ -2,11 +2,20 @@ import { Strategy as OAuth2Strategy, VerifyCallback } from 'passport-oauth2';
 import db from '../database/db';
 import { Strategy as passportStrategy, Profile } from 'passport';
 import SSOProvider from '../database/SSOProvider';
+import createBitbucketStrategy from './bitbucketAuthStrategy'; 
+import createGoogleStrategy from './googleAuthStrategy'; 
 
 
 export default async function createAuthStrategy(ssoProvider: SSOProvider): Promise<passportStrategy> {
 
     console.log("Creating Auth Strategy for SSO Provider:", ssoProvider.api_name);
+
+    switch (ssoProvider.api_name.toLowerCase()) {
+        case 'bitbucket':
+            return createBitbucketStrategy();  
+        case 'google':
+            return createGoogleStrategy();  
+        default:
 
     return new OAuth2Strategy({
         clientID: ssoProvider.client_id,
@@ -45,4 +54,5 @@ export default async function createAuthStrategy(ssoProvider: SSOProvider): Prom
             }
         }
     );
+}
 }
