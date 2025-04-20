@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
   { to: "/document-types", label: "Types" },
-  { to: "/document-layouts", label: "Layouts" }
+  { to: "/document-layouts", label: "Layouts" },
+  { to: "/access-rights", label: "Acsess Rights" }
 ];
 
 async function isSuperAdmin() {
