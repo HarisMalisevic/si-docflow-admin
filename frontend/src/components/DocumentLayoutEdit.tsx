@@ -28,6 +28,7 @@ function DocumentLayoutEdit() {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [changesMade, setChangesMade] = useState(false);
     const [initialAnnotations, setInitialAnnotations] = useState<AnnotationProps[]>([]);
+    const [waitingForSave, setWaitingForSave] = useState(false);
 
     const navigate = useNavigate();
 
@@ -280,7 +281,8 @@ function DocumentLayoutEdit() {
           setErrorMessage("Please upload an image before saving the layout.");
           return;
         }
-    
+        
+        setWaitingForSave(true);
         putDocumentLayout(layoutName, fields);
     }
 
@@ -517,6 +519,7 @@ function DocumentLayoutEdit() {
                         saveLayout();
                     }}
                     className="me-2"
+                    disabled={waitingForSave}
                     >
                         Save Layout
                     </Button>
