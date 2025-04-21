@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Stage, Layer, Image } from "react-konva";
-import Annotation, { AnnotationProps } from "./Annotation";
+import { Annotation, AnnotationProps, instanceHandleMouseDown, instanceHandleMouseMove, instanceHandleMouseUp, instanceSaveAnnotation, instanceEditAnotation } from "./Annotation";
 import { Button, Col, Container, Form, Modal, Row, Table } from "react-bootstrap";
 
 import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import { useNavigate } from "react-router-dom";
 // @ts-ignore
 GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@5.1.91/build/pdf.worker.mjs';
 
@@ -18,6 +19,15 @@ function DocumentLayoutCreate() {
   const [layoutNameError, setLayoutNameError] = useState<string | null>(null);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
+    width: window.innerWidth / 2,
+    height: window.innerHeight,
+  });
+  const annotationsToDraw = [...annotations, ...newAnnotation];
+
+  const navigate = useNavigate();
 
   type CanvasMeasures = {
     width: number;
@@ -75,21 +85,20 @@ function DocumentLayoutCreate() {
       });
 
       if (response.ok) {
-        reset();
+        window.alert("Layout has been successfully saved!");
+        setShowModal(false);
+        navigate("/document-layouts");
       }
       else {
+        window.alert("Failed to save layout!");
         console.error("Failed to save layout");
       }
     } catch (error) {
       console.error("Error while saving layout: ", error);
     }
 
+    setEditingIndex(null);
   }
-
-  const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
-    width: window.innerWidth / 2,
-    height: window.innerHeight,
-  });
 
   const getDocumentTypes = async () => {
     try {
@@ -102,73 +111,72 @@ function DocumentLayoutCreate() {
   }
 
   const handleMouseDown = (event: any) => {   //to start drawing when the mouse is pressed
+    if (editingIndex !== null) return;
+    
     if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
       annotations.pop();
     }
 
-    const { x, y } = event.target.getStage().getPointerPosition();
-    setNewAnnotation([{
-      shapeProps: { x, y, width: 0, height: 0 },
-      saved: false
-    }]);
+    const res = instanceHandleMouseDown(event);
+    setNewAnnotation(res);
   };
 
   const [layoutPreviewImage, setImage] = useState<HTMLImageElement | null>(null);
 
   const handleMouseMove = (event: any) => { //to update the rectangle's dimensions as the mouse moves
+    if (editingIndex !== null) return;
+    
     if (newAnnotation.length === 1) {
-      const sx = newAnnotation[0].shapeProps.x; // start x
-      const sy = newAnnotation[0].shapeProps.y; // start y
-      const { x, y } = event.target.getStage().getPointerPosition();
-      setNewAnnotation([{
-        shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
-        saved: false
-      }]);
+      const res = instanceHandleMouseMove(event, newAnnotation);
+      setNewAnnotation(res);
     }
   };
 
   const handleMouseUp = () => {     //to finalize the rectangle when the mouse is released
+    if (editingIndex !== null) return;
+    
     if (newAnnotation.length === 1) {
-      setAnnotations((prev) => [...prev, ...newAnnotation]); // Save the annotation to the state
-      setNewAnnotation([]); // Reset newAnnotation state
-      console.log(newAnnotation);
+      const res = instanceHandleMouseUp(newAnnotation, annotations);
+      setAnnotations(res); 
+      setNewAnnotation([]);
+      setEditingIndex(null);
     }
   };
 
   const saveAnnotation = () => {
-    if (newAnnotation.length === 0 && annotations.length === 0) {
-      setErrorMessage("Please create an annotation before saving.");
-      return;
-    }
-
     if (!fieldName.trim()) {
       setErrorMessage("Please enter a field name before saving.");
       return;
     }
 
-    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {
-      const updatedAnnotations = [...annotations];
-      updatedAnnotations[updatedAnnotations.length - 1] = {
-        ...updatedAnnotations[updatedAnnotations.length - 1],
-        shapeProps: {
-          ...updatedAnnotations[updatedAnnotations.length - 1].shapeProps,
-          stroke: "blue",
-        },
-        saved: true,
-        name: fieldName,
-      };
-
-      setFieldName("");
-      setAnnotations(updatedAnnotations);
-      setErrorMessage(null); // Clear the error message
-    } else {
+    const res = instanceSaveAnnotation(editingIndex, annotations, fieldName);
+    if(res.length == 0) {
       setErrorMessage("Please create an annotation before saving.");
+    }
+    else {
+      setAnnotations(res);
+      setEditingIndex(null); 
+      setFieldName("");
+      setErrorMessage(null); 
     }
   };
 
   const clearAll = () => {
     setAnnotations([]);
+    setNewAnnotation([]);
+    setFieldName("");
+    setLayoutNameError(null);
+    setUploadError(null);
+    setErrorMessage(null);
+    setEditingIndex(null);
   }
+
+  const editAnotation = (index: number) => {
+    setEditingIndex(index); 
+    const res = instanceEditAnotation(index, annotations);
+    const annotationToEdit = res;
+    setFieldName(annotationToEdit.name || ""); 
+  };
 
   const showLayoutForm = () => {
     if (annotations.length === 0 || (annotations.length === 1 && !annotations[annotations.length - 1].saved)) {
@@ -201,6 +209,11 @@ function DocumentLayoutCreate() {
     setDocumentType(null);
     setLayoutName("");
     setShowModal(false);
+    setLayoutNameError(null);
+    setUploadError(null);
+    setErrorMessage(null);
+    setEditingIndex(null);
+    setUploadedFile(null);
   }
 
   const saveLayout = async () => {
@@ -210,12 +223,16 @@ function DocumentLayoutCreate() {
     }
     setLayoutNameError(null);
 
+    //handle unsaved annotations
+    const updatedAnnotations = [];
 
-    if (annotations.length > 0 && !annotations[annotations.length - 1].saved) {  //remove the last drawn annotation if not saved
-      annotations.pop();
+    for(let i = 0; i < annotations.length; i++) {
+        if(annotations[i].saved) {
+          updatedAnnotations.push(annotations[i]);    //only keep if saved
+        }
     }
 
-    let annotationsFields = annotations.map((annotation) => {
+    let annotationsFields = updatedAnnotations.map((annotation) => {
       return {
         name: annotation.name,
         upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
@@ -245,6 +262,7 @@ function DocumentLayoutCreate() {
     if (!file) return;
 
     setUploadError(null); // Clear the error if the document type is selected
+    setUploadedFile(file);
 
     if (file.type === 'application/pdf') {
       const img = await renderFirstPage(file);  //the application expects single-page PDFs, which will be displayed as images
@@ -312,7 +330,7 @@ function DocumentLayoutCreate() {
     return img;   //this can now be used inside <Image> in react-konva
   }
 
-  const annotationsToDraw = [...annotations, ...newAnnotation];
+  const roundToTwo = (x: number) => Math.round(x * 100) / 100
 
   useEffect(() => {
     getDocumentTypes();
@@ -421,7 +439,19 @@ function DocumentLayoutCreate() {
                     />
                   )}
                   {annotationsToDraw.map((annotation, i) => (
-                    <Annotation key={i} {...annotation} />
+                    <Annotation
+                      key={i}
+                      {...annotation}
+                      isSelected={editingIndex === i}
+                      onChange={(newAttrs) => {
+                        const updatedAnnotations = [...annotations];
+                        updatedAnnotations[i] = {
+                          ...updatedAnnotations[i],
+                          shapeProps: newAttrs
+                        };
+                        setAnnotations(updatedAnnotations);
+                      }}
+                    />
                   ))}
                 </Layer>
               </Stage>
@@ -432,11 +462,21 @@ function DocumentLayoutCreate() {
           <Col
             md={5}
             className="responsive-col mx-auto"
-            style={{ width: "475px" }}
+            style={{ width: "550px"}}
           >
             <div className="mt-3">
-              <Button variant="success" onClick={showLayoutForm} className="me-2">Save Layout</Button>
-              <Button variant="danger" onClick={clearAll}>Clear All</Button>
+              <Button variant="success" onClick={showLayoutForm}  className="me-2">Save Layout</Button>
+              <Button 
+                variant="danger" 
+                onClick={()=>{
+                  const confirmReset = window.confirm("Are you sure you want to delete all saved fields?");
+                  if (confirmReset) clearAll();
+                  else return;
+                }}
+              >
+                Clear All
+              </Button>
+
             </div>
 
             <div id="fieldForm">
@@ -458,7 +498,7 @@ function DocumentLayoutCreate() {
                       onClick={saveAnnotation}
                       className="mt-4"
                     >
-                      Save Field
+                      {editingIndex !== null ? "Update Field" : "Save Field"}
                     </Button>
                   </Col>
                 </Form.Group>
@@ -474,7 +514,8 @@ function DocumentLayoutCreate() {
                       <tr>
                         <th>#</th>
                         <th>Field Name</th>
-                        <th>Actions</th>
+                        <th>Field Coordinates</th>
+                        <th >Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -482,19 +523,39 @@ function DocumentLayoutCreate() {
                         .filter((annotation) => annotation.saved)
                         .map((annotation, index) => (
                           <tr key={index}>
-                            <td>{index + 1}</td>
-                            <td>{annotation.name || "Unnamed Field"}</td>
-                            <td>
-                              <Button
+                            <td className="text-start align-middle">{index + 1}</td>
+                            <td className="text-start align-middle">{annotation.name || "Unnamed Field"}</td>
+                            <td className="text-start align-middle">
+                            ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y))}),  
+                            ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y))}) <br />
+                            ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}), 
+                            ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))})
+                            </td>
+                            <td className="text-center align-middle" style={{ whiteSpace: "nowrap" }}>
+                            <Button 
+                                variant="primary"
+                                className="me-2"
+                                size="sm"
+                                style={{ width: "65px"}}
+                                onClick={() => {
+                                  editAnotation(index); 
+                                }}
+                                disabled={ editingIndex != null }
+                              >
+                                Edit
+                            </Button>
+                            <Button
                                 variant="danger"
                                 size="sm"
+                                style={{ width: "65px"}}
                                 onClick={() => {
                                   const updatedAnnotations = annotations.filter((_, i) => i !== index);
                                   setAnnotations(updatedAnnotations);
                                 }}
+                                disabled={ editingIndex != null }
                               >
                                 Delete
-                              </Button>
+                            </Button>
                             </td>
                           </tr>
                         ))}
@@ -523,7 +584,16 @@ function DocumentLayoutCreate() {
                 {layoutNameError && (
                   <div className="text-danger mt-2">{layoutNameError}</div>
                 )}
-                <Button style={{ marginTop: "20px" }} variant="success" onClick={saveLayout} className="me-2">Save Layout</Button>
+                <Button 
+                  style={{ marginTop: "20px" }} 
+                  variant="success" 
+                  onClick={() => {
+                    saveLayout();
+                  }}
+                  className="me-2"
+                  >
+                    Save Layout
+                  </Button>
               </Modal.Body>
             </Modal>
 

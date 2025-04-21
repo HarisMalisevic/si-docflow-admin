@@ -10,6 +10,8 @@ import SSOProviderCreate from "./components/SSOProviderCreate";
 import DocumentLayoutCreate from "./components/DocumentLayoutCreate";
 import HomePage from "./components/HomePage";
 import AccessRightsViewer from "./components/AccessRightsViewer";
+import DocumentLayoutViewer from "./components/DocumentLayoutViewer";
+import DocumentLayoutEdit from "./components/DocumentLayoutEdit";
 
 function App() {
   return (
@@ -39,7 +41,9 @@ function App() {
         <Route path="/login" element={<LoginForm />} />
         <Route path="/logout" element={<LoginForm />} />
         
-        <Route path="/document-layouts" element={<DocumentLayoutCreate />} />
+        <Route path="/document-layouts" element={<DocumentLayoutViewer />} />
+        <Route path="/document-layouts/create" element={<DocumentLayoutCreate />} />
+        <Route path="/document-layouts/edit/:id" element={<DocumentLayoutEdit />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/access-rights" element={<AccessRightsViewer />} />
         {/*redirect unknown routes*/}
