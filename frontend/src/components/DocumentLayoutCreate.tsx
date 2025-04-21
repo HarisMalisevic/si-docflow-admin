@@ -20,12 +20,12 @@ function DocumentLayoutCreate() {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [canvasMeasures, setCanvasMeasures] = useState<CanvasMeasures>({
     width: window.innerWidth / 2,
     height: window.innerHeight,
   });
   const annotationsToDraw = [...annotations, ...newAnnotation];
+  const [waitingForSave, setWaitingForSave] = useState(false);
 
   const navigate = useNavigate();
 
@@ -213,7 +213,6 @@ function DocumentLayoutCreate() {
     setUploadError(null);
     setErrorMessage(null);
     setEditingIndex(null);
-    setUploadedFile(null);
   }
 
   const saveLayout = async () => {
@@ -247,6 +246,7 @@ function DocumentLayoutCreate() {
       return;
     }
 
+    setWaitingForSave(true);
     postDocumentLayout(layoutName, fields, documentType!, canvasMeasures.width, canvasMeasures.height, layoutPreviewImage); //image is HTMLImageElement
 
   }
@@ -262,7 +262,6 @@ function DocumentLayoutCreate() {
     if (!file) return;
 
     setUploadError(null); // Clear the error if the document type is selected
-    setUploadedFile(file);
 
     if (file.type === 'application/pdf') {
       const img = await renderFirstPage(file);  //the application expects single-page PDFs, which will be displayed as images
@@ -591,6 +590,7 @@ function DocumentLayoutCreate() {
                     saveLayout();
                   }}
                   className="me-2"
+                  disabled={waitingForSave}
                   >
                     Save Layout
                   </Button>
