@@ -1,4 +1,6 @@
-//@ts-ignore
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-expect-error
 import { Strategy as BitbucketStrategy, Profile as BitbucketProfile } from 'passport-bitbucket-oauth2';
 import db from '../database/db';
 import { Strategy as passportStrategy } from 'passport';
@@ -11,12 +13,12 @@ type BitbucketEmail = {
     email: string;
     is_primary: boolean;
     is_confirmed: boolean;
-  };
-  
-  type BitbucketEmailResponse = {
+};
+
+type BitbucketEmailResponse = {
     values: BitbucketEmail[];
-  };
-  
+};
+
 
 export default async function createBitbucketStrategy(): Promise<passportStrategy> {
     const bitbucketProvider = await db.sso_providers.findOne({ where: { api_name: BITBUCKET_API_NAME } });
@@ -30,14 +32,14 @@ export default async function createBitbucketStrategy(): Promise<passportStrateg
         clientSecret: bitbucketProvider.client_secret,
         callbackURL: bitbucketProvider.callback_url,
     },
-    async (
-        accessToken: string,
-        refreshToken: string,
-        profile: BitbucketProfile,
-        done: (error: any, user?: any) => void
-      ) => {
+        async (
+            accessToken: string,
+            refreshToken: string,
+            profile: BitbucketProfile,
+            done: (error: any, user?: any) => void
+        ) => {
             try {
-              
+
                 const emailResponse = await fetch("https://api.bitbucket.org/2.0/user/emails", {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -52,7 +54,7 @@ export default async function createBitbucketStrategy(): Promise<passportStrateg
                     return done(new Error("Primary email not found in Bitbucket account"), null);
                 }
 
-               
+
                 const existingAdmin = await db.admin_users.findOne({
                     where: {
                         sso_id: profile.id,
@@ -62,7 +64,7 @@ export default async function createBitbucketStrategy(): Promise<passportStrateg
 
                 if (existingAdmin) return done(null, existingAdmin);
 
-               
+
                 const newAdmin = await db.admin_users.create({
                     email,
                     sso_id: profile.id,
