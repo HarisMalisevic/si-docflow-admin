@@ -19,5 +19,11 @@
   "bugs": {
     "url": "https://github.com/HarisMalisevic/si-docflow-core/issues"
   },
-  "homepage": "https://github.com/HarisMalisevic/si-docflow-core#readme"
+  "homepage": "https://github.com/HarisMalisevic/si-docflow-core#readme",
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.12"
+  }
 }

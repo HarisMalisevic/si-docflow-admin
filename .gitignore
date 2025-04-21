@@ -21,6 +21,7 @@ frontend/.env
 # Ignore db initialization files
 backend/src/database/sso_init.ts\
 backend/src/migrations/sso_init.ts
+backend/src/migrations/sso_init_PROD.ts
 
 # Ignore uplaoded files
 backend/uploads/

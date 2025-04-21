@@ -6,8 +6,6 @@ import SSOProvider from '../database/SSOProvider';
 
 export default async function createAuthStrategy(ssoProvider: SSOProvider): Promise<passportStrategy> {
 
-    console.log("Creating Auth Strategy for SSO Provider:", ssoProvider.api_name);
-
     return new OAuth2Strategy({
         clientID: ssoProvider.client_id,
         clientSecret: ssoProvider.client_secret,
@@ -46,3 +44,4 @@ export default async function createAuthStrategy(ssoProvider: SSOProvider): Prom
         }
     );
 }
+
