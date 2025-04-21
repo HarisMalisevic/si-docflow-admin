@@ -6,6 +6,8 @@ import API_ROUTER from "./routes/apiRouter";
 
 const APP = express();
 const PORT = 5000;
+
+
 APP.use(express.json());
 
 try {
