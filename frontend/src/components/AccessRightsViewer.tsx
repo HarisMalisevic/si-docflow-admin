@@ -61,7 +61,7 @@ const AccessRightsViewer: React.FC = () => {
     setIsActive(true);
     setEditingId(null);
     setErrors({});
-    setSuccessMsg(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -80,7 +80,13 @@ const AccessRightsViewer: React.FC = () => {
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        fetchTokens();
+        if (editingId) {
+            setTokens(prev => prev.map(t =>
+              t.id === editingId ? { ...t, name, description, token, is_active: isActive } : t
+            ));
+          } else {
+            fetchTokens();
+          }
         setSuccessMsg(editingId ? "Updated successfully!" : "Token created!");
         resetForm();
         window.setTimeout(() => setSuccessMsg(""), 3000);
@@ -93,11 +99,13 @@ const AccessRightsViewer: React.FC = () => {
   };
 
   const handleEdit = (tok: AccessToken) => {
+    setErrors({});
     setEditingId(tok.id);
     setName(tok.name);
     setDescription(tok.description);
     setToken(tok.token);
     setIsActive(tok.is_active);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (id: number) => {
@@ -119,7 +127,7 @@ const AccessRightsViewer: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ is_active: !tok.is_active }),
       });
-      if (res.ok) fetchTokens();
+      if (res.ok) setTokens((prev) => prev.map((t) => t.id === tok.id ? { ...t, is_active: !t.is_active } : t));
     } catch (err) {
       console.error(err);
     }
@@ -137,7 +145,7 @@ const AccessRightsViewer: React.FC = () => {
   );
 
   return (
-    <Container fluid="md" className="py-4">
+    <Container fluid="xl" className="py-4">
       <Row className="mb-4">
         <Col md={6} className="mx-auto p-4 bg-light rounded">
           <h4 className="text-center mb-3">
@@ -204,7 +212,7 @@ const AccessRightsViewer: React.FC = () => {
       </Row>
 
       <Row className="mb-4">
-        <Col md={8} className="mx-auto">
+        <Col Col xs={10} md={10} className="mx-auto p-4 bg-light rounded">
           <Form className="d-flex mb-3 w-50">
             <Form.Control
               type="text"
@@ -216,64 +224,54 @@ const AccessRightsViewer: React.FC = () => {
             <Button variant="secondary">Search</Button>
           </Form>
 
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Token</th>
-                <th className="text-center">Active</th>
-                <th className="text-center">Actions</th>
-              </tr>
-            </thead>
+          <div className="table-responsive px-3">
+            <Table striped bordered hover style={{ width: '100%', tableLayout: 'auto' }}>
+              <thead>
+                <tr>
+                  <th style={{ width: '4%' }}>#</th>
+                  <th style={{ width: '13%' }}>Name</th>
+                  <th style={{ width: '22%' }}>Description</th>
+                  <th style={{ width: '40%' }}>Token</th>
+                  <th className="text-center" style={{ width: '6%' }}>Active</th>
+                  <th className="text-center" style={{ width: '15%' }}>Actions</th>
+                </tr>
+              </thead>
             <tbody>
               {filtered.length > 0 ? (
                 filtered.map((t, idx) => (
-                  <tr key={t.id}>
-                    <td>{idx + 1}</td>
-                    <td>{t.name}</td>
-                    <td>{t.description}</td>
-                    <td>
-                      {revealedIds.has(t.id) ? t.token : "•••••••••••••••"}
-                      <Button
-                        variant="link"
-                        size="sm"
-                        onClick={() => toggleReveal(t.id)}
-                      >
-                        {revealedIds.has(t.id) ? "Hide" : "Show"}
-                      </Button>
-                    </td>
-                    <td className="text-center">
-                      {t.is_active ? (
-                        <span className="text-success">✓</span>
-                      ) : (
-                        <span className="text-danger">✗</span>
-                      )}
-                    </td>
-                    <td className="text-center">
-                      <div className="d-flex justify-content-center gap-2">
-                        <Button
-                          variant="outline-primary"
-                          size="sm"
-                          onClick={() => handleEdit(t)}
+                    <tr key={t.id}>
+                      <td>{idx + 1}</td>
+                      <td title={t.name} style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                        {t.name}
+                      </td>
+                      <td>
+                        <div
+                          title={t.description}
+                          style={{ maxHeight: '4rem', overflowY: 'auto', wordBreak: 'break-word' }}
                         >
-                          Edit
+                          {t.description}
+                        </div>
+                      </td>
+                      <td style={{ whiteSpace: 'normal', overflow: 'hidden', textOverflow: 'ellipsis',wordBreak: 'break-word' }}>
+                        {revealedIds.has(t.id) ? t.token : '•••••••••••••••'}
+                        <Button variant="link" size="sm" onClick={() => toggleReveal(t.id)}>
+                          {revealedIds.has(t.id) ? 'Hide' : 'Show'}
                         </Button>
-                        <Button
-                          variant="outline-danger"
-                          size="sm"
-                          onClick={() => handleDelete(t.id)}
-                        >
-                          Delete
-                        </Button>
-                        <Button
-                          variant="outline-secondary"
-                          size="sm"
-                          onClick={() => toggleActive(t)}
-                        >
-                          {t.is_active ? 'Deactivate' : 'Activate'}
-                        </Button>
+                      </td>
+                      <td className="text-center">
+                        {t.is_active ? <span className="text-success">✓</span> : <span className="text-danger">✗</span>}
+                      </td>
+                      <td className="text-center">
+                        <div className="d-flex justify-content-center gap-2">
+                          <Button variant="outline-primary" size="sm" onClick={() => handleEdit(t)}>
+                            Edit
+                          </Button>
+                          <Button variant="outline-danger" size="sm" onClick={() => handleDelete(t.id)}>
+                            Delete
+                          </Button>
+                          <Button variant="outline-secondary" size="sm" onClick={() => toggleActive(t)}>
+                            {t.is_active ? 'Deactivate' : 'Activate'}
+                          </Button>
                       </div>
                     </td>
                   </tr>
@@ -287,6 +285,7 @@ const AccessRightsViewer: React.FC = () => {
               )}
             </tbody>
           </Table>
+            </div>
         </Col>
       </Row>
     </Container>
