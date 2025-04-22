@@ -329,8 +329,6 @@ function DocumentLayoutCreate() {
     return img;   //this can now be used inside <Image> in react-konva
   }
 
-  const roundToTwo = (x: number) => Math.round(x * 100) / 100
-
   useEffect(() => {
     getDocumentTypes();
   }, []);
@@ -404,11 +402,12 @@ function DocumentLayoutCreate() {
         <Row className="d-flex flex-wrap justify-content-center align-items-start">
           {/* Canvas Column */}
           <Col
-            md={7}
+            md={6}
             className="responsive-col"
             style={{
               marginLeft: "50px",
               minWidth: `${canvasMeasures.width}px`,
+              marginRight: "20px",
             }}
           >
             <div
@@ -459,7 +458,7 @@ function DocumentLayoutCreate() {
 
           {/* Form Column */}
           <Col
-            md={5}
+            md={6}
             className="responsive-col mx-auto"
             style={{ width: "550px"}}
           >
@@ -514,7 +513,8 @@ function DocumentLayoutCreate() {
                         <th>#</th>
                         <th>Field Name</th>
                         <th>Field Coordinates</th>
-                        <th >Actions</th>
+                        <th>Actions</th>
+                        <th>Multi-line</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -525,12 +525,12 @@ function DocumentLayoutCreate() {
                             <td className="text-start align-middle">{index + 1}</td>
                             <td className="text-start align-middle">{annotation.name || "Unnamed Field"}</td>
                             <td className="text-start align-middle">
-                            ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y))}),  
-                            ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y))}) <br />
-                            ({roundToTwo(Number(annotation.shapeProps.x))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}), 
-                            ({roundToTwo(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {roundToTwo(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))})
+                            ({Math.round(Number(annotation.shapeProps.x))}, {Math.round(Number(annotation.shapeProps.y))}),  
+                            ({Math.round(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {Math.round(Number(annotation.shapeProps.y))}) <br />
+                            ({Math.round(Number(annotation.shapeProps.x))}, {Math.round(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}), 
+                            ({Math.round(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {Math.round(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))})
                             </td>
-                            <td className="text-center align-middle" style={{ whiteSpace: "nowrap" }}>
+                            <td className="text-center align-middle" style={{ whiteSpace: "nowrap", padding: "0px 5px" }}>
                             <Button 
                                 variant="primary"
                                 className="me-2"
@@ -555,6 +555,18 @@ function DocumentLayoutCreate() {
                               >
                                 Delete
                             </Button>
+                            </td>
+                            <td style={{ textAlign: "center", verticalAlign: "middle" }}>
+                            <Form.Check 
+                              type="checkbox"
+                              style={{ 
+                                transform: "scale(1.7)", 
+                                transformOrigin: "center center", 
+                                //border: "1px solid grey",
+                              }} 
+                              //checked={isChecked}
+                              //onChange={handleChange} 
+                            />
                             </td>
                           </tr>
                         ))}
