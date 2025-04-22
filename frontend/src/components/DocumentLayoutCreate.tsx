@@ -559,11 +559,8 @@ function DocumentLayoutCreate() {
                             <td style={{ textAlign: "center", verticalAlign: "middle" }}>
                             <Form.Check 
                               type="checkbox"
-                              style={{ 
-                                transform: "scale(1.7)", 
-                                transformOrigin: "center center", 
-                                //border: "1px solid grey",
-                              }} 
+                              className="custom-checkbox"
+                              style={{ padding: "5px" }}
                               //checked={isChecked}
                               //onChange={handleChange} 
                             />
