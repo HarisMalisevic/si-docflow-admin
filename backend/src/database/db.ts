@@ -63,10 +63,10 @@ db.admin_users.hasMany(db.access_rights, {
   as: 'access_rights_updated'
 })
 
-db.document_types.hasMany(db.document_layouts, {
-  foreignKey: 'document_type',
-  onDelete: 'CASCADE',
-  as: 'layouts_by_document_type'
+db.document_layouts.hasOne(db.document_types, {
+  foreignKey: 'document_layout',
+  onDelete: 'SET NULL',
+  as: 'document_type'
 });
 
 db.admin_users.hasMany(db.document_layouts, {

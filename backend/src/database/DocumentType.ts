@@ -5,6 +5,7 @@ interface DocumentTypeAttributes {
     id: number;
     name: string;
     description?: string;
+    document_layout?: number;
     created_by?: number;
 }
 
@@ -16,6 +17,7 @@ class DocumentType extends Model<DocumentTypeAttributes, DocumentTypeCreationAtt
     public id!: number;
     public name!: string;
     public description?: string;
+    public document_layout?: number;
     public created_by?: number;
 }
 
@@ -33,6 +35,10 @@ export function initDocumentType(sequelize: Sequelize) {
             },
             description: {
                 type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            document_layout: {
+                type: DataTypes.INTEGER,
                 allowNull: true,
             },
             created_by: {
