@@ -173,7 +173,6 @@ class DocumentLayoutsController {
       const newDocumentLayout: DocumentLayout = await db.document_layouts.create({
         name: name,
         fields: fields,
-        document_type: document_type,
         image_id: newLayoutImage.id,
         created_by: userID,
       });
@@ -279,16 +278,10 @@ class DocumentLayoutsController {
         return;
       }
 
-      // Prvo FK veze iz document_types tabele postavimo an null
-      await db.document_types.update(
-        { document_layout_id: null },
-        { where: { document_layout_id: documentLayout.id } }
-      );
-
-      // Drugo sačuvajmo ID slike
+      // Sačuvajmo ID slike
       const imageId: number = documentLayout.image_id;
 
-      // Treće obrišimo document layout
+      // Obrišimo document layout
       await db.document_layouts.destroy({ where: { id: layoutID } });
 
       // Ako postoji slika, obrišimo i nju

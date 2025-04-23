@@ -64,7 +64,7 @@ db.admin_users.hasMany(db.access_rights, {
 })
 
 db.document_layouts.hasOne(db.document_types, {
-  foreignKey: 'document_layout',
+  foreignKey: 'document_layout_id',
   onDelete: 'SET NULL',
   as: 'document_type'
 });
