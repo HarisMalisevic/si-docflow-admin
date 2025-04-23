@@ -1,6 +1,7 @@
 import db from "../database/db";
 import { Request, Response } from "express";
 import DocumentLayout from "../database/DocumentLayout";
+import DocumentType from "../database/DocumentType";
 import LayoutImage from "database/LayoutImage";
 import path from "path";
 import fs from "fs/promises";
@@ -8,12 +9,12 @@ import fs from "fs/promises";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function saveImageToDisk(imageBuffer: Buffer, fileName_png: string) {
-  const SAVE_LOCATION = path.join(__dirname, "../../uploads");
+  const SAVE_LOCATION: string = path.join(__dirname, "../../uploads");
 
   // Ensure the directory exists
   await fs.mkdir(SAVE_LOCATION, { recursive: true });
 
-  const imageFilePath = path.join(SAVE_LOCATION, `${fileName_png}.png`);
+  const imageFilePath: string = path.join(SAVE_LOCATION, `${fileName_png}.png`);
   console.log("Saving image to:", imageFilePath);
 
   // Save the image buffer to the local disk
@@ -21,7 +22,8 @@ async function saveImageToDisk(imageBuffer: Buffer, fileName_png: string) {
 }
 
 class DocumentLayoutsController {
-  static async getAll(req: Request, res: Response) {
+  
+  static async getAll(req: Request, res: Response): Promise<void> {
     try {
       const allDocumentLayouts: DocumentLayout[] =
         await db.document_layouts.findAll();
@@ -34,25 +36,25 @@ class DocumentLayoutsController {
     }
   }
 
-  static async getById(req: Request, res: Response) {
+  static async getById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
 
-    const numericId = parseInt(id, 10);
+    const layoutID: number = parseInt(id, 10);
 
-    if (isNaN(numericId)) {
+    if (isNaN(layoutID)) {
       res.status(400).json({ message: "Invalid ID format" });
       return;
     }
 
     try {
       const documentLayout = await db.document_layouts.findOne({
-        where: { id: numericId },
+        where: { id: layoutID },
       });
 
       if (!documentLayout) {
         res
           .status(404)
-          .json({ message: `Document layout with ID ${numericId} not found` });
+          .json({ message: `Document layout with ID ${layoutID} not found` });
         return;
       }
 
@@ -64,12 +66,12 @@ class DocumentLayoutsController {
     }
   }
 
-  static async getImageByLayoutId(req: Request, res: Response) {
+  static async getImageByLayoutId(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
 
-    const numericId = parseInt(id, 10);
+    const layoutID: number = parseInt(id, 10);
 
-    if (isNaN(numericId)) {
+    if (isNaN(layoutID)) {
       res.status(400).json({ message: "Invalid ID format" });
       return;
     }
@@ -77,14 +79,14 @@ class DocumentLayoutsController {
     try {
       const documentLayout: DocumentLayout = await db.document_layouts.findOne({
         attributes: ['image_id'], // Fetch only the image_id
-        where: { id: numericId },
+        where: { id: layoutID },
       });
 
 
       if (!documentLayout || !documentLayout.image_id) {
         res
           .status(404)
-          .json({ message: `Document layout with ID ${numericId} not found` });
+          .json({ message: `Document layout with ID ${layoutID} not found` });
         return;
       }
 
@@ -95,7 +97,7 @@ class DocumentLayoutsController {
       if (!layoutImage || !layoutImage.image) {
         res
           .status(404)
-          .json({ message: `Image for layout ID ${numericId} not found` });
+          .json({ message: `Image for layout ID ${layoutID} not found` });
         return;
       }
 
@@ -110,14 +112,14 @@ class DocumentLayoutsController {
     }
   }
 
-  static async create(req: Request, res: Response) {
+  static async create(req: Request, res: Response): Promise<void> {
 
     try {
       const userID: number = (req.user as { id: number }).id;
 
       // Extract the file and metadata
 
-      const imageBuffer = req.file?.buffer;
+      const imageBuffer: Buffer<ArrayBufferLike> | undefined = req.file?.buffer;
       const metadataJson = req.body.metadata;
 
       if (!imageBuffer || !metadataJson) {
@@ -143,6 +145,21 @@ class DocumentLayoutsController {
         return;
       }
 
+      // 0. Provjeravamo da li document_type već ima layout
+      const documentType: DocumentType = await db.document_types.findOne({
+        where: { id: document_type },
+      });
+
+      if (!documentType) {
+        res.status(404).json({ message: `Document type with ID ${document_type} not found` });
+        return;
+      }
+
+      if (documentType.document_layout_id !== null) {
+        res.status(400).json({ message: `Document type with ID ${document_type} already has a layout assigned` });
+        return;
+      }
+
       // 1. Spremamo sliku u layout_images tabelu
       const newLayoutImage: LayoutImage = await db.layout_images.create({
         image: imageBuffer,
@@ -153,7 +170,7 @@ class DocumentLayoutsController {
       console.log("New layout image created with id:", newLayoutImage.id);
 
       // 2. Spremamo metadata u document_layouts tabelu s referencom na sliku
-      const newDocumentLayout = await db.document_layouts.create({
+      const newDocumentLayout: DocumentLayout = await db.document_layouts.create({
         name: name,
         fields: fields,
         document_type: document_type,
@@ -162,6 +179,14 @@ class DocumentLayoutsController {
       });
 
       console.log("New document layout created with id:", newDocumentLayout.id);
+
+      // 3. Ažuriramo document_types tabelu da referencira na novi layout
+      await db.document_types.update(
+        { document_layout_id: newDocumentLayout.id },
+        { where: { id: document_type } }
+      );
+
+      console.log("Document type updated with new layout ID:", document_type);
 
       res.status(201).json({
         message: "Layout saved successfully",
@@ -176,9 +201,9 @@ class DocumentLayoutsController {
     }
   };
 
-  static async update(req: Request, res: Response) {
+  static async update(req: Request, res: Response): Promise<void> {
 
-    const { id: layoutID } = req.params;
+    const { id } = req.params;
 
     const userID: number = (req.user as { id: number }).id;
 
@@ -187,31 +212,30 @@ class DocumentLayoutsController {
       return;
     }
 
-    const numericId = parseInt(layoutID, 10);
+    const layoutID: number = parseInt(id, 10);
 
-    if (isNaN(numericId)) {
+    if (isNaN(layoutID)) {
       res.status(400).json({ message: "Invalid ID format" });
       return;
     }
 
-    console.log("Update request for ID:", numericId);
+    console.log("Update request for ID:", layoutID);
 
     try {
       const documentLayout: DocumentLayout = await db.document_layouts.findOne({
-        where: { id: numericId },
+        where: { id: layoutID },
       });
 
       if (!documentLayout) {
         res
           .status(404)
-          .json({ message: `Document layout with ID ${numericId} not found` });
+          .json({ message: `Document layout with ID ${layoutID} not found` });
         return;
       }
 
       const editedLayout = { // Must be plain object, not instance of DocumentLayout
         name: req.body.name || documentLayout.name,
         fields: req.body.fields || documentLayout.fields,
-        document_type: documentLayout.document_type,
         image_id: documentLayout.image_id,
         updated_by: userID, // UserID of the user who made the changes
         // updatedAt is automatically set by Sequelize
@@ -219,11 +243,11 @@ class DocumentLayoutsController {
 
       // Update the document layout with the new data
       await db.document_layouts.update(editedLayout, {
-        where: { id: numericId },
+        where: { id: layoutID },
       });
 
       console.log("Edited layout:", documentLayout.name);
-      res.json({ message: `Document layout ${numericId} updated` });
+      res.json({ message: `Document layout ${layoutID} updated` });
 
     } catch (error) {
       console.error("Error updating document layout:", error);
@@ -233,33 +257,39 @@ class DocumentLayoutsController {
 
   }
 
-  static async delete(req: Request, res: Response) {
+  static async delete(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
 
-    const numericId = parseInt(id, 10);
+    const layoutID: number = parseInt(id, 10);
 
-    if (isNaN(numericId)) {
+    if (isNaN(layoutID)) {
       res.status(400).json({ message: "Invalid ID format" });
       return;
     }
 
     try {
-      const documentLayout = await db.document_layouts.findOne({
-        where: { id: numericId },
+      const documentLayout: DocumentLayout = await db.document_layouts.findOne({
+        where: { id: layoutID },
       });
 
       if (!documentLayout) {
         res
           .status(404)
-          .json({ message: `Document layout with ID ${numericId} not found` });
+          .json({ message: `Document layout with ID ${layoutID} not found` });
         return;
       }
 
-      // Prvo sačuvajmo ID slike
-      const imageId = documentLayout.image_id;
+      // Prvo FK veze iz document_types tabele postavimo an null
+      await db.document_types.update(
+        { document_layout_id: null },
+        { where: { document_layout_id: documentLayout.id } }
+      );
 
-      // Obrišimo document layout
-      await db.document_layouts.destroy({ where: { id: numericId } });
+      // Drugo sačuvajmo ID slike
+      const imageId: number = documentLayout.image_id;
+
+      // Treće obrišimo document layout
+      await db.document_layouts.destroy({ where: { id: layoutID } });
 
       // Ako postoji slika, obrišimo i nju
       if (imageId) {
@@ -267,7 +297,7 @@ class DocumentLayoutsController {
       }
 
       res.json({
-        message: `Document layout ${numericId} removed with its associated image`
+        message: `Document layout ${layoutID} removed with its associated image`
       });
 
     } catch (error) {
