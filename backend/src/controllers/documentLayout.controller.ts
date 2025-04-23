@@ -180,12 +180,12 @@ class DocumentLayoutsController {
       console.log("New document layout created with id:", newDocumentLayout.id);
 
       // 3. Ažuriramo document_types tabelu da referencira na novi layout
-      const [numberOfUpdatedRows] = await db.document_types.update(
+      const [numberOfUpdatedDocumentTypes] = await db.document_types.update(
         { document_layout_id: newDocumentLayout.id },
         { where: { id: document_type } }
       );
 
-      if (numberOfUpdatedRows === 0) {
+      if (numberOfUpdatedDocumentTypes === 0) {
         console.error(`Failed to update document type with ID ${document_type}`);
         res.status(404).json({ message: `Document type with ID ${document_type} not found or could not be updated` });
         return;
@@ -247,11 +247,11 @@ class DocumentLayoutsController {
       };
 
       // Update the document layout with the new data
-      const numberOfUpdatedRows: number = await db.document_layouts.update(editedLayout, {
+      const [numberOfUpdatedDocumentLayouts] = await db.document_layouts.update(editedLayout, {
         where: { id: layoutID },
       });
 
-      if (numberOfUpdatedRows === 0) {
+      if (numberOfUpdatedDocumentLayouts === 0) {
         console.error(`Failed to update document layout with ID ${layoutID}`);
         res.status(404).json({ message: `Document layout with ID ${layoutID} not found or could not be updated` });
         return;
@@ -281,9 +281,9 @@ class DocumentLayoutsController {
     try {
 
       // Obrišimo document layout
-      const numberOfDeletedLayouts: number = await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
+      const [numberOfDeletedDocumentLayouts] = await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
 
-      if (numberOfDeletedLayouts === 0) {
+      if (numberOfDeletedDocumentLayouts === 0) {
         console.error(`Failed to delete document layout with ID ${layoutID}`);
         res.status(404).json({ message: `Document layout with ID ${layoutID} not found or could not be deleted` });
         return;
