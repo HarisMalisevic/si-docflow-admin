@@ -22,7 +22,7 @@ async function saveImageToDisk(imageBuffer: Buffer, fileName_png: string) {
 }
 
 class DocumentLayoutsController {
-  
+
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
       const allDocumentLayouts: DocumentLayout[] =
@@ -47,7 +47,7 @@ class DocumentLayoutsController {
     }
 
     try {
-      const documentLayout = await db.document_layouts.findOne({
+      const documentLayout: DocumentLayout | null = await db.document_layouts.findOne({
         where: { id: layoutID },
       });
 
@@ -77,7 +77,7 @@ class DocumentLayoutsController {
     }
 
     try {
-      const documentLayout: DocumentLayout = await db.document_layouts.findOne({
+      const documentLayout: DocumentLayout | null = await db.document_layouts.findOne({
         attributes: ['image_id'], // Fetch only the image_id
         where: { id: layoutID },
       });
@@ -90,7 +90,7 @@ class DocumentLayoutsController {
         return;
       }
 
-      const layoutImage: LayoutImage = await db.layout_images.findOne({
+      const layoutImage: LayoutImage | null = await db.layout_images.findOne({
         where: { id: documentLayout.image_id }
       });
 
@@ -146,7 +146,7 @@ class DocumentLayoutsController {
       }
 
       // 0. Provjeravamo da li document_type već ima layout
-      const documentType: DocumentType = await db.document_types.findOne({
+      const documentType: DocumentType | null = await db.document_types.findOne({
         where: { id: document_type },
       });
 
@@ -180,10 +180,16 @@ class DocumentLayoutsController {
       console.log("New document layout created with id:", newDocumentLayout.id);
 
       // 3. Ažuriramo document_types tabelu da referencira na novi layout
-      await db.document_types.update(
+      const [numberOfUpdatedRows] = await db.document_types.update(
         { document_layout_id: newDocumentLayout.id },
         { where: { id: document_type } }
       );
+
+      if (numberOfUpdatedRows === 0) {
+        console.error(`Failed to update document type with ID ${document_type}`);
+        res.status(404).json({ message: `Document type with ID ${document_type} not found or could not be updated` });
+        return;
+      }
 
       console.log("Document type updated with new layout ID:", document_type);
 
@@ -221,7 +227,7 @@ class DocumentLayoutsController {
     console.log("Update request for ID:", layoutID);
 
     try {
-      const documentLayout: DocumentLayout = await db.document_layouts.findOne({
+      const documentLayout: DocumentLayout | null = await db.document_layouts.findOne({
         where: { id: layoutID },
       });
 
@@ -241,9 +247,15 @@ class DocumentLayoutsController {
       };
 
       // Update the document layout with the new data
-      await db.document_layouts.update(editedLayout, {
+      const numberOfUpdatedRows: number = await db.document_layouts.update(editedLayout, {
         where: { id: layoutID },
       });
+
+      if (numberOfUpdatedRows === 0) {
+        console.error(`Failed to update document layout with ID ${layoutID}`);
+        res.status(404).json({ message: `Document layout with ID ${layoutID} not found or could not be updated` });
+        return;
+      }
 
       console.log("Edited layout:", documentLayout.name);
       res.json({ message: `Document layout ${layoutID} updated` });
@@ -267,22 +279,15 @@ class DocumentLayoutsController {
     }
 
     try {
-      const documentLayout: DocumentLayout = await db.document_layouts.findOne({
-        where: { id: layoutID },
-      });
 
-      if (!documentLayout) {
-        res
-          .status(404)
-          .json({ message: `Document layout with ID ${layoutID} not found` });
+      // Obrišimo document layout
+      const numberOfDeletedLayouts: number = await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
+
+      if (numberOfDeletedLayouts === 0) {
+        console.error(`Failed to delete document layout with ID ${layoutID}`);
+        res.status(404).json({ message: `Document layout with ID ${layoutID} not found or could not be deleted` });
         return;
       }
-
-      // Sačuvajmo ID slike
-      const imageId: number = documentLayout.image_id;
-      
-      // Obrišimo document layout
-      await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
 
       // Zbog onDelete: 'SET NULL' u definiciji relacije, document_layout_id se prilikom brisanja layout-a automatski postavlja na null u odgovarajućem document type
 
