@@ -1,10 +1,10 @@
-import { Sequelize } from 'sequelize';
+import { DestroyOptions, Sequelize } from 'sequelize';
 import path from 'path';
 import dotenv from 'dotenv';
-import { initDocumentType } from './DocumentType';
+import DocumentType, { initDocumentType } from './DocumentType';
 import { initAdminUser } from './AdminUser';
 import { initSSOProvider } from './SSOProvider';
-import { initDocumentLayout } from './DocumentLayout';
+import DocumentLayout, { initDocumentLayout } from './DocumentLayout';
 import { initAccessRight } from './AccessRight';
 import { initLayoutImage } from './LayoutImage';
 
@@ -63,10 +63,22 @@ db.admin_users.hasMany(db.access_rights, {
   as: 'access_rights_updated'
 })
 
-db.document_types.hasMany(db.document_layouts, {
-  foreignKey: 'document_type',
-  onDelete: 'CASCADE',
-  as: 'layouts_by_document_type'
+db.document_layouts.hasOne(db.document_types, {
+  foreignKey: 'document_layout_id',
+  onDelete: 'SET NULL',
+  as: 'document_type'
+});
+
+db.document_types.addHook('afterDestroy', async (type: DocumentType, options: DestroyOptions) => {
+  const layoutId: number | undefined = type.document_layout_id;
+  
+  if (layoutId) {
+    await db.document_layouts.destroy({
+      where: { id: layoutId },
+      transaction: options.transaction,
+      individualHooks: true   // triggers the document_layouts hook for image deletion
+    });
+  }
 });
 
 db.admin_users.hasMany(db.document_layouts, {
@@ -85,6 +97,17 @@ db.layout_images.hasOne(db.document_layouts, {
   foreignKey: 'image_id',
   onDelete: 'CASCADE',
   as: 'layout'
+});
+
+db.document_layouts.addHook('afterDestroy', async (layout: DocumentLayout, options: DestroyOptions) => {
+  const imageId: number | undefined = layout.image_id;
+  
+  if (imageId) {
+    await db.layout_images.destroy({
+      where: { id: imageId },
+      transaction: options.transaction,
+    });
+  }
 });
 
 export default db;
