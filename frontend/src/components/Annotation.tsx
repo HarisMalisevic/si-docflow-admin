@@ -18,6 +18,7 @@ export type AnnotationProps = {
     saved: boolean;
     isSelected?: boolean;
     onChange?: (newAttrs: ShapeProps) => void;
+    isMultiline: boolean;
 };
 
 // Annotation component
@@ -104,7 +105,8 @@ export const instanceHandleMouseDown = (event: any) => {   //to start drawing wh
         shapeProps: { x, y, width: 0, height: 0 },
         saved: false,
         isSelected: false,
-        onChange: () => {}
+        onChange: () => {},
+        isMultiline: false
     }];
 };
 
@@ -117,7 +119,8 @@ export const instanceHandleMouseMove = (event: any, newAnnotation: AnnotationPro
         shapeProps: { x: sx, y: sy, width: x - sx, height: y - sy },
         saved: false,
         isSelected: false,
-        onChange: () => {}
+        onChange: () => {},
+        isMultiline: false
       }];
     }
     return [];

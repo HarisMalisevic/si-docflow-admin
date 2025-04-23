@@ -236,6 +236,7 @@ function DocumentLayoutCreate() {
         name: annotation.name,
         upper_left: [annotation.shapeProps.x, annotation.shapeProps.y],
         lower_right: [annotation.shapeProps.x + annotation.shapeProps.width, annotation.shapeProps.y + annotation.shapeProps.height],
+        is_multiline: annotation.isMultiline
       };
     });
 
@@ -460,7 +461,7 @@ function DocumentLayoutCreate() {
           <Col
             md={6}
             className="responsive-col mx-auto"
-            style={{ width: "550px"}}
+            style={{ width: "570px"}}
           >
             <div className="mt-3">
               <Button variant="success" onClick={showLayoutForm}  className="me-2">Save Layout</Button>
@@ -507,7 +508,7 @@ function DocumentLayoutCreate() {
               {annotations.filter((annotation) => annotation.saved).length > 0 && (
                 <div className="mt-3">
                   <h5>Added Fields:</h5>
-                  <Table striped bordered hover>
+                  <Table striped bordered hover style={{ maxWidth: '560px' }}>
                     <thead>
                       <tr>
                         <th>#</th>
@@ -523,11 +524,11 @@ function DocumentLayoutCreate() {
                         .map((annotation, index) => (
                           <tr key={index}>
                             <td className="text-start align-middle">{index + 1}</td>
-                            <td className="text-start align-middle">{annotation.name || "Unnamed Field"}</td>
+                            <td className="text-start align-middle" style={{ maxWidth: '180px', wordWrap: 'break-word', overflowWrap: 'break-word' }}>{annotation.name || "Unnamed Field"}</td>
                             <td className="text-start align-middle">
-                            ({Math.round(Number(annotation.shapeProps.x))}, {Math.round(Number(annotation.shapeProps.y))}),  
+                            ({Math.round(Number(annotation.shapeProps.x))}, {Math.round(Number(annotation.shapeProps.y))}) <br />
                             ({Math.round(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {Math.round(Number(annotation.shapeProps.y))}) <br />
-                            ({Math.round(Number(annotation.shapeProps.x))}, {Math.round(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}), 
+                            ({Math.round(Number(annotation.shapeProps.x))}, {Math.round(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))}) <br />
                             ({Math.round(Number(annotation.shapeProps.x) + Number(annotation.shapeProps.width))}, {Math.round(Number(annotation.shapeProps.y) + Number(annotation.shapeProps.height))})
                             </td>
                             <td className="text-center align-middle" style={{ whiteSpace: "nowrap", padding: "0px 5px" }}>
@@ -561,8 +562,16 @@ function DocumentLayoutCreate() {
                               type="checkbox"
                               className="custom-checkbox"
                               style={{ padding: "5px" }}
-                              //checked={isChecked}
-                              //onChange={handleChange} 
+                              checked={ annotation.isMultiline }
+                              onChange={() => {
+                                const updatedAnnotations = [...annotations];
+                                updatedAnnotations[index] = {
+                                  ...updatedAnnotations[index],
+                                  isMultiline: !updatedAnnotations[index].isMultiline
+                                };
+                                setAnnotations(updatedAnnotations);
+                              }}
+                              disabled={ editingIndex != null } 
                             />
                             </td>
                           </tr>
