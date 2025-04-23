@@ -280,14 +280,13 @@ class DocumentLayoutsController {
 
       // Sačuvajmo ID slike
       const imageId: number = documentLayout.image_id;
-
+      
       // Obrišimo document layout
-      await db.document_layouts.destroy({ where: { id: layoutID } });
+      await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
 
-      // Ako postoji slika, obrišimo i nju
-      if (imageId) {
-        await db.layout_images.destroy({ where: { id: imageId } });
-      }
+      // Zbog onDelete: 'SET NULL' u definiciji relacije, document_layout_id se prilikom brisanja layout-a automatski postavlja na null u odgovarajućem document type
+
+      // Zbog afterDestroy hook na document_layouts, odgovarajuća slika se briše automatski
 
       res.json({
         message: `Document layout ${layoutID} removed with its associated image`
