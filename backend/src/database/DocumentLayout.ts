@@ -3,9 +3,8 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 // Define the attributes for DocumentLayout
 interface DocumentLayoutAttributes {
     id: number;
-    name: string;
+    name: string; // Redundant field, can be removed if not needed
     fields: string;
-    document_type?: number;
     image_id: number;
     created_by?: number;
     updated_by?: number;
@@ -18,9 +17,8 @@ type DocumentLayoutCreationAttributes = Optional<DocumentLayoutAttributes, "id">
 class DocumentLayout extends Model<DocumentLayoutAttributes, DocumentLayoutCreationAttributes>
     implements DocumentLayoutAttributes {
     public id!: number;
-    public name!: string;
+    public name!: string; // Redundant field, can be removed if not needed
     public fields!: string;
-    public document_type?: number;
     public image_id!: number;
     public created_by?: number;
     public updated_by?: number;
@@ -35,7 +33,7 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 autoIncrement: true,
                 primaryKey: true,
             },
-            name: {
+            name: { // Redundant field, can be removed if not needed
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
@@ -43,18 +41,13 @@ export function initDocumentLayout(sequelize: Sequelize): typeof DocumentLayout 
                 type: DataTypes.TEXT,
                 allowNull: false,
             },
-            document_type: {
-                type: DataTypes.INTEGER,
-                allowNull: true,
-            },
             image_id: {
                 type: DataTypes.INTEGER,
-                allowNull: true, // PREPROD: FALSE
-                unique: false, // PREPROD: TRUE
+                allowNull: false,
+                unique: true,
             },
             created_by: {
-                type: DataTypes.INTEGER,
-                allowNull: true,
+                type: DataTypes.INTEGER
             },
             updated_by: {
                 type: DataTypes.INTEGER,
