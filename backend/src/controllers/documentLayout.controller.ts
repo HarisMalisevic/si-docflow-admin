@@ -281,7 +281,7 @@ class DocumentLayoutsController {
     try {
 
       // Obrišimo document layout
-      const [numberOfDeletedDocumentLayouts] = await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
+      const numberOfDeletedDocumentLayouts = await db.document_layouts.destroy({ where: { id: layoutID }, individualHooks: true });
 
       if (numberOfDeletedDocumentLayouts === 0) {
         console.error(`Failed to delete document layout with ID ${layoutID}`);
