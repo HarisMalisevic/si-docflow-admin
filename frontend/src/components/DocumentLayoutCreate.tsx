@@ -173,6 +173,9 @@ function DocumentLayoutCreate() {
 
   const editAnotation = (index: number) => {
     setEditingIndex(index); 
+    if(annotations.length > 0 && !annotations[annotations.length - 1].saved) {
+      annotations.pop();
+    }
     const res = instanceEditAnotation(index, annotations);
     const annotationToEdit = res;
     setFieldName(annotationToEdit.name || ""); 
@@ -408,7 +411,7 @@ function DocumentLayoutCreate() {
             style={{
               marginLeft: "50px",
               minWidth: `${canvasMeasures.width}px`,
-              marginRight: "20px",
+              marginRight: "30px",
             }}
           >
             <div
@@ -508,7 +511,7 @@ function DocumentLayoutCreate() {
               {annotations.filter((annotation) => annotation.saved).length > 0 && (
                 <div className="mt-3">
                   <h5>Added Fields:</h5>
-                  <Table striped bordered hover style={{ maxWidth: '560px' }}>
+                  <Table striped bordered hover style={{ maxWidth: '570px' }}>
                     <thead>
                       <tr>
                         <th>#</th>
