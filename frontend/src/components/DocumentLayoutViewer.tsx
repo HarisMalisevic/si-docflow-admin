@@ -12,6 +12,7 @@ function DocumentTypeViewer() {
     const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
     const [successMessage, setSuccessMessage] = useState("");
     const [selectedDocumentType, setSelectedDocumentType] = useState<number | "">("");
+    const [canCreateNew, setCanCreateNew] = useState(false);
         
     const navigate = useNavigate();
 
@@ -19,16 +20,19 @@ function DocumentTypeViewer() {
         id: number;
         name: string;
         description?: string;
+        document_layout_id?: number;
         created_by?: number;
     };
 
     const getDocumentTypes = async () => {
         try {
-        const response = await fetch("/api/document-types");
-        const data = await response.json();
-        setDocumentTypes(data);
+            const response = await fetch("/api/document-types");
+            const data = await response.json();
+            setDocumentTypes(data);
+            setCanCreateNew(data.some((type: DocumentType) => type.document_layout_id === null));
+
         } catch (error) {
-        console.error("Error while fetching document types: ", error);
+            console.error("Error while fetching document types: ", error);
         }
     };
 
@@ -53,6 +57,7 @@ function DocumentTypeViewer() {
 
         if (response.ok) {
             fetchDocumentLayouts();
+            setCanCreateNew(true);
         } else {
             console.error("Failed to delete document");
         }
@@ -105,13 +110,13 @@ function DocumentTypeViewer() {
                 />
                 <Button variant="secondary">Search</Button>
                 </div>
-                <Button
+                {canCreateNew && <Button
                 variant="success"
                 style={{ width: "7rem" }}
                 onClick={() => navigate("create")}
                 >
                 Add New
-                </Button>
+                </Button>}
             </div>
             </Col>
         </Row>
@@ -133,7 +138,7 @@ function DocumentTypeViewer() {
                         <td>{index + 1}</td>
                         <td>{doc.name}</td>
                         <td>
-                        {documentTypes.find((type) => type.id === doc.document_type)?.name || "Unknown"}
+                        {documentTypes.find((type) => type.document_layout_id === doc.id)?.name || "Unknown"}
                         </td>
                         <td className="text-center align-middle whitespace-nowrap" style={{ whiteSpace: "nowrap", width: "auto" }}>
                             <Button
