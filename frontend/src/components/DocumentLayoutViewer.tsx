@@ -68,7 +68,8 @@ function DocumentTypeViewer() {
 
     const filteredDocuments = documents.filter((doc: any) => {
         const matchesSearchQuery = doc.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesDocumentType = selectedDocumentType === "" || doc.document_type === selectedDocumentType;
+        const selectedType = documentTypes.find((type) => type.id === selectedDocumentType);
+        const matchesDocumentType = selectedDocumentType === "" || selectedType?.document_layout_id === doc.id;
         return matchesSearchQuery && matchesDocumentType;
     });
 
