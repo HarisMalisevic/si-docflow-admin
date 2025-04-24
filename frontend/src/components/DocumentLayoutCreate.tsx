@@ -38,6 +38,7 @@ function DocumentLayoutCreate() {
     id: number;
     name: string;
     description?: string;
+    document_layout_id?: number;
     created_by?: number;
   }
 
@@ -104,7 +105,8 @@ function DocumentLayoutCreate() {
     try {
       const response = await fetch("/api/document-types");
       const data = await response.json();
-      setDocumentTypes(data);
+      let filteredData: DocumentType[] = data.filter((type: DocumentType) => type.document_layout_id === null);
+      setDocumentTypes(filteredData);
     } catch (error) {
       console.error("Error while fetching document types: ", error);
     }
