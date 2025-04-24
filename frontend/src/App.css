@@ -45,3 +45,9 @@
   box-shadow: 0 0 0 1px #14a538  !important;
 }
 
+.custom-checkbox .form-check-input {
+  border: 1px solid grey;   
+  border-radius: 4px;        
+  transform: scale(1.5);
+  transform-origin: center center;
+}
