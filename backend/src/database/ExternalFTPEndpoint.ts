@@ -44,15 +44,15 @@ export function initExternalFTPEndpoint(sequelize: Sequelize): typeof ExternalFT
                 primaryKey: true,
             },
             title: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: true,
             },
             description: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: true,
             },
             host: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: false,
             },
             port: {
@@ -61,12 +61,12 @@ export function initExternalFTPEndpoint(sequelize: Sequelize): typeof ExternalFT
                 defaultValue: 21,
             },
             username: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: false,
                 defaultValue: 'anonymous',
             },
             password: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: false,
                 defaultValue: 'guest',
             },
@@ -76,7 +76,7 @@ export function initExternalFTPEndpoint(sequelize: Sequelize): typeof ExternalFT
                 defaultValue: false,
             },
             path: {
-                type: DataTypes.STRING,
+                type: DataTypes.TEXT,
                 allowNull: false,
             },
             created_by: {
