@@ -3,6 +3,8 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react"; // dodano
+import Dropdown from "react-bootstrap/Dropdown"; // dodano
 
 var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
@@ -29,10 +31,18 @@ isSuperAdmin().then((response) => {
   console.error("Error checking super admin status:", error);
 });
 
-
-
 function AppNavbar() {
+
+  const [showSsoId, setShowSsoId] = useState(false); // za show/hide
   const navigate = useNavigate();
+
+  const mockUser = {
+    email: "user@example.com",
+    ssoProvider: "Google",
+    ssoId: "abc123xyz",
+    role: "Admin", // ili "Super Admin"
+    createdAt: "2024-03-15T10:00:00Z"
+  };
 
   const handleLogout = () => {
     fetch("/auth/logout", {
@@ -70,9 +80,30 @@ function AppNavbar() {
               ))}
             </Nav>
             <Nav>
-              <Nav.Link onClick={handleLogout} style={{ cursor: "pointer" }}>
-                Log out
-              </Nav.Link>
+              <Dropdown align="end">
+                <Dropdown.Toggle variant="secondary" id="dropdown-user">
+                  {mockUser.email}
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  <Dropdown.ItemText><strong>SSO Provider:</strong> {mockUser.ssoProvider}</Dropdown.ItemText>
+                  <Dropdown.ItemText>
+                    <strong>SSO ID:</strong> {showSsoId ? mockUser.ssoId : "•••••••••"}{" "}
+                    <button 
+                      style={{ border: "none", background: "none", color: "#0d6efd", cursor: "pointer", fontSize: "0.8rem" }}
+                      onClick={() => setShowSsoId(!showSsoId)}
+                    >
+                      {showSsoId ? "Hide" : "Show"}
+                    </button>
+                  </Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Role:</strong> {mockUser.role}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Created At:</strong> {new Date(mockUser.createdAt).toLocaleDateString()}</Dropdown.ItemText>
+                  <Dropdown.Divider />
+                  <Dropdown.Item onClick={handleLogout}>
+                    Log out
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>
