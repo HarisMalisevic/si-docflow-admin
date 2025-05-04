@@ -23,7 +23,7 @@ async function isSuperAdmin() {
   });
 }
 
-let currentUser = {
+let CURRENT_USER = {
   email: "user@example.com",
   ssoProvider: "Google",
   ssoId: "abc123xyz",
@@ -49,13 +49,11 @@ async function fetchUserProfile() {
 
     userData.isSuperAdmin = userData.isSuperAdmin ? "Super Admin" : "Admin";
 
-    currentUser = userData;
+    CURRENT_USER = userData;
   } catch (error) {
     console.error("Error fetching user profile:", error);
   }
 }
-
-fetchUserProfile();
 
 isSuperAdmin().then((response) => {
   if (response.ok) {
@@ -66,6 +64,8 @@ isSuperAdmin().then((response) => {
 });
 
 function AppNavbar() {
+
+  fetchUserProfile();
 
   const [showSsoId, setShowSsoId] = useState(false); // za show/hide
   const navigate = useNavigate();
@@ -113,13 +113,13 @@ function AppNavbar() {
             <Nav>
               <Dropdown align="end">
                 <Dropdown.Toggle variant="secondary" id="dropdown-user">
-                  {currentUser.email}
+                  {CURRENT_USER.email}
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                  <Dropdown.ItemText><strong>SSO Provider:</strong> {currentUser.ssoProvider}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>SSO Provider:</strong> {CURRENT_USER.ssoProvider}</Dropdown.ItemText>
                   <Dropdown.ItemText>
-                    <strong>SSO ID:</strong> {showSsoId ? currentUser.ssoId : "•••••••••"}{" "}
+                    <strong>SSO ID:</strong> {showSsoId ? CURRENT_USER.ssoId : "•••••••••"}{" "}
                     <button
                       style={{ border: "none", background: "none", color: "#0d6efd", cursor: "pointer", fontSize: "0.8rem" }}
                       onClick={() => setShowSsoId(!showSsoId)}
@@ -127,8 +127,8 @@ function AppNavbar() {
                       {showSsoId ? "Hide" : "Show"}
                     </button>
                   </Dropdown.ItemText>
-                  <Dropdown.ItemText><strong>Role:</strong> {currentUser.isSuperAdmin}</Dropdown.ItemText>
-                  <Dropdown.ItemText><strong>Created At:</strong> {new Date(currentUser.createdAt).toLocaleDateString()}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Role:</strong> {CURRENT_USER.isSuperAdmin}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Created At:</strong> {new Date(CURRENT_USER.createdAt).toLocaleDateString()}</Dropdown.ItemText>
                   <Dropdown.Divider />
                   <Dropdown.Item onClick={handleLogout}>
                     Log out
