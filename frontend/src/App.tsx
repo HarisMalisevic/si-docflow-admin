@@ -12,6 +12,8 @@ import HomePage from "./components/HomePage";
 import AccessRightsViewer from "./components/AccessRightsViewer";
 import DocumentLayoutViewer from "./components/DocumentLayoutViewer";
 import DocumentLayoutEdit from "./components/DocumentLayoutEdit";
+import ApiEndpoints from "./components/ApiEndpoints";
+import ApiEndpointsCreate from "./components/ApiEndpointsCreate";
 
 function App() {
   return (
@@ -46,6 +48,8 @@ function App() {
         <Route path="/document-layouts/edit/:id" element={<DocumentLayoutEdit />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/access-rights" element={<AccessRightsViewer />} />
+        <Route path="/api-endpoints" element={<ApiEndpoints />} />
+        <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>

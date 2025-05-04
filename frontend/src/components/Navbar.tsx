@@ -8,7 +8,9 @@ var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
   { to: "/document-types", label: "Types" },
   { to: "/document-layouts", label: "Layouts" },
-  { to: "/access-rights", label: "Access Rights" }
+  { to: "/access-rights", label: "Access Rights" },
+  { to: "/api-endpoints", label: "API Endpoints" },
+
 ];
 
 async function isSuperAdmin() {
