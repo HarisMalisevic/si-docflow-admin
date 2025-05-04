@@ -1,5 +1,5 @@
 {
-  "name": "si-docflow-core",
+  "name": "si-docflow-admin",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/HarisMalisevic/si-docflow-core.git"
+    "url": "git+https://github.com/HarisMalisevic/si-docflow-admin.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/HarisMalisevic/si-docflow-core/issues"
+    "url": "https://github.com/HarisMalisevic/si-docflow-admin/issues"
   },
-  "homepage": "https://github.com/HarisMalisevic/si-docflow-core#readme",
+  "homepage": "https://github.com/HarisMalisevic/si-docflow-admin#readme",
   "dependencies": {
     "node-fetch": "^2.7.0"
   },
