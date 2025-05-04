@@ -140,6 +140,45 @@ class AuthController {
             }
         })(req, res);
     }
+
+    static async profile(req: Request, res: Response): Promise<void> {
+        try {
+            const token = req.cookies.jwt;
+            if (!token) {
+                res.status(401).send({ error: "Not authenticated" });
+                return;
+            }
+    
+            const decoded: any = jwt.verify(token, process.env.SESSION_SECRET!);
+            const userId = decoded.id;
+    
+            const user = await db.users.findOne({
+                where: { id: userId },
+                attributes: ["email", "sso_provider_id", "sso_id", "role", "created_at"],
+                include: [{
+                    model: db.sso_providers,
+                    as: "sso_provider",
+                    attributes: ["display_name", "api_name"]
+                }]
+            });
+    
+            if (!user) {
+                res.status(404).send({ error: "User not found" });
+                return;
+            }
+    
+            res.send({
+                email: user.email,
+                ssoProvider: user.sso_provider.display_name,
+                ssoId: user.sso_id,
+                role: user.role,
+                createdAt: user.created_at
+            });
+        } catch (err) {
+            console.error("Error in profile route:", err);
+            res.status(500).send({ error: "Internal server error" });
+        }
+    }
 }
 
 export default AuthController;
