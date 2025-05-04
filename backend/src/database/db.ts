@@ -10,6 +10,7 @@ import { initLayoutImage } from './LayoutImage';
 import { initExternalAPIEndpoint } from './ExternalAPIEndpoint';
 import { initExternalFTPEndpoint } from './ExternalFTPEndpoint';
 import { initProcessingRule } from './ProcessingRule';
+import { initLocalStorageFolder } from './LocalStorageFolder';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -42,6 +43,7 @@ db.layout_images = initLayoutImage(sequelize_obj);
 db.external_api_endpoints = initExternalAPIEndpoint(sequelize_obj);
 db.external_ftp_endpoints = initExternalFTPEndpoint(sequelize_obj);
 db.processing_rules = initProcessingRule(sequelize_obj);
+db.local_storage_folders = initLocalStorageFolder(sequelize_obj);
 
 
 // Relacije
@@ -114,6 +116,41 @@ db.document_layouts.addHook('afterDestroy', async (layout: DocumentLayout, optio
       transaction: options.transaction,
     });
   }
+});
+
+db.admin_users.hasMany(db.external_api_endpoints, {
+  foreignKey: 'created_by',
+  onDelete: 'CASCADE',
+  as: 'external_api_endpoints_created'
+});
+db.admin_users.hasMany(db.external_api_endpoints, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'external_api_endpoints_updated'
+});
+
+db.admin_users.hasMany(db.external_ftp_endpoints, {
+  foreignKey: 'created_by',
+  onDelete: 'CASCADE',
+  as: 'external_ftp_endpoints_created'
+});
+
+db.admin_users.hasMany(db.external_ftp_endpoints, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'external_ftp_endpoints_updated'
+});
+
+db.admin_users.hasMany(db.processing_rules, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'processing_rules_updated'
+});
+
+db.admin_users.hasMany(db.local_storage_folders, {
+  foreignKey: 'updated_by',
+  onDelete: 'CASCADE',
+  as: 'local_storage_folders_updated'
 });
 
 export default db;
