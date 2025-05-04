@@ -143,22 +143,15 @@ class AuthController {
 
     static async profile(req: Request, res: Response): Promise<void> {
         try {
-            const token = req.cookies.jwt;
-            if (!token) {
-                res.status(401).send({ error: "Not authenticated" });
-                return;
-            }
-    
-            const decoded: any = jwt.verify(token, process.env.SESSION_SECRET!);
-            const userId = decoded.id;
+            const userId: number = (req.user as { id: number }).id;
     
             const user = await db.users.findOne({
                 where: { id: userId },
-                attributes: ["email", "sso_provider_id", "sso_id", "role", "created_at"],
+                attributes: ["email", "sso_provider_id", "sso_id", "is_super_admin", "created_at"],
                 include: [{
                     model: db.sso_providers,
                     as: "sso_provider",
-                    attributes: ["display_name", "api_name"]
+                    attributes: ["display_name"]
                 }]
             });
     
@@ -171,11 +164,11 @@ class AuthController {
                 email: user.email,
                 ssoProvider: user.sso_provider.display_name,
                 ssoId: user.sso_id,
-                role: user.role,
+                isSuperAdmin: user.is_super_admin,
                 createdAt: user.created_at
             });
         } catch (err) {
-            console.error("Error in profile route:", err);
+            console.error("Error in profile route: ", err);
             res.status(500).send({ error: "Internal server error" });
         }
     }

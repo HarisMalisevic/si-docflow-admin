@@ -1,5 +1,6 @@
 import { Router } from "express";
 import AuthController from "../controllers/auth.controller";
+import AuthMiddleware from "middleware/AuthMiddleware";
 
 const router = Router();
 
@@ -26,6 +27,7 @@ router.post(
 );
 router.get(
     "/profile",
+    AuthMiddleware.isLoggedIn,
     AuthController.profile
 );
 
