@@ -1,52 +1,46 @@
 import db from "../database/db";
 import { Request, Response } from "express";
-import ExternalAPIEndpoint from "../database/ExternalAPIEndpoint";
+import ExternalFTPEndpoint from "../database/ExternalFTPEndpoint";
 import { Optional } from "sequelize";
 
-const authTypes = ["Basic", "Bearer", "API_Key", "OAuth", "None"] as const;
-type AuthType = (typeof authTypes)[number];
-
-interface APIEndpointAttributes {
+interface FTPEndpointAttributes {
   id: number;
   title?: string;
   description?: string;
-  is_active: boolean;
-  auth_type?: AuthType;
-  auth_credentials?: string;
-  method: string;
-  base_url: string;
-  route: string;
-  query_parameters?: string;
-  headers: string;
-  body?: string;
-  timeout_seconds: number;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  secure: boolean;
+  path: string;
   created_by: number;
   updated_by?: number;
 }
 
-type APIEndpointCreationAttributes = Optional<
-  APIEndpointAttributes,
+type FTPEndpointCreationAttributes = Optional<
+  FTPEndpointAttributes,
   | "id"
   | "title"
   | "description"
-  | "auth_type"
-  | "auth_credentials"
-  | "query_parameters"
-  | "body"
+  | "port"
+  | "username"
+  | "password"
+  | "secure"
   | "updated_by"
 >;
 
-type APIEndpointUpdateAttributes =
-  Partial<APIEndpointCreationAttributes>;
 
-class APIEndpointsController {
+type FTPEndpointUpdateAttributes =
+  Partial<FTPEndpointCreationAttributes>;
+
+class FTPEndpointsController {
   static async getAll(req: Request, res: Response) {
     try {
-      const endpoints: ExternalAPIEndpoint[] =
-        await db.external_api_endpoints.findAll();
+      const endpoints: ExternalFTPEndpoint[] =
+        await db.external_ftp_endpoints.findAll();
       res.status(200).json(endpoints);
     } catch (error) {
-      console.error("Error fetching external API endpoints: ", error);
+      console.error("Error fetching external FTP endpoints: ", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
@@ -61,20 +55,20 @@ class APIEndpointsController {
     }
 
     try {
-      const endpoint = await db.external_api_endpoints.findOne({
+      const endpoint = await db.external_ftp_endpoints.findOne({
         where: { id: numericId },
       });
 
       if (!endpoint) {
         res
           .status(404)
-          .json({ message: `External API endpoint with ID ${id} not found.` });
-          return;
+          .json({ message: `External FTP endpoint with ID ${id} not found.` });
+        return;
       }
       res.status(200).json(endpoint);
     } catch (error) {
       console.error(
-        `Error fetching external API endpoint with ID ${id}: `,
+        `Error fetching external FTP endpoint with ID ${id}: `,
         error
       );
       res.status(500).json({ message: "Internal server error" });
@@ -82,18 +76,14 @@ class APIEndpointsController {
   }
 
   static async create(req: Request, res: Response) {
-    const jsonReq: APIEndpointCreationAttributes = req.body || {};
+    const jsonReq: FTPEndpointCreationAttributes = req.body || {};
 
     const requiredFields: {
-      key: keyof APIEndpointCreationAttributes;
+      key: keyof FTPEndpointCreationAttributes;
       name: string;
     }[] = [
-      { key: "is_active", name: "Is Active" },
-      { key: "method", name: "Method" },
-      { key: "base_url", name: "Base URL" },
-      { key: "route", name: "Route" },
-      { key: "headers", name: "Headers" },
-      { key: "timeout_seconds", name: "Timeout Seconds" },
+      { key: "host", name: "Host" },
+      { key: "path", name: "Path" },
     ];
 
     for (const field of requiredFields) {
@@ -104,7 +94,7 @@ class APIEndpointsController {
     }
 
     const typeValidations: {
-      key: keyof APIEndpointAttributes;
+      key: keyof FTPEndpointAttributes;
       name: string;
       typeDescription: string;
       isInvalid: (value: any) => boolean;
@@ -122,65 +112,40 @@ class APIEndpointsController {
         isInvalid: (v) => typeof v !== "string",
       },
       {
-        key: "is_active",
-        name: "Is Active",
+        key: "host",
+        name: "Host",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "port",
+        name: "Port",
+        typeDescription: "positive integer",
+        isInvalid: (v) => !Number.isInteger(v) || v <= 0,
+      },
+      {
+        key: "username",
+        name: "Username",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "password",
+        name: "Password",
+        typeDescription: "string",
+        isInvalid: (v) => typeof v !== "string",
+      },
+      {
+        key: "secure",
+        name: "Secure",
         typeDescription: "boolean",
         isInvalid: (v) => typeof v !== "boolean",
       },
       {
-        key: "auth_type",
-        name: "Auth Type",
-        typeDescription: `one of ${authTypes.join(", ")}`,
-        isInvalid: (v) =>
-          typeof v !== "string" || !authTypes.includes(v as AuthType),
-      },
-      {
-        key: "auth_credentials",
-        name: "Auth Credentials",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "method",
-        name: "Method",
+        key: "path",
+        name: "Path",
         typeDescription: "non-empty string",
         isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-      },
-      {
-        key: "base_url",
-        name: "Base URL",
-        typeDescription: "non-empty string",
-        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-      },
-      {
-        key: "route",
-        name: "Route",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "query_parameters",
-        name: "Query Parameters",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "headers",
-        name: "Headers",
-        typeDescription: "non-empty string",
-        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-      },
-      {
-        key: "body",
-        name: "Body",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "timeout_seconds",
-        name: "Timeout Seconds",
-        typeDescription: "positive number",
-        isInvalid: (v) => typeof v !== "number" || isNaN(v) || v <= 0,
       },
     ];
 
@@ -196,54 +161,49 @@ class APIEndpointsController {
       }
     }
 
-    const userID: number = (req.user as { id: number }).id;
+    const userID: number = (req.user as { id: number })?.id;
     if (!userID || typeof userID !== "number") {
-      res.status(400).json({ message: "Unauthorized or invalid user data" });
+      res.status(401).json({ message: "Unauthorized or invalid user data" });
       return;
     }
 
     try {
-      const newEndpoint = await db.external_api_endpoints.create({
+      const newEndpoint = await db.external_ftp_endpoints.create({
         title: jsonReq.title,
         description: jsonReq.description,
-        is_active: jsonReq.is_active,
-        auth_type: jsonReq.auth_type,
-        auth_credentials: jsonReq.auth_credentials,
-        method: jsonReq.method,
-        base_url: jsonReq.base_url,
-        route: jsonReq.route,
-        query_parameters: jsonReq.query_parameters,
-        headers: jsonReq.headers,
-        body: jsonReq.body,
-        timeout_seconds: jsonReq.timeout_seconds,
+        host: jsonReq.host,
+        port: jsonReq.port,
+        username: jsonReq.username,
+        password: jsonReq.password,
+        secure: jsonReq.secure,
+        path: jsonReq.path,
         created_by: userID,
       });
-      res.status(200).json(newEndpoint);
+      res.status(201).json(newEndpoint);
     } catch (error) {
-      console.error("Error creating external API endpoint: ", error);
+      console.error("Error creating external FTP endpoint: ", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }
 
   static async update(req: Request, res: Response) {
     const { id } = req.params;
-    const jsonReq: APIEndpointUpdateAttributes = req.body || {};
+    const jsonReq: FTPEndpointUpdateAttributes = req.body || {};
     const numericId = parseInt(id, 10);
 
     if (isNaN(numericId)) {
       res.status(400).json({ message: "Invalid ID format" });
       return;
     }
-
     if (!jsonReq || Object.keys(jsonReq).length === 0) {
       res
         .status(400)
         .json({ message: "Request body cannot be empty for update." });
-        return;
+      return;
     }
 
     const typeValidations: {
-      key: keyof APIEndpointAttributes;
+      key: keyof FTPEndpointAttributes;
       name: string;
       typeDescription: string;
       isInvalid: (value: any) => boolean;
@@ -261,65 +221,40 @@ class APIEndpointsController {
         isInvalid: (v) => typeof v !== "string",
       },
       {
-        key: "is_active",
-        name: "Is Active",
+        key: "host",
+        name: "Host",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "port",
+        name: "Port",
+        typeDescription: "positive integer",
+        isInvalid: (v) => !Number.isInteger(v) || v <= 0,
+      },
+      {
+        key: "username",
+        name: "Username",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "password",
+        name: "Password",
+        typeDescription: "string",
+        isInvalid: (v) => typeof v !== "string",
+      },
+      {
+        key: "secure",
+        name: "Secure",
         typeDescription: "boolean",
         isInvalid: (v) => typeof v !== "boolean",
       },
       {
-        key: "auth_type",
-        name: "Auth Type",
-        typeDescription: `one of ${authTypes.join(", ")}`,
-        isInvalid: (v) =>
-          typeof v !== "string" || !authTypes.includes(v as AuthType),
-      },
-      {
-        key: "auth_credentials",
-        name: "Auth Credentials",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "method",
-        name: "Method",
+        key: "path",
+        name: "Path",
         typeDescription: "non-empty string",
         isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-      },
-      {
-        key: "base_url",
-        name: "Base URL",
-        typeDescription: "non-empty string",
-        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-      },
-      {
-        key: "route",
-        name: "Route",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "query_parameters",
-        name: "Query Parameters",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "headers",
-        name: "Headers",
-        typeDescription: "non-empty string",
-        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-      },
-      {
-        key: "body",
-        name: "Body",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "timeout_seconds",
-        name: "Timeout Seconds",
-        typeDescription: "positive number",
-        isInvalid: (v) => typeof v !== "number" || isNaN(v) || v <= 0,
       },
     ];
 
@@ -327,13 +262,9 @@ class APIEndpointsController {
       if (jsonReq[validation.key] !== undefined) {
         const value = jsonReq[validation.key];
         if (value === null) {
-          const nullableFields: (keyof APIEndpointAttributes)[] = [
+          const nullableFields: (keyof FTPEndpointAttributes)[] = [
             "title",
             "description",
-            "auth_type",
-            "auth_credentials",
-            "query_parameters",
-            "body",
             "updated_by",
           ];
           if (!nullableFields.includes(validation.key)) {
@@ -351,32 +282,31 @@ class APIEndpointsController {
       }
     }
 
-    const userID: number = (req.user as { id: number }).id;
+    const userID: number = (req.user as { id: number })?.id;
     if (!userID || typeof userID !== "number") {
       res.status(401).json({ message: "Unauthorized or invalid user data" });
       return;
     }
 
     try {
-      const endpoint = await db.external_api_endpoints.findOne({
+      const endpoint = await db.external_ftp_endpoints.findOne({
         where: { id: numericId },
       });
 
       if (!endpoint) {
         res
           .status(404)
-          .json({ message: `External API endpoint with ID ${id} not found.` });
-          return;
+          .json({ message: `External FTP endpoint with ID ${id} not found.` });
+        return;
       }
 
       const updateData = { ...jsonReq, updated_by: userID };
-
       endpoint.set(updateData);
       await endpoint.save();
       res.status(200).json(endpoint);
     } catch (error) {
       console.error(
-        `Error updating external API endpoint with ID ${id}: `,
+        `Error updating external FTP endpoint with ID ${id}: `,
         error
       );
       res.status(500).json({
@@ -395,22 +325,22 @@ class APIEndpointsController {
     }
 
     try {
-      const endpoint = await db.external_api_endpoints.findOne({
+      const endpoint = await db.external_ftp_endpoints.findOne({
         where: { id: numericId },
       });
 
       if (!endpoint) {
         res
           .status(404)
-          .json({ message: `External API endpoint with ID ${id} not found.` });
-          return;
+          .json({ message: `External FTP endpoint with ID ${id} not found.` });
+        return;
       }
 
-      await db.external_api_endpoints.destroy({ where: { id: numericId } });
-      res.json({ message: `External API endpoint with ID ${id} removed` });
+      await db.external_ftp_endpoints.destroy({ where: { id: numericId } });
+      res.json({ message: `External FTP endpoint with ID ${id} removed` });
     } catch (error) {
       console.error(
-        `Error deleting external API endpoint with ID ${id}: `,
+        `Error deleting external FTP endpoint with ID ${id}: `,
         error
       );
       res.status(500).json({ message: "Internal server error" });
@@ -418,4 +348,4 @@ class APIEndpointsController {
   }
 }
 
-export default APIEndpointsController;
+export default FTPEndpointsController;

@@ -5,6 +5,7 @@ import ssoProvidersRoutes from '../routes/ssoProviders.routes';
 import documentLayoutRoutes from '../routes/documentLayout.routes';
 import accessRights from "../routes/accessRights.routes";
 import apiEndpoints from "../routes/apiEndpoints.routes";
+import ftpEndpoints from "../routes/ftpEndpoints.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 import processingRuleDestinationRoutes from "../routes/processingRuleDestination.routes";
 import processingRuleRoutes from "../routes/processingRule.routes";
@@ -110,6 +111,10 @@ API_ROUTER.use(
     apiEndpoints
 );
 
+API_ROUTER.use(
+    "/api/ftp-endpoints",
+    ftpEndpoints
+);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get(
