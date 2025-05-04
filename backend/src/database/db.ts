@@ -9,6 +9,7 @@ import { initAccessRight } from './AccessRight';
 import { initLayoutImage } from './LayoutImage';
 import { initExternalAPIEndpoint } from './ExternalAPIEndpoint';
 import { initExternalFTPEndpoint } from './ExternalFTPEndpoint';
+import { initProcessingRule } from './ProcessingRule';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -38,6 +39,9 @@ db.sso_providers = initSSOProvider(sequelize_obj);
 db.document_layouts = initDocumentLayout(sequelize_obj);
 db.access_rights = initAccessRight(sequelize_obj);
 db.layout_images = initLayoutImage(sequelize_obj);
+db.external_api_endpoints = initExternalAPIEndpoint(sequelize_obj);
+db.external_ftp_endpoints = initExternalFTPEndpoint(sequelize_obj);
+db.processing_rules = initProcessingRule(sequelize_obj);
 
 
 // Relacije
@@ -73,7 +77,7 @@ db.document_layouts.hasOne(db.document_types, {
 
 db.document_types.addHook('afterDestroy', async (type: DocumentType, options: DestroyOptions) => {
   const layoutId: number | undefined = type.document_layout_id;
-  
+
   if (layoutId) {
     await db.document_layouts.destroy({
       where: { id: layoutId },
@@ -103,7 +107,7 @@ db.layout_images.hasOne(db.document_layouts, {
 
 db.document_layouts.addHook('afterDestroy', async (layout: DocumentLayout, options: DestroyOptions) => {
   const imageId: number | undefined = layout.image_id;
-  
+
   if (imageId) {
     await db.layout_images.destroy({
       where: { id: imageId },
