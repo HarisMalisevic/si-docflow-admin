@@ -8,6 +8,7 @@ import DocumentLayout, { initDocumentLayout } from './DocumentLayout';
 import { initAccessRight } from './AccessRight';
 import { initLayoutImage } from './LayoutImage';
 import { initExternalAPIEndpoint } from './ExternalAPIEndpoint';
+import { initExternalFTPEndpoint } from './ExternalFTPEndpoint';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -37,7 +38,6 @@ db.sso_providers = initSSOProvider(sequelize_obj);
 db.document_layouts = initDocumentLayout(sequelize_obj);
 db.access_rights = initAccessRight(sequelize_obj);
 db.layout_images = initLayoutImage(sequelize_obj);
-db.external_api_endpoints = initExternalAPIEndpoint(sequelize_obj);
 
 
 // Relacije
@@ -110,18 +110,6 @@ db.document_layouts.addHook('afterDestroy', async (layout: DocumentLayout, optio
       transaction: options.transaction,
     });
   }
-});
-
-db.admin_users.hasMany(db.external_api_endpoints, {
-  foreignKey: 'created_by',
-  onDelete: 'CASCADE',
-  as: 'api_endpoints_created'
-});
-
-db.admin_users.hasMany(db.external_api_endpoints, {
-  foreignKey: 'updated_by',
-  onDelete: 'CASCADE',
-  as: 'api_endpoints_updated'
 });
 
 export default db;
