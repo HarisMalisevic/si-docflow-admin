@@ -20,9 +20,6 @@
     "url": "https://github.com/HarisMalisevic/si-docflow-admin/issues"
   },
   "homepage": "https://github.com/HarisMalisevic/si-docflow-admin#readme",
-  "dependencies": {
-    "node-fetch": "^2.7.0"
-  },
   "devDependencies": {
     "@types/node-fetch": "^2.6.12"
   }
