@@ -23,6 +23,40 @@ async function isSuperAdmin() {
   });
 }
 
+let currentUser = {
+  email: "user@example.com",
+  ssoProvider: "Google",
+  ssoId: "abc123xyz",
+  isSuperAdmin: false,
+  createdAt: "2024-03-15T10:00:00Z"
+};
+
+async function fetchUserProfile() {
+  try {
+    const response = await fetch("/api/auth/profile", {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch user profile");
+    }
+
+    const userData = await response.json();
+
+    userData.isSuperAdmin = userData.isSuperAdmin ? "Super Admin" : "Admin";
+
+    currentUser = userData;
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+  }
+}
+
+fetchUserProfile();
+
 isSuperAdmin().then((response) => {
   if (response.ok) {
     NAV_BAR_LINKS.push({ to: "/sso-providers", label: "SSO Providers" });
@@ -35,14 +69,6 @@ function AppNavbar() {
 
   const [showSsoId, setShowSsoId] = useState(false); // za show/hide
   const navigate = useNavigate();
-
-  const mockUser = {
-    email: "user@example.com",
-    ssoProvider: "Google",
-    ssoId: "abc123xyz",
-    role: "Admin", // ili "Super Admin"
-    createdAt: "2024-03-15T10:00:00Z"
-  };
 
   const handleLogout = () => {
     fetch("/auth/logout", {
@@ -67,11 +93,15 @@ function AppNavbar() {
     <>
       <Navbar expand="lg" bg="dark" variant="dark" className="mb-4">
         <Container>
+
           <Navbar.Brand as={Link} to="/">
             DocFlow
           </Navbar.Brand>
+
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
           <Navbar.Collapse id="basic-navbar-nav">
+
             <Nav className="me-auto">
               {NAV_BAR_LINKS.map((link, index) => (
                 <Nav.Link as={Link} to={link.to} key={index}>
@@ -79,25 +109,26 @@ function AppNavbar() {
                 </Nav.Link>
               ))}
             </Nav>
+
             <Nav>
               <Dropdown align="end">
                 <Dropdown.Toggle variant="secondary" id="dropdown-user">
-                  {mockUser.email}
+                  {currentUser.email}
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                  <Dropdown.ItemText><strong>SSO Provider:</strong> {mockUser.ssoProvider}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>SSO Provider:</strong> {currentUser.ssoProvider}</Dropdown.ItemText>
                   <Dropdown.ItemText>
-                    <strong>SSO ID:</strong> {showSsoId ? mockUser.ssoId : "•••••••••"}{" "}
-                    <button 
+                    <strong>SSO ID:</strong> {showSsoId ? currentUser.ssoId : "•••••••••"}{" "}
+                    <button
                       style={{ border: "none", background: "none", color: "#0d6efd", cursor: "pointer", fontSize: "0.8rem" }}
                       onClick={() => setShowSsoId(!showSsoId)}
                     >
                       {showSsoId ? "Hide" : "Show"}
                     </button>
                   </Dropdown.ItemText>
-                  <Dropdown.ItemText><strong>Role:</strong> {mockUser.role}</Dropdown.ItemText>
-                  <Dropdown.ItemText><strong>Created At:</strong> {new Date(mockUser.createdAt).toLocaleDateString()}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Role:</strong> {currentUser.isSuperAdmin}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Created At:</strong> {new Date(currentUser.createdAt).toLocaleDateString()}</Dropdown.ItemText>
                   <Dropdown.Divider />
                   <Dropdown.Item onClick={handleLogout}>
                     Log out
