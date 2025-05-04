@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/HarisMalisevic/si-docflow-admin#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
