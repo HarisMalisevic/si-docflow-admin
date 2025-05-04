@@ -5,6 +5,8 @@ import ssoProvidersRoutes from '../routes/ssoProviders.routes';
 import documentLayoutRoutes from '../routes/documentLayout.routes';
 import accessRights from "../routes/accessRights.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
+import processingRuleDestinationRoutes from "../routes/processingRuleDestination.routes";
+import processingRuleRoutes from "../routes/processingRule.routes";
 import path from 'path';
 
 
@@ -91,6 +93,16 @@ API_ROUTER.use(
 API_ROUTER.use(
     "/api/access-rights",
     accessRights
+);
+
+API_ROUTER.use(
+    "/api/processing-rules",
+    processingRuleRoutes
+);
+
+API_ROUTER.use(
+    "/api/processing-rules/destinations",
+    processingRuleDestinationRoutes
 );
 
 

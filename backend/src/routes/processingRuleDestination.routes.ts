@@ -12,41 +12,41 @@ router.get(
 );
 
 router.get(
-    "/destinations/document-type/:id",
+    "/document-type/:id",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.getAllByDocumentTypeId
 );
 
 router.get(
-    "/destination/api/:id",
+    "/api/:id",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.getAllByApiId
 );
 router.get(
-    "/destination/ftp/:id",
+    "/ftp/:id",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.getAllByFtpId
 );
 router.get(
-    "/destination/local/:id",
+    "/local/:id",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.getAllByLocalFolderId
 );
 
 router.post(
-    "/destination",
+    "/",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.create
 );
 
 router.put(
-    "/destination/:id",
+    "/:id",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.update
 );
 
 router.delete(
-    "/destination/:id",
+    "/:id",
     AuthMiddleware.isLoggedIn,
     ProcessingRuleDestinationController.delete
 );
