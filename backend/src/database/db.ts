@@ -11,6 +11,7 @@ import { initExternalAPIEndpoint } from './ExternalAPIEndpoint';
 import { initExternalFTPEndpoint } from './ExternalFTPEndpoint';
 import { initProcessingRule } from './ProcessingRule';
 import { initLocalStorageFolder } from './LocalStorageFolder';
+import { initProcessingRuleDestination } from './ProcessingRuleDestination';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -44,6 +45,7 @@ db.external_api_endpoints = initExternalAPIEndpoint(sequelize_obj);
 db.external_ftp_endpoints = initExternalFTPEndpoint(sequelize_obj);
 db.processing_rules = initProcessingRule(sequelize_obj);
 db.local_storage_folders = initLocalStorageFolder(sequelize_obj);
+db.processing_rule_destinations = initProcessingRuleDestination(sequelize_obj);
 
 
 // Relacije
@@ -152,5 +154,44 @@ db.admin_users.hasMany(db.local_storage_folders, {
   onDelete: 'CASCADE',
   as: 'local_storage_folders_updated'
 });
+
+// Define relationships for ProcessingRuleDestination
+db.processing_rules.hasMany(db.processing_rule_destinations, {
+  foreignKey: 'processing_rule_id',
+  onDelete: 'CASCADE',
+  as: 'processing_rule_destinations',
+});
+
+db.local_storage_folders.hasMany(db.processing_rule_destinations, {
+  foreignKey: 'local_storage_folder_id',
+  onDelete: 'SET NULL',
+  as: 'processing_rule_destinations_local_storage',
+});
+
+db.external_api_endpoints.hasMany(db.processing_rule_destinations, {
+  foreignKey: 'external_api_endpoint_id',
+  onDelete: 'SET NULL',
+  as: 'processing_rule_destinations_api',
+});
+
+db.external_ftp_endpoints.hasMany(db.processing_rule_destinations, {
+  foreignKey: 'external_ftp_endpoint_id',
+  onDelete: 'SET NULL',
+  as: 'processing_rule_destinations_ftp',
+});
+
+db.admin_users.hasMany(db.processing_rule_destinations, {
+  foreignKey: 'created_by',
+  onDelete: 'CASCADE',
+  as: 'processing_rule_destinations_created',
+});
+
+db.admin_users.hasMany(db.processing_rule_destinations, {
+  foreignKey: 'updated_by',
+  onDelete: 'SET NULL',
+  as: 'processing_rule_destinations_updated',
+});
+
+
 
 export default db;
