@@ -70,6 +70,16 @@ function AppNavbar() {
   const [showSsoId, setShowSsoId] = useState(false); // za show/hide
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetch("/api/auth/profile", { credentials: "include" })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+      })
+      .then(data => setUser(data))
+      .catch(err => console.error("Failed to load user profile:", err));
+  }, []);
+
   const handleLogout = () => {
     fetch("/auth/logout", {
       method: "POST",
