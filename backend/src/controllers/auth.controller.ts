@@ -140,6 +140,38 @@ class AuthController {
             }
         })(req, res);
     }
+
+    static async profile(req: Request, res: Response): Promise<void> {
+        try {
+            const userId: number = (req.user as { id: number }).id;
+    
+            const user = await db.admin_users.findOne({
+                where: { id: userId },
+                attributes: ["email", "sso_provider", "sso_id", "is_super_admin", "createdAt"],
+                include: [{
+                    model: db.sso_providers,
+                    as: "sso_provider_details",
+                    attributes: ["display_name"]
+                }]
+            });
+    
+            if (!user) {
+                res.status(404).send({ error: "User not found" });
+                return;
+            }
+    
+            res.send({
+                email: user.email,
+                ssoProvider: user.sso_provider_details.display_name,
+                ssoId: user.sso_id,
+                isSuperAdmin: user.is_super_admin,
+                createdAt: user.createdAt
+            });
+        } catch (err) {
+            console.error("Error in profile route: ", err);
+            res.status(500).send({ error: "Internal server error" });
+        }
+    }
 }
 
 export default AuthController;
