@@ -27,3 +27,7 @@ backend/src/migrations/sso_init_PROD.ts
 
 # Ignore uplaoded files
 backend/uploads/
+
+
+# Ignore macOS specific files
+.DS_Store

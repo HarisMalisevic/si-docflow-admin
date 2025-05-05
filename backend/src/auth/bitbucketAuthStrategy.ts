@@ -39,7 +39,7 @@ export default async function createBitbucketStrategy(): Promise<passportStrateg
             done: (error: any, user?: any) => void
         ) => {
             try {
-
+                const { default: fetch } = await import("node-fetch");
                 const emailResponse = await fetch("https://api.bitbucket.org/2.0/user/emails", {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
