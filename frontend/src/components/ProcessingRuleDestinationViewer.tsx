@@ -17,11 +17,12 @@ interface Destination {
   external_api_endpoint_id?: number;
   external_ftp_endpoint_id?: number;
   local_storage_folder_id?: number;
-  is_active: boolean;
 }
+
 interface APIEndpoint {
   id: number;
   title: string;
+  is_active: boolean;
 }
 interface FTPEndpoint {
   id: number;
@@ -90,52 +91,32 @@ const ProcessingRuleDestinationViewer: React.FC = () => {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-    const payload: any = {
-      processing_rule_id: Number(ruleId),
-      api_id: selectedType === "api" ? selectedId : null,
-      ftp_id: selectedType === "ftp" ? selectedId : null,
-      local_folder_id: selectedType === "local" ? selectedId : null,
-    };
-
-    try {
-      const res = await fetch("/api/processing-rules/destinations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error();
-      setSuccess("Destination added");
-      resetForm();
-      fetchAll();
-      setTimeout(() => setSuccess(null), 3000);
-    } catch {
-      setErrors("Failed to create destination");
-    }
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validate()) return;
+  const payload: any = {
+    processing_rule_id: Number(ruleId),
+    api_id: selectedType === "api" ? Number(selectedId) : null,
+    ftp_id: selectedType === "ftp" ? Number(selectedId) : null,
+    local_folder_id: selectedType === "local" ? Number(selectedId) : null,
   };
 
-  const handleToggle = async (d: Destination) => {
-    try {
-      await fetch(`/api/processing-rules/destinations/${d.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          processing_rule_id: Number(ruleId),
-          api_id: d.external_api_endpoint_id,
-          ftp_id: d.external_ftp_endpoint_id,
-          local_folder_id: d.local_storage_folder_id,
-          is_active: !d.is_active,
-        }),
-      });
-      setDestinations((prev) =>
-        prev.map((x) => (x.id === d.id ? { ...x, is_active: !x.is_active } : x))
-      );
-    } catch {
-      setErrors("Failed to toggle active");
-    }
-  };
+  try {
+    const res = await fetch("/api/processing-rules/destinations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error();
+    setSuccess("Destination added");
+    resetForm();
+    fetchAll();
+    setTimeout(() => setSuccess(null), 3000);
+  } catch {
+    setErrors("Failed to create destination");
+  }
+};
+
 
   const handleDelete = async (id: number) => {
     if (!window.confirm("Delete this destination?")) return;
@@ -159,11 +140,13 @@ const ProcessingRuleDestinationViewer: React.FC = () => {
             onChange={(e) => setSelectedId(+e.target.value)}
           >
             <option value="">-- Select API --</option>
-            {apis.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.title}
-              </option>
-            ))}
+            {apis
+              .filter((a) => a.is_active)
+              .map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.title}
+                </option>
+              ))}
           </Form.Select>
         </Form.Group>
       );
@@ -206,6 +189,26 @@ const ProcessingRuleDestinationViewer: React.FC = () => {
     }
     return null;
   };
+
+  const filteredDestinations = destinations.filter((d) => {
+    if (
+      !d.external_api_endpoint_id &&
+      !d.external_ftp_endpoint_id &&
+      !d.local_storage_folder_id
+    ) {
+      return false;
+    }
+    if (d.external_api_endpoint_id) {
+      return apis.some((a) => a.id === d.external_api_endpoint_id);
+    }
+    if (d.external_ftp_endpoint_id) {
+      return ftps.some((f) => f.id === d.external_ftp_endpoint_id);
+    }
+    if (d.local_storage_folder_id) {
+      return locals.some((l) => l.id === d.local_storage_folder_id);
+    }
+    return true;
+  });
 
   if (loading)
     return (
@@ -256,12 +259,11 @@ const ProcessingRuleDestinationViewer: React.FC = () => {
                 <th>#</th>
                 <th>Type</th>
                 <th>Title</th>
-                <th>Active</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {destinations.map((d, idx) => {
+              {filteredDestinations.map((d, idx) => {
                 const type = d.external_api_endpoint_id
                   ? "API"
                   : d.external_ftp_endpoint_id
@@ -281,15 +283,7 @@ const ProcessingRuleDestinationViewer: React.FC = () => {
                     <td>{idx + 1}</td>
                     <td>{type}</td>
                     <td>{title}</td>
-                    <td className="text-center">{d.is_active ? "✓" : "✗"}</td>
                     <td className="text-center">
-                      <Button
-                        size="sm"
-                        onClick={() => handleToggle(d)}
-                        className="me-2"
-                      >
-                        {d.is_active ? "Deactivate" : "Activate"}
-                      </Button>
                       <Button
                         size="sm"
                         variant="danger"
