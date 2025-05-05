@@ -37,7 +37,6 @@ interface ApiEndpoint {
       value: string;
       type: ParameterType;
       required: boolean;
-      description: string;
     }
   >;
   headers: string;
@@ -84,6 +83,8 @@ const ApiEndpointsCreate: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"basic" | "parameters" | "auth">("basic");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const updateFormState = useCallback((updates: Partial<ApiEndpoint>) => {
@@ -108,26 +109,83 @@ const ApiEndpointsCreate: React.FC = () => {
       newErrors.route = "Route is required";
     }
 
+    if (!formState.method) {
+      newErrors.method = "HTTP Method is required";
+    }
+
+    // Validate authentication fields based on auth_type
+    if (formState.auth_type === AuthType.API_KEY) {
+      if (!formState.auth_credentials?.apiKeyName) {
+        newErrors.apiKeyName = "API Key Name is required";
+      }
+      if (!formState.auth_credentials?.apiKeyValue) {
+        newErrors.apiKeyValue = "API Key Value is required";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) return;
 
-    // Prepare the payload
-    const payload = {
-      ...formState,
-      // Query parameters should be a JSON string containing the full object
-      query_parameters: JSON.stringify(formState.query_parameters),
-      // Headers and body should just be the raw string content
-      headers: formState.headers,
-      body: formState.body,
-      // Auth credentials should be a JSON string
-      auth_credentials: JSON.stringify(formState.auth_credentials || {}),
-    };
+    setIsSaving(true);
+    setError(null);
 
-    console.log("Payload to be sent to the database:", payload);
+    try {
+      // Prepare the payload
+      const payload = {
+        ...formState,
+        // Ensure query_parameters is a string and properly formatted
+        query_parameters: typeof formState.query_parameters === 'string' 
+          ? formState.query_parameters 
+          : JSON.stringify(formState.query_parameters),
+        // Ensure headers is a string
+        headers: formState.headers || '',
+        // Ensure body is a string
+        body: formState.body || '',
+        // Ensure auth_credentials is a string
+        auth_credentials: typeof formState.auth_credentials === 'object'
+          ? JSON.stringify(formState.auth_credentials)
+          : formState.auth_credentials || '{}',
+        // Ensure path_parameters is a string
+        path_parameters: typeof formState.path_parameters === 'object'
+          ? JSON.stringify(formState.path_parameters)
+          : formState.path_parameters || '{}'
+      };
+
+      console.log('Sending payload:', payload); // Debug log
+
+      const response = await fetch('/api/api-endpoints', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        // Get the error message from the response if available
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || 
+          `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const data = await response.json();
+      console.log('API Endpoint created successfully:', data);
+      
+      setHasChanges(false);
+      navigate('/api-endpoints');
+    } catch (error) {
+      console.error('Error payload:', formState); // Debug log
+      console.error('Error saving API endpoint:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred while saving');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancelClick = () => {
@@ -483,13 +541,14 @@ const ApiEndpointsCreate: React.FC = () => {
             </Tabs>
 
             <div className="d-flex justify-content-between">
-              <Button variant="primary" onClick={handleSave}>
-                Save
+              <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? "Saving..." : "Save"}
               </Button>
               <Button variant="outline-secondary" onClick={handleCancelClick}>
                 Cancel
               </Button>
             </div>
+            {saveError && <div className="text-danger mt-3">{saveError}</div>}
           </Form>
         </Col>
       </Row>

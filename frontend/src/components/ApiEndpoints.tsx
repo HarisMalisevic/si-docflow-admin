@@ -25,7 +25,7 @@ const ApiEndpoints: React.FC = () => {
 
   const fetchEndpoints = async () => {
     try {
-      const response = await fetch("/api/endpoints");
+      const response = await fetch("/api/api-endpoints");
       const data: ApiEndpoint[] = await response.json();
       setEndpoints(data);
     } catch (error) {
@@ -42,7 +42,7 @@ const ApiEndpoints: React.FC = () => {
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`/api/endpoints/${id}`, {
+      const response = await fetch(`/api/api-endpoints/${id}`, {
         method: "DELETE",
       });
 

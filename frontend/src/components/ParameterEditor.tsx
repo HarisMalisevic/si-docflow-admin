@@ -18,7 +18,6 @@ export interface QueryParameter {
   value: string;
   type: ParameterType;
   required: boolean;
-  description: string;
 }
 
 interface ParameterEditorProps {
@@ -48,8 +47,7 @@ export const ParameterEditor: React.FC<ParameterEditorProps> = ({ location, valu
       name: '',
       value: '',
       type: ParameterType.STRING,
-      required: false,
-      description: ''
+      required: false
     };
     
     const paramKey = `param-${Object.keys(parameters).length}`;
@@ -143,17 +141,6 @@ export const ParameterEditor: React.FC<ParameterEditorProps> = ({ location, valu
                       <option key={type} value={type}>{type}</option>
                     ))}
                   </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>Description</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={param.description}
-                    onChange={(e) => updateQueryParameter(key, { description: e.target.value })}
-                    placeholder="Parameter description"
-                  />
                 </Form.Group>
               </Col>
             </Row>
