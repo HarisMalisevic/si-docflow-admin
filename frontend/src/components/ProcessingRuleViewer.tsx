@@ -255,7 +255,7 @@ export const ProcessingRuleViewer: React.FC = () => {
                       <Button
                         size="sm"
                         variant="info"
-                        onClick={() => navigate(`/processing-rules/destinations/${r.id}`)}
+                        onClick={() => navigate(`/processing-rules/${r.id}/destinations`)}
                       >
                         Destinations
                       </Button>

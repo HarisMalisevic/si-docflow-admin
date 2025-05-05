@@ -52,8 +52,8 @@ function App() {
         <Route path="/access-rights" element={<AccessRightsViewer />} />
         <Route path="/api-endpoints" element={<ApiEndpoints />} />
         <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
+        <Route path="/processing-rules/:id/destinations" element={<ProcessingRuleDestinationViewer />} />
         <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
-        <Route path="/processing-rules/destinations/:id" element={<ProcessingRuleDestinationViewer />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>

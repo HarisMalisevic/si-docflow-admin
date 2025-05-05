@@ -12,7 +12,7 @@ var NAV_BAR_LINKS = [
   { to: "/document-layouts", label: "Layouts" },
   { to: "/access-rights", label: "Access Rights" },
   { to: "/api-endpoints", label: "API Endpoints" },
-
+  { to: "/processing-rules", label: "Processing Rules" },
 ];
 
 async function isSuperAdmin() {
