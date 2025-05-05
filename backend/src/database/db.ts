@@ -55,6 +55,12 @@ db.sso_providers.hasMany(db.admin_users, {
   as: 'admin_users'
 });
 
+db.admin_users.belongsTo(db.sso_providers, {
+  foreignKey: 'sso_provider',
+  onDelete: 'SET NULL',
+  as: 'sso_provider_details'
+});
+
 db.admin_users.hasMany(db.document_types, {
   foreignKey: 'created_by',
   onDelete: 'CASCADE',

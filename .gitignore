@@ -1,6 +1,8 @@
 # Ignore node_modules in both frontend and backend
 backend/node_modules/
 frontend/node_modules/
+/node_modules
+package-lock.json
 
 # Ignore React build files
 frontend/build/
@@ -25,3 +27,7 @@ backend/src/migrations/sso_init_PROD.ts
 
 # Ignore uplaoded files
 backend/uploads/
+
+
+# Ignore macOS specific files
+.DS_Store

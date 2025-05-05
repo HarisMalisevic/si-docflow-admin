@@ -28,7 +28,6 @@ router.delete(
     "/:id",
     AuthMiddleware.isLoggedIn,
     AccessRightsController.delete
-
 )
 
 export default router;

@@ -3,6 +3,8 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react"; // dodano
+import Dropdown from "react-bootstrap/Dropdown"; // dodano
 
 var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
@@ -23,18 +25,42 @@ async function isSuperAdmin() {
   });
 }
 
-isSuperAdmin().then((response) => {
-  if (response.ok) {
-    NAV_BAR_LINKS.push({ to: "/sso-providers", label: "SSO Providers" });
-  }
-}).catch((error) => {
-  console.error("Error checking super admin status:", error);
-});
-
-
-
 function AppNavbar() {
+  const [user, setUser] = useState({
+    email: "user@example.com",
+    ssoProvider: "Google",
+    isSuperAdmin: false,
+    createdAt: "2024-03-15T10:00:00Z",
+    role: "Admin"
+  });
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+
+    isSuperAdmin().then((response) => {
+      if (response.ok) {
+        NAV_BAR_LINKS.push({ to: "/sso-providers", label: "SSO Providers" });
+      }
+    }).catch((error) => {
+      console.error("Error checking super admin status:", error);
+    });
+
+    fetch("/auth/profile", { credentials: "include" })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        return res.json();
+      })
+      .then(data => {
+        const newRole = data.isSuperAdmin ? "Super Admin" : "Admin";
+
+        setUser({
+          ...data,
+          role: newRole,
+        });
+      })
+      .catch(err => console.error("Failed to load user profile:", err));
+  }, []);
 
   const handleLogout = () => {
     fetch("/auth/logout", {
@@ -59,11 +85,15 @@ function AppNavbar() {
     <>
       <Navbar expand="lg" bg="dark" variant="dark" className="mb-4">
         <Container>
+
           <Navbar.Brand as={Link} to="/">
             DocFlow
           </Navbar.Brand>
+
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
           <Navbar.Collapse id="basic-navbar-nav">
+
             <Nav className="me-auto">
               {NAV_BAR_LINKS.map((link, index) => (
                 <Nav.Link as={Link} to={link.to} key={index}>
@@ -71,10 +101,23 @@ function AppNavbar() {
                 </Nav.Link>
               ))}
             </Nav>
+
             <Nav>
-              <Nav.Link onClick={handleLogout} style={{ cursor: "pointer" }}>
-                Log out
-              </Nav.Link>
+              <Dropdown align="end">
+                <Dropdown.Toggle variant="secondary" id="dropdown-user">
+                  {user.email}
+                </Dropdown.Toggle>
+
+                <Dropdown.Menu>
+                  <Dropdown.ItemText><strong>SSO Provider:</strong> {user.ssoProvider}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Role:</strong> {user.role}</Dropdown.ItemText>
+                  <Dropdown.ItemText><strong>Created At:</strong> {new Date(user.createdAt).toLocaleDateString()}</Dropdown.ItemText>
+                  <Dropdown.Divider />
+                  <Dropdown.Item onClick={handleLogout}>
+                    Log out
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>

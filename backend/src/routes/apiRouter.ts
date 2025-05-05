@@ -4,11 +4,13 @@ import authRoutes from '../routes/auth.routes';
 import ssoProvidersRoutes from '../routes/ssoProviders.routes';
 import documentLayoutRoutes from '../routes/documentLayout.routes';
 import accessRights from "../routes/accessRights.routes";
+import apiEndpoints from "../routes/apiEndpoints.routes";
+import ftpEndpoints from "../routes/ftpEndpoints.routes";
+import localStorageFolder from "../routes/localStorageFolders.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 import processingRuleDestinationRoutes from "../routes/processingRuleDestination.routes";
 import processingRuleRoutes from "../routes/processingRule.routes";
 import path from 'path';
-
 
 // Define the path to the frontend build folder
 const FRONTEND_BUILD_PATH = path.join(__dirname, "../../../frontend/build");
@@ -105,6 +107,20 @@ API_ROUTER.use(
     processingRuleDestinationRoutes
 );
 
+API_ROUTER.use(
+    "/api/api-endpoints",
+    apiEndpoints
+);
+
+API_ROUTER.use(
+    "/api/ftp-endpoints",
+    ftpEndpoints
+);
+
+API_ROUTER.use(
+    "/api/local-storage-folder",
+    localStorageFolder
+);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get(
