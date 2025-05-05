@@ -98,14 +98,14 @@ API_ROUTER.use(
 );
 
 API_ROUTER.use(
+    "/api/processing-rules/destinations",
+    processingRuleDestinationRoutes
+);
+API_ROUTER.use(
     "/api/processing-rules",
     processingRuleRoutes
 );
 
-API_ROUTER.use(
-    "/api/processing-rules/destinations",
-    processingRuleDestinationRoutes
-);
 
 API_ROUTER.use(
     "/api/api-endpoints",

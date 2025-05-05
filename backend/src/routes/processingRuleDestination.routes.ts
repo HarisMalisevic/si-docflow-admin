@@ -51,4 +51,5 @@ router.delete(
     ProcessingRuleDestinationController.delete
 );
 
+
 export default router;

@@ -69,7 +69,7 @@ class ProcessingRuleDestinationController {
     }
 
     static async create(req: Request, res: Response): Promise<void> {
-        const { document_type_id, api_id, ftp_id, local_folder_id } = req.body;
+        const { processing_rule_id, api_id, ftp_id, local_folder_id } = req.body;
         const userID: number = (req.user as { id: number }).id;
 
 
@@ -80,13 +80,13 @@ class ProcessingRuleDestinationController {
 
         try {
             const newDestination = await db.processing_rule_destinations.create({
-                document_type_id,
+                processing_rule_id,               
                 external_api_endpoint_id: api_id,
                 external_ftp_endpoint_id: ftp_id,
                 local_storage_folder_id: local_folder_id,
                 is_active: true,
                 created_by: userID,
-            });
+              });
 
             res.status(201).json({
                 message: "Processing rule destination created successfully",
@@ -148,6 +148,7 @@ class ProcessingRuleDestinationController {
             res.status(500).json({ message: "Internal server error" });
         }
     }
+
 }
 
 export default ProcessingRuleDestinationController;
