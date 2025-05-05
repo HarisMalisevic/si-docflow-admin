@@ -14,6 +14,8 @@ import DocumentLayoutViewer from "./components/DocumentLayoutViewer";
 import DocumentLayoutEdit from "./components/DocumentLayoutEdit";
 import ApiEndpoints from "./components/ApiEndpoints";
 import ApiEndpointsCreate from "./components/ApiEndpointsCreate";
+import ProcessingRuleViewer from "./components/ProcessingRuleViewer";
+import ProcessingRuleDestinationViewer from "./components/ProcessingRuleDestinationViewer";
 
 function App() {
   return (
@@ -50,6 +52,8 @@ function App() {
         <Route path="/access-rights" element={<AccessRightsViewer />} />
         <Route path="/api-endpoints" element={<ApiEndpoints />} />
         <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
+        <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
+        <Route path="/processing-rules/destinations/:id" element={<ProcessingRuleDestinationViewer />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
