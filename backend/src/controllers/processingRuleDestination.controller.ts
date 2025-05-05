@@ -148,6 +148,28 @@ class ProcessingRuleDestinationController {
             res.status(500).json({ message: "Internal server error" });
         }
     }
+
+    static async getAllByProcessingRuleId(req: Request, res: Response): Promise<void> {
+        const { ruleId } = req.params; // Get ruleId from the route parameter
+        const numericRuleId = parseInt(ruleId, 10);
+
+        if (isNaN(numericRuleId)) {
+            res.status(400).json({ message: "Invalid Processing Rule ID format" });
+            return;
+        }
+
+        try {
+            // Find all destinations where the foreign key matches the provided rule ID
+            const destinations = await db.processing_rule_destinations.findAll({
+                where: { processing_rule_id: numericRuleId },
+            });
+            // Return the found destinations (could be an empty array)
+            res.status(200).json(destinations);
+        } catch (error) {
+            console.error(`Error fetching destinations for processing rule ID ${numericRuleId}:`, error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
 }
 
 export default ProcessingRuleDestinationController;
