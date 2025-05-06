@@ -51,7 +51,10 @@ class DocumentTypeController {
         return;
       }
 
-      await db.document_types.destroy({ where: { id } });
+      await db.document_types.destroy({ where: { id }, individualHooks: true });
+
+      // Zbog afterDestroy hook na document_types, odgovarajući layout (i slika koja se veže za njega) se brišu automatski ukoliko isti postoje
+
     } catch (error) {
       console.error("Error removing document type:", error);
       res.status(500).json({ message: "Internal server error" });

@@ -4,6 +4,7 @@ import { PassportStatic } from 'passport';
 import SSOProvider from 'database/SSOProvider';
 import createGoogleStrategy from './googleAuthStrategy';
 import { GOOGLE_API_NAME } from './googleAuthStrategy';
+import createBitbucketStrategy, { BITBUCKET_API_NAME } from './bitbucketAuthStrategy';
 
 
 async function configurePassport(passport: PassportStatic) {
@@ -16,8 +17,15 @@ async function configurePassport(passport: PassportStatic) {
   }
 
   for (const ssoProvider of ssoProviders) { // Ostavio sam Google da koristi GoogleStrategy, a ostale da koriste genericki AuthStrategy
+
+    console.log("Creating Auth Strategy for SSO Provider:", ssoProvider.api_name);
+
     if (ssoProvider.api_name === GOOGLE_API_NAME) {
       passport.use(GOOGLE_API_NAME, await createGoogleStrategy());
+
+    } else if (ssoProvider.api_name === BITBUCKET_API_NAME) {
+      passport.use(BITBUCKET_API_NAME, await createBitbucketStrategy());
+
     } else {
       passport.use(ssoProvider.api_name, await createAuthStrategy(ssoProvider));
     }
