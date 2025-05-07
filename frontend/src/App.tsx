@@ -1,6 +1,5 @@
 import "./App.css";
 import { Routes, Route } from "react-router";
-
 import DocumentTypeViewer from "./components/DocumentTypeViewer";
 import AppNavbar from "./components/Navbar";
 import LoginForm from "./components/LoginForm";
