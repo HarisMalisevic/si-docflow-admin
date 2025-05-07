@@ -20,6 +20,7 @@ interface APIEndpointAttributes {
   headers: string;
   body?: string;
   timeout_seconds: number;
+  send_file: boolean;
   created_by: number;
   updated_by?: number;
 }
@@ -36,8 +37,7 @@ type APIEndpointCreationAttributes = Optional<
   | "updated_by"
 >;
 
-type APIEndpointUpdateAttributes =
-  Partial<APIEndpointCreationAttributes>;
+type APIEndpointUpdateAttributes = Partial<APIEndpointCreationAttributes>;
 
 class APIEndpointsController {
   static async getAll(req: Request, res: Response) {
@@ -69,7 +69,7 @@ class APIEndpointsController {
         res
           .status(404)
           .json({ message: `External API endpoint with ID ${id} not found.` });
-          return;
+        return;
       }
       res.status(200).json(endpoint);
     } catch (error) {
@@ -94,6 +94,7 @@ class APIEndpointsController {
       { key: "route", name: "Route" },
       { key: "headers", name: "Headers" },
       { key: "timeout_seconds", name: "Timeout Seconds" },
+      { key: "send_file", name: "Send file" },
     ];
 
     for (const field of requiredFields) {
@@ -182,6 +183,12 @@ class APIEndpointsController {
         typeDescription: "positive number",
         isInvalid: (v) => typeof v !== "number" || isNaN(v) || v <= 0,
       },
+      {
+        key: "send_file",
+        name: "Send file",
+        typeDescription: "boolean",
+        isInvalid: (v) => typeof v !== "boolean",
+      },
     ];
 
     for (const validation of typeValidations) {
@@ -216,6 +223,7 @@ class APIEndpointsController {
         headers: jsonReq.headers,
         body: jsonReq.body,
         timeout_seconds: jsonReq.timeout_seconds,
+        send_file: jsonReq.send_file,
         created_by: userID,
       });
       res.status(200).json(newEndpoint);
@@ -239,7 +247,7 @@ class APIEndpointsController {
       res
         .status(400)
         .json({ message: "Request body cannot be empty for update." });
-        return;
+      return;
     }
 
     const typeValidations: {
@@ -321,6 +329,12 @@ class APIEndpointsController {
         typeDescription: "positive number",
         isInvalid: (v) => typeof v !== "number" || isNaN(v) || v <= 0,
       },
+      {
+        key: "send_file",
+        name: "Send file",
+        typeDescription: "boolean",
+        isInvalid: (v) => typeof v !== "boolean",
+      },
     ];
 
     for (const validation of typeValidations) {
@@ -366,7 +380,7 @@ class APIEndpointsController {
         res
           .status(404)
           .json({ message: `External API endpoint with ID ${id} not found.` });
-          return;
+        return;
       }
 
       const updateData = { ...jsonReq, updated_by: userID };
@@ -403,7 +417,7 @@ class APIEndpointsController {
         res
           .status(404)
           .json({ message: `External API endpoint with ID ${id} not found.` });
-          return;
+        return;
       }
 
       await db.external_api_endpoints.destroy({ where: { id: numericId } });
