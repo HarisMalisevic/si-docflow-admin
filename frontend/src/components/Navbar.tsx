@@ -3,16 +3,27 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react"; // dodano
-import Dropdown from "react-bootstrap/Dropdown"; // dodano
+import { useEffect, useState } from "react"; 
+import Dropdown from "react-bootstrap/Dropdown"; 
+import HoverNavDropdown from "./HoverNavDropdown";
 
 var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
-  { to: "/document-types", label: "Types" },
-  { to: "/document-layouts", label: "Layouts" },
+  { 
+    label: "Documents",
+    children: [
+      { to: "/document-types", label: "Types" },
+      { to: "/document-layouts", label: "Layouts" },
+    ]
+  },
+  {
+    label: "Processing Rules",
+    children: [
+      { to: "/processing-rules", label: "Rules" },
+      { to: "/api-endpoints", label: "API Endpoints" },
+    ]
+  },
   { to: "/access-rights", label: "Access Rights" },
-  { to: "/api-endpoints", label: "API Endpoints" },
-  { to: "/processing-rules", label: "Processing Rules" },
 ];
 
 async function isSuperAdmin() {
@@ -95,11 +106,24 @@ function AppNavbar() {
           <Navbar.Collapse id="basic-navbar-nav">
 
             <Nav className="me-auto">
-              {NAV_BAR_LINKS.map((link, index) => (
-                <Nav.Link as={Link} to={link.to} key={index}>
-                  {link.label}
-                </Nav.Link>
-              ))}
+              {NAV_BAR_LINKS.map((link, index) => {
+                if (link.children) {
+                  return (
+                    <HoverNavDropdown 
+                      title={link.label}
+                      items={link.children} 
+                      id={`nav-dropdown-${index}`}
+                    />
+                  );          
+                }
+                else {
+                  return (
+                    <Nav.Link as={Link} to={link.to} key={index}>
+                      {link.label}
+                    </Nav.Link>
+                  );
+                }
+              })}
             </Nav>
 
             <Nav>

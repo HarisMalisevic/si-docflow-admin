@@ -22,28 +22,6 @@ function HomePage() {
 
           <h3 className="fw-light mb-4">What do you wish to manage today?</h3>
 
-          <Row className="justify-content-center g-4">
-            <Col className="d-flex justify-content-end">
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-50 d-flex align-items-center justify-content-center border"
-                onClick={() => navigate("/document-types")}
-              >
-                <span>Document Types</span>
-              </Button>
-            </Col>
-            <Col className="d-flex justify-content-start">
-              <Button
-                variant="primary"
-                size="lg"
-                className="w-50 d-flex align-items-center justify-content-center border"
-                onClick={() => navigate("/document-layouts")}
-              >
-                <span>Document Layouts</span>
-              </Button>
-            </Col>
-          </Row>
         </Col>
       </Row>
     </Container>
