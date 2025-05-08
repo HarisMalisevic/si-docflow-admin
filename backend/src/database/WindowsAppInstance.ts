@@ -1,12 +1,18 @@
 import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
+// Define the enum for operational_mode
+export enum OperationalMode {
+    HEADLESS = "headless",
+    STANDALONE = "standalone",
+}
+
 // Define the attributes for the WindowsAppInstance model
 interface WindowsAppInstanceAttributes {
     id: number;
     title: string;
     location: string;
     machine_id: string;
-    operational_mode: string;
+    operational_mode: OperationalMode; // Use the enum here
     auto_start_behavior: string;
     polling_frequency: number;
     security_keys: string; // JSON array of keys
@@ -23,7 +29,7 @@ class WindowsAppInstance extends Model<WindowsAppInstanceAttributes, WindowsAppI
     public title!: string;
     public location!: string;
     public machine_id!: string;
-    public operational_mode!: string;
+    public operational_mode!: OperationalMode; // Use the enum here
     public auto_start_behavior!: string;
     public polling_frequency!: number;
     public security_keys!: string;
@@ -52,7 +58,8 @@ export function initWindowsAppInstance(sequelize: Sequelize) {
                 allowNull: false,
             },
             operational_mode: {
-                type: DataTypes.STRING,
+                type: DataTypes.ENUM,
+                values: Object.values(OperationalMode), // Use the enum values here
                 allowNull: false,
             },
             auto_start_behavior: {
