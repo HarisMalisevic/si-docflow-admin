@@ -4,7 +4,7 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 export enum ClientActionType {
     INSTANCE_STARTED = "instance_started",
     PROCESSING_REQ_SENT = "processing_req_sent",
-    PROCESSING_RESULT_RECEIVED = "processing_resault_recieved",
+    PROCESSING_RESULT_RECEIVED = "processing_result_recieved",
     COMMAND_RECEIVED = "command_recieved",
 }
 
