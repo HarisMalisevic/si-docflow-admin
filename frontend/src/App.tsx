@@ -16,6 +16,7 @@ import ApiEndpoints from "./components/ApiEndpoints";
 import ApiEndpointsCreate from "./components/ApiEndpointsCreate";
 import ProcessingRuleViewer from "./components/ProcessingRuleViewer";
 import ProcessingRuleDestinationViewer from "./components/ProcessingRuleDestinationViewer";
+import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
         <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
         <Route path="/processing-rules/:id/destinations" element={<ProcessingRuleDestinationViewer />} />
         <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
+        <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
