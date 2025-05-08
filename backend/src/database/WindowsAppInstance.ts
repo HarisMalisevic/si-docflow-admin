@@ -13,9 +13,7 @@ interface WindowsAppInstanceAttributes {
     location: string;
     machine_id: string;
     operational_mode: OperationalMode; // Use the enum here
-    auto_start_behavior: string;
     polling_frequency: number;
-    security_keys: string; // JSON array of keys
     created_by?: number;
     updated_by?: number;
 }
@@ -30,9 +28,7 @@ class WindowsAppInstance extends Model<WindowsAppInstanceAttributes, WindowsAppI
     public location!: string;
     public machine_id!: string;
     public operational_mode!: OperationalMode; // Use the enum here
-    public auto_start_behavior!: string;
     public polling_frequency!: number;
-    public security_keys!: string;
     public created_by?: number;
     public updated_by?: number;
 }
@@ -62,21 +58,13 @@ export function initWindowsAppInstance(sequelize: Sequelize) {
                 values: Object.values(OperationalMode), // Use the enum values here
                 allowNull: false,
             },
-            auto_start_behavior: {
-                type: DataTypes.STRING,
-                allowNull: false,
-            },
             polling_frequency: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
-            },
-            security_keys: {
-                type: DataTypes.JSON,
-                allowNull: false,
+                allowNull: true,
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: true,
+                allowNull: false,
             },
             updated_by: {
                 type: DataTypes.INTEGER,
