@@ -10,14 +10,14 @@ import HoverNavDropdown from "./HoverNavDropdown";
 var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
   { 
-    label: "Documents",
+    label: "Documents ▼",
     children: [
       { to: "/document-types", label: "Types" },
       { to: "/document-layouts", label: "Layouts" },
     ]
   },
   {
-    label: "Processing Rules",
+    label: "Processing Rules ▼",
     children: [
       { to: "/processing-rules", label: "Rules" },
       { to: "/api-endpoints", label: "API Endpoints" },
