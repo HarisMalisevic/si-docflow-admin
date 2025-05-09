@@ -13,7 +13,6 @@ import { initProcessingRule } from './ProcessingRule';
 import { initLocalStorageFolder } from './LocalStorageFolder';
 import { initProcessingRuleDestination } from './ProcessingRuleDestination';
 import { initWindowsAppInstance } from './WindowsAppInstance';
-import initAppInstanceDocumentType from './AppInstanceDocumentType';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -49,22 +48,6 @@ db.processing_rules = initProcessingRule(sequelize_obj);
 db.local_storage_folders = initLocalStorageFolder(sequelize_obj);
 db.processing_rule_destinations = initProcessingRuleDestination(sequelize_obj);
 db.windows_app_instances = initWindowsAppInstance(sequelize_obj);
-db.app_instance_document_types = initAppInstanceDocumentType(sequelize_obj);
-
-// Define relationships
-db.windows_app_instances.belongsToMany(db.document_types, {
-  through: db.app_instance_document_types,
-  foreignKey: 'windows_app_instance_id',
-  otherKey: 'document_type_id',
-  as: 'document_types',
-});
-
-db.document_types.belongsToMany(db.windows_app_instances, {
-  through: db.app_instance_document_types,
-  foreignKey: 'document_type_id',
-  otherKey: 'windows_app_instance_id',
-  as: 'windows_app_instances',
-});
 
 // Relacije
 db.sso_providers.hasMany(db.admin_users, {

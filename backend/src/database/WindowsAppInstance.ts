@@ -1,15 +1,19 @@
 import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
+// Define the enum for operational_mode
+export enum OperationalMode {
+    HEADLESS = "headless",
+    STANDALONE = "standalone",
+}
+
 // Define the attributes for the WindowsAppInstance model
 interface WindowsAppInstanceAttributes {
     id: number;
     title: string;
     location: string;
     machine_id: string;
-    operational_mode: string;
-    auto_start_behavior: string;
+    operational_mode: OperationalMode; // Use the enum here
     polling_frequency: number;
-    security_keys: string; // JSON array of keys
     created_by?: number;
     updated_by?: number;
 }
@@ -23,10 +27,8 @@ class WindowsAppInstance extends Model<WindowsAppInstanceAttributes, WindowsAppI
     public title!: string;
     public location!: string;
     public machine_id!: string;
-    public operational_mode!: string;
-    public auto_start_behavior!: string;
+    public operational_mode!: OperationalMode; // Use the enum here
     public polling_frequency!: number;
-    public security_keys!: string;
     public created_by?: number;
     public updated_by?: number;
 }
@@ -52,24 +54,17 @@ export function initWindowsAppInstance(sequelize: Sequelize) {
                 allowNull: false,
             },
             operational_mode: {
-                type: DataTypes.STRING,
-                allowNull: false,
-            },
-            auto_start_behavior: {
-                type: DataTypes.STRING,
+                type: DataTypes.ENUM,
+                values: Object.values(OperationalMode), // Use the enum values here
                 allowNull: false,
             },
             polling_frequency: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
-            },
-            security_keys: {
-                type: DataTypes.JSON,
-                allowNull: false,
+                allowNull: true,
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: true,
+                allowNull: false,
             },
             updated_by: {
                 type: DataTypes.INTEGER,
