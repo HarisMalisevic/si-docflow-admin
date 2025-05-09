@@ -12,6 +12,7 @@ import { initExternalFTPEndpoint } from './ExternalFTPEndpoint';
 import { initProcessingRule } from './ProcessingRule';
 import { initLocalStorageFolder } from './LocalStorageFolder';
 import { initProcessingRuleDestination } from './ProcessingRuleDestination';
+import { initWindowsAppInstance } from './WindowsAppInstance';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -34,7 +35,7 @@ const db: { Sequelize?: typeof Sequelize; sequelize?: Sequelize;[key: string]: a
 db.Sequelize = Sequelize;
 db.sequelize = sequelize_obj;
 
-// Import modela
+// Import models
 db.document_types = initDocumentType(sequelize_obj);
 db.admin_users = initAdminUser(sequelize_obj);
 db.sso_providers = initSSOProvider(sequelize_obj);
@@ -46,7 +47,7 @@ db.external_ftp_endpoints = initExternalFTPEndpoint(sequelize_obj);
 db.processing_rules = initProcessingRule(sequelize_obj);
 db.local_storage_folders = initLocalStorageFolder(sequelize_obj);
 db.processing_rule_destinations = initProcessingRuleDestination(sequelize_obj);
-
+db.windows_app_instances = initWindowsAppInstance(sequelize_obj);
 
 // Relacije
 db.sso_providers.hasMany(db.admin_users, {
