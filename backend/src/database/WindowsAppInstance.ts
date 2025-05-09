@@ -1,4 +1,5 @@
-import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { Sequelize, DataTypes, Model, Optional, ForeignKey } from "sequelize";
+import AdminUser from "./AdminUser";
 
 // Define the enum for operational_mode
 export enum OperationalMode {
@@ -29,8 +30,8 @@ class WindowsAppInstance extends Model<WindowsAppInstanceAttributes, WindowsAppI
     public machine_id!: string;
     public operational_mode!: OperationalMode; // Use the enum here
     public polling_frequency!: number;
-    public created_by?: number;
-    public updated_by?: number;
+    public created_by?: ForeignKey<AdminUser["id"]>; // Foreign key to AdminUser
+    public updated_by?: ForeignKey<AdminUser["id"]>; // Foreign key to AdminUser
 }
 
 export function initWindowsAppInstance(sequelize: Sequelize) {
@@ -65,10 +66,22 @@ export function initWindowsAppInstance(sequelize: Sequelize) {
             created_by: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
+                references: {
+                    model: AdminUser, // Reference the AdminUser model
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             updated_by: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
+                references: {
+                    model: AdminUser, // Reference the AdminUser model
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
         },
         {
