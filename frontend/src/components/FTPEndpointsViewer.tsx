@@ -28,6 +28,7 @@ interface ExternalFTPEndpoint {
 const ExternalFTPEndpoints: React.FC = () => {
   const [endpoints, setEndpoints] = useState<ExternalFTPEndpoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showActive, setShowActive] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -75,12 +76,18 @@ const ExternalFTPEndpoints: React.FC = () => {
     }
   };
 
-  const filteredEndpoints = endpoints.filter((ep) =>
-    [ep.title, ep.description, ep.host, ep.path]
-      .join(" ")
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase())
-  );
+  const filteredEndpoints = endpoints.filter((ep) => {
+  const matchesSearch = [ep.title, ep.description, ep.host, ep.path]
+    .join(" ")
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase());
+
+  const matchesSecure =
+    showActive === null ? true : ep.secure === showActive;
+
+  return matchesSearch && matchesSecure;
+});
+
 
   if (loading) {
     return (
@@ -91,23 +98,46 @@ const ExternalFTPEndpoints: React.FC = () => {
   }
 
   return (
-    <Container className="py-4">
-      <Row className="mb-3">
-        <Col md={8} className="mx-auto text-center">
-          <h2>External FTP Endpoints</h2>
+    <Container className="py-4" fluid="md">
+      <Row className="d-flex justify-content-center">
+        <Col md={8} className="text-center">
+          <h1>External FTP Endpoints</h1>
         </Col>
       </Row>
 
-      <Row className="mb-4">
+      <Row className="mb-4 mt-5">
         <Col md={10} className="mx-auto">
-          <div className="d-flex justify-content-between align-items-center mb-3">
+          <div className="d-flex justify-content-between align-items-center flex-wrap mb-3">
+            <div className="d-flex">
+            <Form.Select
+              className="me-2"
+              style={{ width: "auto", minWidth: "120px" }}
+              value={
+                showActive === null
+                ? "all"
+                : showActive
+                ? "yes"
+                : "no"
+                }
+              onChange={(e) => {
+                const val = e.target.value;
+                setShowActive(val === "all" ? null : val === "yes");
+              }}
+              aria-label="Filter by status"
+              >
+              <option value="all">All Status</option>
+              <option value="yes">Secure</option>
+              <option value="no">Not Secure</option>
+            </Form.Select>
             <Form.Control
               type="text"
+              className="me-2 flex-grow-1"
               placeholder="Search FTP endpoints..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ maxWidth: "300px" }}
+              style={{ minWidth: "300px" }}
             />
+            </div>
             <Button variant="success" onClick={() => navigate("/ftp-endpoints/create")}>
               Add New
             </Button>

@@ -161,7 +161,7 @@ const ApiEndpoints: React.FC = () => {
         </Col>
       </Row>
 
-      <Row className="mb-4" style={{ marginTop: "70px" }}>
+      <Row className="mb-4 mt-5">
         <Col md={10} className="mx-auto">
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>

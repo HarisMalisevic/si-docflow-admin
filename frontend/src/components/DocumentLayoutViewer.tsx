@@ -85,7 +85,7 @@ function DocumentTypeViewer() {
             <h1>Document Layouts</h1>
             </Col>
         </Row>
-        <Row className="mb-4" style={{ marginTop: "70px" }}>
+        <Row className="mb-4 mt-5">
             <Col md={8} className="mx-auto">
             <div className="d-flex justify-content-between align-items-center">
                 <div className="d-flex">

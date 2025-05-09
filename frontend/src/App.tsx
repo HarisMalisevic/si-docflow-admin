@@ -58,6 +58,7 @@ function App() {
         <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
         <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
+        <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>

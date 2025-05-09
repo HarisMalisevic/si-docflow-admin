@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Modal } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface FTPEndpoint {
   title?: string;
@@ -35,6 +35,9 @@ const FTPEndpointsCreate: React.FC = () => {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [user, setUser] = useState<{ id: number } | null>(null);
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const isEditMode = !!id;
+
 
   useEffect(() => {
     fetch("/auth/profile", { credentials: "include" })
@@ -50,6 +53,27 @@ const FTPEndpointsCreate: React.FC = () => {
         console.error("Error loading user:", err);
       });
   }, []);
+
+  useEffect(() => {
+  if (!isEditMode) return;
+
+  fetch(`/api/ftp-endpoints/${id}`)
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to fetch endpoint");
+      return res.json();
+    })
+    .then((data) => {
+      setFormState({
+        ...data,
+        created_by: data.created_by || user?.id || 0, // fallback in case
+      });
+    })
+    .catch((err) => {
+      setSaveError("Could not load endpoint for editing.");
+      console.error(err);
+    });
+}, [id, isEditMode, user?.id]);
+
 
   const updateFormState = (updates: Partial<FTPEndpoint>) => {
     setFormState((prev) => ({ ...prev, ...updates }));
@@ -68,32 +92,36 @@ const FTPEndpointsCreate: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+  if (!validateForm()) return;
 
-    setIsSaving(true);
-    setSaveError(null);
+  setIsSaving(true);
+  setSaveError(null);
 
-    try {
-      const payload = { ...formState };
+  try {
+    const payload = { ...formState };
 
-      const response = await fetch("/api/ftp-endpoints", {
-        method: "POST",
+    const response = await fetch(
+      isEditMode ? `/api/ftp-endpoints/${id}` : "/api/ftp-endpoints",
+      {
+        method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || "Failed to save FTP endpoint");
       }
+    );
 
-      navigate("/ftp-endpoints");
-    } catch (error: any) {
-      setSaveError(error.message || "Error saving FTP endpoint.");
-    } finally {
-      setIsSaving(false);
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || "Failed to save FTP endpoint");
     }
-  };
+
+    navigate("/ftp-endpoints");
+  } catch (error: any) {
+    setSaveError(error.message || "Error saving FTP endpoint.");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   const handleCancel = () => {
     if (hasChanges) {
@@ -112,7 +140,9 @@ const FTPEndpointsCreate: React.FC = () => {
     <Container className="py-4">
       <Row>
         <Col md={8} className="mx-auto">
-          <h2 className="text-center mb-4">Create FTP Endpoint</h2>
+          <h2 className="text-center mb-4">
+            {isEditMode ? "Edit FTP Endpoint" : "Create FTP Endpoint"}
+          </h2>
           <Form>
             <Form.Group className="mb-3" controlId="title">
               <Form.Label>Title</Form.Label>
