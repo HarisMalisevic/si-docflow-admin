@@ -12,7 +12,7 @@ interface ApplicationInstance {
     location: string;
     machineId: string;
     operationalMode: OperationalMode;
-    pollingFrequency?: number;
+    pollingFrequencyHours?: number;
 }
 
 function WindowsAppInstanceManager() {
@@ -20,7 +20,7 @@ function WindowsAppInstanceManager() {
     const [location, setLocation] = useState<string>("");
     const [machineId, setMachineId] = useState<string>("");
     const [operationalMode, setOperationalMode] = useState<OperationalMode | null>(null);
-    const [pollingFrequency, setPollingFrequency] = useState<number>(0);
+    const [pollingFrequencyHours, setPollingFrequencyHours] = useState<number>(0);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [successMessage, setSuccessMessage] = useState<string>("");
     const [appInstances, setAppInstances] = useState<ApplicationInstance[]>([]);
@@ -116,7 +116,7 @@ function WindowsAppInstanceManager() {
 
         window.alert("Polling frequency successfully configured!");
         setShowPollingFreqModal(false);
-        setPollingFrequency(0);
+        setPollingFrequencyHours(0);
         setWaitingForSave(false);
     };
 
@@ -236,7 +236,7 @@ function WindowsAppInstanceManager() {
                                 <th>Location</th>
                                 <th>Machine ID</th>
                                 <th>Operational Mode</th>
-                                <th>Polling Frequency</th>
+                                <th>Polling Frequency (hours)</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -249,7 +249,7 @@ function WindowsAppInstanceManager() {
                                         <td>{app.location}</td>
                                         <td>{app.machineId}</td>
                                         <td>{app.operationalMode}</td>
-                                        <td>{app.pollingFrequency ? app.pollingFrequency : '-'}</td>
+                                        <td>{app.pollingFrequencyHours ? app.pollingFrequencyHours : '-'}</td>
                                         <td className="text-center" style={{ whiteSpace: "nowrap", padding: "5px 5px 0px 5px" }}>
                                             <Button
                                                 variant="danger"
@@ -273,10 +273,10 @@ function WindowsAppInstanceManager() {
                                                 size="sm"
                                                 onClick={() => {
                                                     setShowPollingFreqModal(true);
-                                                    if (app.pollingFrequency) 
-                                                        setPollingFrequency(app.pollingFrequency);
+                                                    if (app.pollingFrequencyHours) 
+                                                        setPollingFrequencyHours(app.pollingFrequencyHours);
                                                     else 
-                                                        setPollingFrequency(0);
+                                                        setPollingFrequencyHours(0);
                                                 }}
                                             >
                                                 Configure
@@ -300,12 +300,12 @@ function WindowsAppInstanceManager() {
                         </Modal.Header>
                         <Modal.Body>
                         <Form>
-                            <Form.Label>Polling Frequency (hours): {pollingFrequency}</Form.Label>
+                            <Form.Label>Polling Frequency (hours): {pollingFrequencyHours}</Form.Label>
                             <Form.Range     //assuming that it's measured in hours
                                 min={0}
                                 max={24}
-                                value={pollingFrequency}
-                                onChange={(e) => setPollingFrequency(Number(e.target.value))}
+                                value={pollingFrequencyHours}
+                                onChange={(e) => setPollingFrequencyHours(Number(e.target.value))}
                             />
                         </Form>
                         <div 
@@ -323,7 +323,7 @@ function WindowsAppInstanceManager() {
                                 variant="outline-secondary" 
                                 onClick={() => {
                                     setShowPollingFreqModal(false);
-                                    setPollingFrequency(0);
+                                    setPollingFrequencyHours(0);
                                     setWaitingForSave(false);
                                 }} 
                                 disabled={waitingForSave}
