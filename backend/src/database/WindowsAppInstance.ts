@@ -1,4 +1,11 @@
-import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { Sequelize, DataTypes, Model, Optional, ForeignKey } from "sequelize";
+import AdminUser from "./AdminUser";
+
+// Define the enum for operational_mode
+export enum OperationalMode {
+    HEADLESS = "headless",
+    STANDALONE = "standalone",
+}
 
 // Define the attributes for the WindowsAppInstance model
 interface WindowsAppInstanceAttributes {
@@ -6,7 +13,8 @@ interface WindowsAppInstanceAttributes {
     title: string;
     location: string;
     machine_id: string;
-    operational_mode: string;
+    operational_mode: OperationalMode; // Use the enum here
+    polling_frequency: number;
     created_by?: number;
     updated_by?: number;
 }
@@ -20,9 +28,10 @@ class WindowsAppInstance extends Model<WindowsAppInstanceAttributes, WindowsAppI
     public title!: string;
     public location!: string;
     public machine_id!: string;
-    public operational_mode!: string;
-    public created_by?: number;
-    public updated_by?: number;
+    public operational_mode!: OperationalMode; // Use the enum here
+    public polling_frequency!: number;
+    public created_by?: ForeignKey<AdminUser["id"]>; // Foreign key to AdminUser
+    public updated_by?: ForeignKey<AdminUser["id"]>; // Foreign key to AdminUser
 }
 
 export function initWindowsAppInstance(sequelize: Sequelize) {
@@ -46,16 +55,33 @@ export function initWindowsAppInstance(sequelize: Sequelize) {
                 allowNull: false,
             },
             operational_mode: {
-                type: DataTypes.STRING,
+                type: DataTypes.ENUM,
+                values: Object.values(OperationalMode), // Use the enum values here
                 allowNull: false,
+            },
+            polling_frequency: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: true,
+                allowNull: false,
+                references: {
+                    model: AdminUser, // Reference the AdminUser model
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
             updated_by: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
+                references: {
+                    model: AdminUser, // Reference the AdminUser model
+                    key: "id",
+                },
+                onUpdate: "CASCADE",
+                onDelete: "SET NULL",
             },
         },
         {
