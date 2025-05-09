@@ -52,10 +52,6 @@
   transform-origin: center center;
 }
 
-.hover-dropdown .dropdown-toggle::after {
-  display: none !important;
-}
-
 .hover-dropdown .dropdown-item:hover {
   background-color: #6c757d !important;
   color: white !important;
