@@ -83,3 +83,5 @@ class RemoteInitiatorController {
     }
 
 }
+
+export default RemoteInitiatorController;
