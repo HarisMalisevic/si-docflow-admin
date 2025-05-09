@@ -228,10 +228,10 @@ const ApiEndpoints: React.FC = () => {
                 <th style={{ width: "5%" }}>#</th>
                 <th style={{ width: "15%" }}>Title</th>
                 <th style={{ width: "20%" }}>Description</th>
-                <th style={{ width: "20%" }}>Full URL</th>
-                <th style={{ width: "10%", textAlign: "center" }}>Status</th>
-                <th style={{ width: "10%", textAlign: "center" }}>Method</th>
-                <th style={{ width: "10%", textAlign: "center" }}>Auth</th>
+                <th style={{ width: "23%" }}>Full URL</th>
+                <th style={{ width: "9%", textAlign: "center" }}>Status</th>
+                <th style={{ width: "9%", textAlign: "center" }}>Method</th>
+                <th style={{ width: "9%", textAlign: "center" }}>Auth</th>
                 <th style={{ width: "10%", textAlign: "center" }}>Actions</th>
               </tr>
             </thead>
