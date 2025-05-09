@@ -162,7 +162,7 @@ const ApiEndpoints: React.FC = () => {
       </Row>
 
       <Row className="mb-4" style={{ marginTop: "70px" }}>
-        <Col md={10} lg={8} className="mx-auto">
+        <Col md={10} className="mx-auto">
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
               {error}
@@ -178,7 +178,7 @@ const ApiEndpoints: React.FC = () => {
             </Alert>
           )}
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div className="d-flex flex-grow-1 flex-wrap gap-2">
+            <div className="d-flex">
               <Form.Select
                 className="me-2"
                 style={{ width: "auto", minWidth: "120px" }}
@@ -203,7 +203,7 @@ const ApiEndpoints: React.FC = () => {
                 type="text"
                 placeholder="Search endpoints..."
                 className="me-2 flex-grow-1"
-                style={{ minWidth: "200px" }}
+                style={{ minWidth: "300px" }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 aria-label="Search endpoints"
@@ -211,7 +211,7 @@ const ApiEndpoints: React.FC = () => {
             </div>
             <Button
               variant="success"
-              style={{ minWidth: "100px" }}
+              style={{ minWidth: "7rem" }}
               onClick={() => navigate("/api-endpoints/create")}
             >
               Add New

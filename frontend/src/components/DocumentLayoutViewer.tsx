@@ -109,7 +109,6 @@ function DocumentTypeViewer() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Button variant="secondary">Search</Button>
                 </div>
                 {canCreateNew && <Button
                 variant="success"
