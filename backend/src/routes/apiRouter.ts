@@ -10,6 +10,8 @@ import localStorageFolder from "../routes/localStorageFolders.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 import processingRuleDestinationRoutes from "../routes/processingRuleDestination.routes";
 import processingRuleRoutes from "../routes/processingRule.routes";
+import remoteTransactions from "../routes/remoteTransactions.routes"
+import remoteProcessing from "../routes/remoteProcessing.routes"
 import path from 'path';
 
 // Define the path to the frontend build folder
@@ -120,6 +122,16 @@ API_ROUTER.use(
 API_ROUTER.use(
     "/api/local-storage-folder",
     localStorageFolder
+);
+
+API_ROUTER.use(
+    "/api/remote-transactions",
+    remoteTransactions
+);
+
+API_ROUTER.use(
+    "/api/remote",
+    remoteProcessing
 );
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
