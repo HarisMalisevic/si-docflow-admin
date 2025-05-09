@@ -19,59 +19,6 @@ class RemoteProcessingController {
         const initiatorKey = req.get('initiator-key');
         const jsonReq: RemoteProcessingCommandAttributes = req.body || {};
 
-        const requiredFields: {
-            key: keyof RemoteProcessingCommandAttributes;
-            name: string;
-        }[] = [
-            { key: "target_instance_id", name: "Target Instance ID" },
-            { key: "document_type_id", name: "Document Type ID" },
-            { key: "file_name", name: "File Name" },
-        ];
-
-        for (const field of requiredFields) {
-            if (jsonReq[field.key] === undefined || jsonReq[field.key] === null) {
-                res.status(400).json({ message: `${field.name} is required` });
-                return;
-            }
-        }
-
-        const typeValidations: {
-            key: keyof RemoteProcessingCommandAttributes;
-            name: string;
-            typeDescription: string;
-            isInvalid: (value: any) => boolean;
-        }[] = [
-            { 
-                key: "target_instance_id", 
-                name: "Target Instance ID", 
-                typeDescription: "number",
-                isInvalid: (v) => typeof v !== "number", 
-            },
-            { 
-                key: "document_type_id", 
-                name: "Document Type ID",
-                typeDescription: "number",
-                isInvalid: (v) => typeof v !== "number", 
-            },
-            { 
-                key: "file_name", 
-                name: "File Name",
-                typeDescription: "string",
-                isInvalid: (v) => typeof v !== "string",  
-            },
-        ];
-
-        for (const validation of typeValidations) {
-            const value = jsonReq[validation.key];
-
-            if (value !== undefined && value !== null) {
-                if (validation.isInvalid(value)) {
-                    res.status(400).json({ message: `${validation.name} must be a ${validation.typeDescription}` });
-                    return;
-                }
-            }
-        }
-
         // save parameters to remote_transactions
         const reqForTransaction = {
             get: (headerName: string) => headerName === "initiator-key" ? initiatorKey : undefined,
@@ -95,17 +42,17 @@ class RemoteProcessingController {
                 // command successfully forwarded to Windows App Instance
                 
                 // update transaction status to FORWARDED
-                const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FORWARDED, res);
+                const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FORWARDED);
 
                 if (transactionUpdateResult?.status !== 200) {
                     console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
-                    res.status(500).json({ message: "Internal server error" });
+                    res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message });
                     return;
                 }
             }
             else {
                 console.error("Failed to create transaction, status: ", transactionCreateResult?.status);
-                res.status(500).json({ message: "Internal server error" });
+                res.status(transactionCreateResult?.status ?? 500).json({ message: transactionCreateResult?.message });
                 return;
             }
         } 
@@ -132,13 +79,13 @@ class RemoteProcessingController {
         for (const field of requiredFields) {
             if (jsonReq[field.key] === undefined || jsonReq[field.key] === null) {
                 // update transaction status to FAILED
-                const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FAILED, res);
+                const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FAILED);
                 
                 if (transactionUpdateResult?.status !== 200) {
                     console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
                 }
 
-                res.status(500).json({ message: `Remote processing failed` });
+                res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message });
                 return;
             }
         }
@@ -149,16 +96,16 @@ class RemoteProcessingController {
         // processing result successfully forwarded to Command Initiator
 
         // update transaction status to FINISHED
-        const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FINISHED, res);
+        const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FINISHED);
                 
         if (transactionUpdateResult?.status !== 200) {
             console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
-            res.status(500).json({ message: "Internal server error" });
+            res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message });
             return;
         }
     }
 
-    static async updateTransactionStatus(transactionId: any, transactionStatus: TransactionStatus, res: Response) {
+    static async updateTransactionStatus(transactionId: any, transactionStatus: TransactionStatus) {
         const reqForStatusUpdate = {
             params: { id: transactionId },
             body: {
@@ -168,7 +115,7 @@ class RemoteProcessingController {
 
         try {
             const transactionUpdateResult = await RemoteTransactionsController.updateStatusWithReturn(reqForStatusUpdate);
-            return { status: transactionUpdateResult?.status };      
+            return { status: transactionUpdateResult?.status, message: transactionUpdateResult?.message, data: transactionUpdateResult?.data };      
         }
         catch (error) {
             console.error("Error while updating transaction status: ", error);
