@@ -1,6 +1,7 @@
-import { Sequelize, DataTypes, Model, Optional } from "sequelize";
+import { Sequelize, DataTypes, Model, Optional, ForeignKey } from "sequelize";
+import WindowsAppInstance from "./WindowsAppInstance";
 
-// Define the ActionType enum
+// Define the ClientActionType enum
 export enum ClientActionType {
     INSTANCE_STARTED = "instance_started",
     PROCESSING_REQ_SENT = "processing_req_sent",
@@ -22,7 +23,7 @@ type ClientLogCreationAttributes = Optional<ClientLogAttributes, "id" | "created
 // Define the ClientLog model class
 class ClientLog extends Model<ClientLogAttributes, ClientLogCreationAttributes> implements ClientLogAttributes {
     public id!: number;
-    public instance_id!: number;
+    public instance_id!: ForeignKey<WindowsAppInstance["id"]>;
     public action!: ClientActionType;
     public created_at?: Date;
 }
