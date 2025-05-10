@@ -1,6 +1,6 @@
 import db from "../database/db";
 import { Request, Response } from "express";
-import WindowsAppInstance from "../database/WindowsAppInstance";
+import WindowsAppInstance, { OperationalMode } from "../database/WindowsAppInstance";
 import { Optional } from "sequelize";
 
 interface WindowsAppInstanceAttributes {
@@ -8,20 +8,20 @@ interface WindowsAppInstanceAttributes {
   title: string;
   location: string;
   machine_id: string;
-  operational_mode: string;
-  auto_start_behavior: string;
+  operational_mode: OperationalMode; 
   polling_frequency: number;
-  security_keys: string;
   created_by?: number;
   updated_by?: number;
 }
 
 type WindowsAppInstanceCreationAttributes = Optional<
   WindowsAppInstanceAttributes,
-  "id" | "updated_by"
+  "id" | "created_by" | "updated_by"
 >;
 
-type WindowsAppInstanceUpdateAttributes = Partial<WindowsAppInstanceAttributes>;
+type WindowsAppInstanceUpdateAttributes = Partial<
+  Omit<WindowsAppInstanceAttributes, "id" | "created_by">
+>;
 
 class WindowsAppInstanceController {
   static async getAll(req: Request, res: Response) {
@@ -76,9 +76,7 @@ class WindowsAppInstanceController {
       { key: "location", name: "Location" },
       { key: "machine_id", name: "Machine ID" },
       { key: "operational_mode", name: "Operational mode" },
-      { key: "auto_start_behavior", name: "Auto start behavior" },
       { key: "polling_frequency", name: "Polling frequency" },
-      { key: "security_keys", name: "Security keys" },
     ];
 
     for (const field of requiredFields) {
@@ -89,7 +87,7 @@ class WindowsAppInstanceController {
     }
 
     const typeValidations: {
-      key: keyof WindowsAppInstanceCreationAttributes;
+      key: keyof WindowsAppInstanceAttributes;
       name: string;
       typeDescription: string;
       isInvalid: (value: any) => boolean;
@@ -97,49 +95,40 @@ class WindowsAppInstanceController {
       {
         key: "title",
         name: "Title",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
       },
       {
         key: "location",
         name: "Location",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
       },
       {
         key: "machine_id",
         name: "Machine ID",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
       },
       {
         key: "operational_mode",
         name: "Operational mode",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "auto_start_behavior",
-        name: "Auto start behavior",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: `one of ${Object.values(OperationalMode).join(", ")}`,
+        isInvalid: (v) =>
+          !Object.values(OperationalMode).includes(v as OperationalMode),
       },
       {
         key: "polling_frequency",
         name: "Polling frequency",
-        typeDescription: "integer",
-        isInvalid: (v) => typeof v !== "number" || !Number.isInteger(v),
-      },
-      {
-        key: "security_keys",
-        name: "Security keys",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "positive integer",
+        isInvalid: (v) =>
+          typeof v !== "number" || !Number.isInteger(v) || v <= 0,
       },
     ];
 
     for (const validation of typeValidations) {
-      const value = jsonReq[validation.key];
+      const value =
+        jsonReq[validation.key as keyof WindowsAppInstanceCreationAttributes];
       if (value !== undefined && value !== null) {
         if (validation.isInvalid(value)) {
           res.status(400).json({
@@ -147,12 +136,17 @@ class WindowsAppInstanceController {
           });
           return;
         }
+      } else if (requiredFields.some((rf) => rf.key === validation.key)) {
+        res.status(400).json({
+          message: `${validation.name} is required and has an invalid type or is missing.`,
+        });
+        return;
       }
     }
 
-    const userID: number = (req.user as { id: number }).id;
+    const userID: number = (req.user as { id: number })?.id;
     if (!userID || typeof userID !== "number") {
-      res.status(400).json({ message: "Unauthorized or invalid user data" });
+      res.status(401).json({ message: "Unauthorized or invalid user data" });
       return;
     }
 
@@ -162,13 +156,11 @@ class WindowsAppInstanceController {
         location: jsonReq.location,
         machine_id: jsonReq.machine_id,
         operational_mode: jsonReq.operational_mode,
-        auto_start_behavior: jsonReq.auto_start_behavior,
         polling_frequency: jsonReq.polling_frequency,
-        security_keys: jsonReq.security_keys,
         created_by: userID,
       });
 
-      res.status(200).json(newInstance);
+      res.status(201).json(newInstance);
     } catch (error) {
       console.error("Error creating Windows App Instance: ", error);
       res.status(500).json({ message: "Internal server error" });
@@ -189,10 +181,11 @@ class WindowsAppInstanceController {
       res
         .status(400)
         .json({ message: "Request body cannot be empty for update" });
+      return;
     }
 
     const typeValidations: {
-      key: keyof WindowsAppInstanceCreationAttributes;
+      key: keyof WindowsAppInstanceAttributes;
       name: string;
       typeDescription: string;
       isInvalid: (value: any) => boolean;
@@ -200,54 +193,49 @@ class WindowsAppInstanceController {
       {
         key: "title",
         name: "Title",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
       },
       {
         key: "location",
         name: "Location",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
       },
       {
         key: "machine_id",
         name: "Machine ID",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
       },
       {
         key: "operational_mode",
         name: "Operational mode",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
-      },
-      {
-        key: "auto_start_behavior",
-        name: "Auto start behavior",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: `one of ${Object.values(OperationalMode).join(", ")}`,
+        isInvalid: (v) =>
+          !Object.values(OperationalMode).includes(v as OperationalMode),
       },
       {
         key: "polling_frequency",
         name: "Polling frequency",
-        typeDescription: "integer",
-        isInvalid: (v) => typeof v !== "number" || !Number.isInteger(v),
-      },
-      {
-        key: "security_keys",
-        name: "Security keys",
-        typeDescription: "string",
-        isInvalid: (v) => typeof v !== "string",
+        typeDescription: "positive integer",
+        isInvalid: (v) =>
+          typeof v !== "number" || !Number.isInteger(v) || v <= 0,
       },
     ];
 
     for (const validation of typeValidations) {
-      if (jsonReq[validation.key] !== undefined) {
-        const value = jsonReq[validation.key];
-        const isNullable = validation.key === "updated_by";
+      const fieldKey =
+        validation.key as keyof WindowsAppInstanceUpdateAttributes;
+      if (jsonReq[fieldKey] !== undefined) {
+        const value = jsonReq[fieldKey];
+        const modelNullableFields: (keyof WindowsAppInstanceAttributes)[] = [
+          "created_by",
+          "updated_by",
+        ];
 
         if (value === null) {
-          if (!isNullable) {
+          if (!modelNullableFields.includes(validation.key)) {
             res.status(400).json({
               message: `${validation.name}, if provided, cannot be null.`,
             });
@@ -262,7 +250,7 @@ class WindowsAppInstanceController {
       }
     }
 
-    const userID: number = (req.user as { id: number }).id;
+    const userID: number = (req.user as { id: number })?.id;
     if (!userID || typeof userID !== "number") {
       res.status(401).json({ message: "Unauthorized or invalid user data" });
       return;
@@ -305,18 +293,17 @@ class WindowsAppInstanceController {
     }
 
     try {
-      const instance = await db.windows_app_instances.findOne({
+      const deletedCount = await db.windows_app_instances.destroy({
         where: { id: numericId },
       });
 
-      if (!instance) {
+      if (deletedCount === 0) {
         res
           .status(404)
           .json({ message: `Windows app instance with ID ${id} not found` });
         return;
       }
-      await db.windows_app_instances.destroy({ where: { id: numericId } });
-      res.json({ message: `Windows app instance with ID ${id} removed` });
+      res.status(200).send();
     } catch (error) {
       console.error(
         `Error deleting Windows app instance with ID ${id}: `,
