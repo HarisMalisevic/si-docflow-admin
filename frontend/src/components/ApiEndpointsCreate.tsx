@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Tabs, Tab, Modal } from "react-bootstrap";
 import ParameterEditor, { ParameterLocation, QueryParameter } from "./ParameterEditor";
 import { useNavigate } from "react-router-dom";
+import { createDecipheriv } from "crypto";
 
 export enum HttpMethod {
   GET = "GET",
@@ -87,6 +88,7 @@ const ApiEndpointsCreate: React.FC = () => {
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<{ id: number } | null>(null);
   const navigate = useNavigate();
 
   const updateFormState = useCallback((updates: Partial<ApiEndpoint>) => {
@@ -139,24 +141,21 @@ const ApiEndpointsCreate: React.FC = () => {
       // Prepare the payload
       const payload = {
         ...formState,
-        // Ensure query_parameters is a string and properly formatted
+        created_by: user?.id || 0, // fallback if somehow user is still null
         query_parameters: typeof formState.query_parameters === 'string' 
           ? formState.query_parameters 
           : JSON.stringify(formState.query_parameters),
-        // Ensure headers is a string
         headers: formState.headers || '',
-        // Ensure body is a string
         body: formState.body || '',
-        // Ensure auth_credentials is a string
         auth_credentials: typeof formState.auth_credentials === 'object'
           ? JSON.stringify(formState.auth_credentials)
           : formState.auth_credentials || '{}',
-        // Ensure path_parameters is a string
         path_parameters: typeof formState.path_parameters === 'object'
           ? JSON.stringify(formState.path_parameters)
           : formState.path_parameters || '{}',
         send_file: formState.send_file || false,
       };
+      
 
       console.log('Sending payload:', payload); // Debug log
 
@@ -207,6 +206,21 @@ const ApiEndpointsCreate: React.FC = () => {
   const handleCancelDismiss = () => {
     setShowCancelModal(false);
   };
+
+  useEffect(() => {
+    fetch("/auth/profile", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch user profile");
+        return res.json();
+      })
+      .then((data) => {
+        setUser({ id: data.id }); // Assuming `data` includes `id`
+      })
+      .catch((err) => {
+        console.error("Error fetching user profile:", err);
+      });
+  }, []);
+  
 
   return (
     <Container fluid="md" className="py-4">
