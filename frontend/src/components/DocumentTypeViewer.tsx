@@ -126,7 +126,7 @@ function DocumentTypeViewer() {
                             </Form.Control.Feedback>
                         </Form.Group>
                         <div className="text-center">
-                            <Button variant="primary" type="submit">
+                            <Button variant="success" type="submit">
                                 Add Document
                             </Button>
                         </div>
@@ -144,9 +144,8 @@ function DocumentTypeViewer() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
-                        <Button variant="secondary">Search</Button>
                     </Form>
-                
+                    <div className="table-responsive px-3">
                     <Table striped bordered hover>
                         <thead>
                             <tr>
@@ -182,7 +181,9 @@ function DocumentTypeViewer() {
                                 </tr>
                             )}
                         </tbody>
+                    
                     </Table>
+                    </div>
                 </Col>
             </Row>
         </Container>
