@@ -37,18 +37,22 @@ class RemoteTransactionsController {
     static async create(req: Request, res: Response) {
         const createResult = await this.createWithReturn(req);
 
-        if (createResult.status === 200) {
-            res.status(200).json(createResult.data);
+        if (createResult?.status === 200) {
+            res.status(200).json(createResult?.data);
         }
         else {
-            res.status(createResult.status).json({ message: createResult.message })
+            res.status(createResult?.status ?? 500).json({ message: createResult?.message ?? 'Internal server error' })
         }
     }
 
-    // for calls from RemoteProcessingController
+    // handles create logic, used for calls from RemoteProcessingController
     static async createWithReturn(req: Request) {
         const initiatorKey = req.get('initiator-key');
         const jsonReq: RemoteTransaction = req.body || {};
+
+        if (!initiatorKey || initiatorKey === '') {
+            return { status: 400, message: `Initiator key is required` };
+        }
 
         const requiredFields: {
             key: keyof RemoteTransactionCreationAttributes;
@@ -115,8 +119,7 @@ class RemoteTransactionsController {
         const initiatorId = initiator?.id;
 
         if(!initiator || typeof initiatorId !== "number") {
-            res.status(404).json({ message: `No initiator found for initiator key: ${initiatorKey}` });
-            return;
+            return { status: 404, message: `No initiator found for initiator key: ${initiatorKey}` };
         }*/
 
         try {
@@ -138,15 +141,15 @@ class RemoteTransactionsController {
     static async updateStatus(req: Request, res: Response) {
         const updateResult = await this.updateStatusWithReturn(req);
 
-        if (updateResult.status === 200) {
-            res.status(200).json(updateResult.data);
+        if (updateResult?.status === 200) {
+            res.status(200).json(updateResult?.data);
         }
         else {
-            res.status(updateResult.status).json({ message: updateResult.message })
+            res.status(updateResult?.status ?? 500).json({ message: updateResult?.message ?? 'Internal server error' })
         }
     }
 
-    // for calls from RemoteProcessingController
+    // handles update logic, used for calls from RemoteProcessingController
     static async updateStatusWithReturn(req: Request) {
         const { id } = req.params;
         const jsonReq: RemoteTransactionUpdateAttributes = req.body || {};

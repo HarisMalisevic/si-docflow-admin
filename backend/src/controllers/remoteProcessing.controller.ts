@@ -20,6 +20,68 @@ class RemoteProcessingController {
         const jsonReq: RemoteProcessingCommandAttributes = req.body || {};
 
         // save parameters to remote_transactions
+        const transactionCreateResult = await this.createTransaction(initiatorKey, jsonReq);
+
+        if (transactionCreateResult?.status === 200) {       // transaction successfully created, current status: STARTED
+            const transactionId = transactionCreateResult.data?.id;
+
+            // forward command to given Windows App Instance ??????????
+
+            // command successfully forwarded to Windows App Instance
+
+            // update transaction status to FORWARDED
+            const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FORWARDED);
+
+            if (transactionUpdateResult?.status !== 200) {
+                console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
+                res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message ?? 'Internal server error' });
+                return;
+            }
+
+            res.status(200).json({ message: 'Processing command successfully forwarded' });
+            return;
+        }
+        else {
+            console.error("Failed to create transaction, status: ", transactionCreateResult?.status);
+            res.status(transactionCreateResult?.status ?? 500).json({ message: transactionCreateResult?.message ?? 'Internal server error' });
+            return;
+        }
+    }
+
+    static async receiveAndForwardProcessingResult(req: Request, res: Response) {
+        const transactionId = req.get('transaction-id');
+        const jsonReq: RemoteProcessingResultAttributes = req.body || {};
+
+        if (jsonReq["ocr_result"] === undefined || jsonReq["ocr_result"] === null) {
+            // update transaction status to FAILED
+            const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FAILED);
+            
+            if (transactionUpdateResult?.status !== 200) {
+                console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
+            }
+
+            res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message ?? 'Internal server error' });
+            return;
+        }
+
+        // forward processing result to Command Initiator based on transactionId ??????????
+
+        // processing result successfully forwarded to Command Initiator
+
+        // update transaction status to FINISHED
+        const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FINISHED);
+                
+        if (transactionUpdateResult?.status !== 200) {
+            console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
+            res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message ?? 'INternal server error' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Processing result successfully forwarded' });
+        return;
+    }
+
+    static async createTransaction(initiatorKey: any, jsonReq: RemoteProcessingCommandAttributes) {
         const reqForTransaction = {
             get: (headerName: string) => headerName === "initiator-key" ? initiatorKey : undefined,
             body: {
@@ -32,76 +94,11 @@ class RemoteProcessingController {
 
         try {
             const transactionCreateResult = await RemoteTransactionsController.createWithReturn(reqForTransaction);
-            
-            if (transactionCreateResult?.status === 200) {    // transaction successfully created, current status: STARTED
-                const transactionId = transactionCreateResult.data.id;
-
-                // forward command to given Windows App Instance
-                // ??????????
-
-                // command successfully forwarded to Windows App Instance
-                
-                // update transaction status to FORWARDED
-                const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FORWARDED);
-
-                if (transactionUpdateResult?.status !== 200) {
-                    console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
-                    res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message });
-                    return;
-                }
-            }
-            else {
-                console.error("Failed to create transaction, status: ", transactionCreateResult?.status);
-                res.status(transactionCreateResult?.status ?? 500).json({ message: transactionCreateResult?.message });
-                return;
-            }
+            return { status: transactionCreateResult?.status, message: transactionCreateResult?.message, data: transactionCreateResult?.data };      
         } 
         catch (error) {
-            console.error("Error: ", error);
-            res.status(500).json({ message: "Internal server error" });
-            return;
-        }
-    }
-
-    static async receiveAndForwardProcessingResult(req: Request, res: Response) {
-        const transactionId = req.get('transaction-id');
-        const jsonReq: RemoteProcessingResultAttributes = req.body || {};
-
-        const requiredFields: {
-            key: keyof RemoteProcessingResultAttributes;
-            name: string;
-        }[] = [
-            { key: "document_type_id", name: "Document Type ID" },
-            { key: "file_name", name: "File Name" },
-            { key: "ocr_result", name: "OCR Result" }
-        ];
-
-        for (const field of requiredFields) {
-            if (jsonReq[field.key] === undefined || jsonReq[field.key] === null) {
-                // update transaction status to FAILED
-                const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FAILED);
-                
-                if (transactionUpdateResult?.status !== 200) {
-                    console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
-                }
-
-                res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message });
-                return;
-            }
-        }
-
-        // forward processing result to Command Initiator based on transactionId
-        // ??????????
-
-        // processing result successfully forwarded to Command Initiator
-
-        // update transaction status to FINISHED
-        const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FINISHED);
-                
-        if (transactionUpdateResult?.status !== 200) {
-            console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
-            res.status(transactionUpdateResult?.status ?? 500).json({ message: transactionUpdateResult?.message });
-            return;
+            console.error("Error while creating transaction: ", error);
+            return { status: 500, message: 'Internal server error' };
         }
     }
 
@@ -119,7 +116,7 @@ class RemoteProcessingController {
         }
         catch (error) {
             console.error("Error while updating transaction status: ", error);
-            return { status: 500 };
+            return { status: 500, message: 'Internal server error' };
         }
     }
 }
