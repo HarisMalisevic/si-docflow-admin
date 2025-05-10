@@ -57,6 +57,7 @@ interface ApiEndpoint {
     scopes?: string[];
   };
   is_active: boolean;
+  send_file: boolean;
   created_by: number;
 }
 
@@ -74,6 +75,7 @@ const DEFAULT_ENDPOINT: ApiEndpoint = {
   auth_type: AuthType.NONE,
   auth_credentials: {},
   is_active: false,
+  send_file: false,
   created_by: 1, // Replace with the actual user ID
 };
 
@@ -152,7 +154,8 @@ const ApiEndpointsCreate: React.FC = () => {
         // Ensure path_parameters is a string
         path_parameters: typeof formState.path_parameters === 'object'
           ? JSON.stringify(formState.path_parameters)
-          : formState.path_parameters || '{}'
+          : formState.path_parameters || '{}',
+        send_file: formState.send_file || false,
       };
 
       console.log('Sending payload:', payload); // Debug log
@@ -309,6 +312,14 @@ const ApiEndpointsCreate: React.FC = () => {
                     onChange={(e) => updateFormState({ is_active: e.target.checked })}
                   />
                 </Form.Group>
+                <Form.Group className="mb-3" controlId="send_file">
+                      <Form.Check
+                        type="checkbox"
+                        label="Send File"
+                        checked={formState.send_file}
+                        onChange={(e) => updateFormState({ send_file: e.target.checked })}
+                      />
+                    </Form.Group>
               </Tab>
 
               {/* Parameters Tab */}
