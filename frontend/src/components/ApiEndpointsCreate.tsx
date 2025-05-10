@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Tabs, Tab, Modal } from "react-bootstrap";
 import ParameterEditor, { ParameterLocation, QueryParameter } from "./ParameterEditor";
-import { useNavigate } from "react-router-dom";
-import { createDecipheriv } from "crypto";
+import { useNavigate, useParams } from "react-router-dom";
 
 export enum HttpMethod {
   GET = "GET",
@@ -90,11 +89,68 @@ const ApiEndpointsCreate: React.FC = () => {
   const [saveError, setError] = useState<string | null>(null);
   const [user, setUser] = useState<{ id: number } | null>(null);
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const isEditMode = !!id;
+
+  useEffect(() => {
+    fetch("/auth/profile", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch user profile");
+        return res.json();
+      })
+      .then((data) => {
+        setUser({ id: data.id }); // Assuming `data` includes `id`
+      })
+      .catch((err) => {
+        console.error("Error fetching user profile:", err);
+      });
+  }, []);
 
   const updateFormState = useCallback((updates: Partial<ApiEndpoint>) => {
     setFormState((prev) => ({ ...prev, ...updates }));
     setHasChanges(true);
   }, []);
+
+  useEffect(() => {
+  if (!isEditMode) return;
+
+  const loadEndpoint = async () => {
+    try {
+      const res = await fetch(`/api/api-endpoints/${id}`);
+      if (!res.ok) throw new Error("Failed to fetch endpoint");
+      const data = await res.json();
+
+      setFormState({
+        title:            data.title,
+        description:      data.description ?? "",
+        base_url:         data.base_url,
+        route:            data.route,
+        method:           data.method as HttpMethod,
+        query_parameters: data.query_parameters
+                            ? JSON.parse(data.query_parameters)
+                            : {},
+        headers:          data.headers   ?? "",
+        body:             data.body      ?? "",
+        path_parameters:  data.path_parameters
+                            ? JSON.parse(data.path_parameters)
+                            : {},
+        timeout_seconds:  data.timeout_seconds,
+        auth_type:        data.auth_type as AuthType,
+        auth_credentials: data.auth_credentials
+                            ? JSON.parse(data.auth_credentials)
+                            : {},
+        is_active:        data.is_active,
+        send_file:        data.send_file,
+        created_by:       data.created_by,
+      });
+    } catch (err) {
+      console.error("Error loading endpoint:", err);
+      setError("Could not load endpoint for editing.");
+    }
+  };
+
+  loadEndpoint();
+}, [id, isEditMode]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -139,33 +195,45 @@ const ApiEndpointsCreate: React.FC = () => {
 
     try {
       // Prepare the payload
-      const payload = {
-        ...formState,
-        created_by: user?.id || 0, // fallback if somehow user is still null
-        query_parameters: typeof formState.query_parameters === 'string' 
-          ? formState.query_parameters 
+      const payload: any = {
+      title:            formState.title,
+      description:      formState.description,
+      base_url:         formState.base_url,
+      route:            formState.route,
+      method:           formState.method,
+      query_parameters:
+        typeof formState.query_parameters === "string"
+          ? formState.query_parameters
           : JSON.stringify(formState.query_parameters),
-        headers: formState.headers || '',
-        body: formState.body || '',
-        auth_credentials: typeof formState.auth_credentials === 'object'
-          ? JSON.stringify(formState.auth_credentials)
-          : formState.auth_credentials || '{}',
-        path_parameters: typeof formState.path_parameters === 'object'
-          ? JSON.stringify(formState.path_parameters)
-          : formState.path_parameters || '{}',
-        send_file: formState.send_file || false,
-      };
-      
+      headers:          formState.headers,
+      body:             formState.body,
+      path_parameters:
+        typeof formState.path_parameters === "string"
+          ? formState.path_parameters
+          : JSON.stringify(formState.path_parameters),
+      timeout_seconds:  formState.timeout_seconds,
+      auth_type:        formState.auth_type,
+      auth_credentials:
+        typeof formState.auth_credentials === "string"
+          ? formState.auth_credentials
+          : JSON.stringify(formState.auth_credentials),
+      is_active:        formState.is_active,
+      send_file:        formState.send_file,
+    };
 
-      console.log('Sending payload:', payload); // Debug log
 
-      const response = await fetch('/api/api-endpoints', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    if (!isEditMode) {
+      payload.created_by = user!.id;       // assume user is non-null here
+    }
+
+      const response = await fetch(
+        isEditMode ? `/api/api-endpoints/${id}` : "/api/api-endpoints",
+      {
+        method: isEditMode ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      });
+      }
+    );
 
       if (!response.ok) {
         // Get the error message from the response if available
@@ -207,26 +275,13 @@ const ApiEndpointsCreate: React.FC = () => {
     setShowCancelModal(false);
   };
 
-  useEffect(() => {
-    fetch("/auth/profile", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user profile");
-        return res.json();
-      })
-      .then((data) => {
-        setUser({ id: data.id }); // Assuming `data` includes `id`
-      })
-      .catch((err) => {
-        console.error("Error fetching user profile:", err);
-      });
-  }, []);
-  
-
   return (
     <Container fluid="md" className="py-4">
       <Row>
         <Col md={8} className="mx-auto">
-          <h2 className="text-center mb-4">Create API Endpoint</h2>
+          <h2 className="text-center mb-4">
+            {isEditMode ? "Edit API Endpoint" : "Create API Endpoint"}
+          </h2>
           <Form>
             <Tabs
               activeKey={activeTab}
@@ -372,8 +427,14 @@ const ApiEndpointsCreate: React.FC = () => {
                   <Form.Label>Authentication Type</Form.Label>
                   <Form.Select
                     value={formState.auth_type}
-                    onChange={(e) => updateFormState({ auth_type: e.target.value as AuthType })}
-                  >
+                    onChange={(e) => {
+                        const newType = e.target.value as AuthType;
+                        updateFormState({
+                          auth_type: newType,
+                          auth_credentials: {},
+                        });
+                      }}
+                    >
                     {Object.values(AuthType).map((type) => (
                       <option key={type} value={type}>
                         {type}
