@@ -18,6 +18,7 @@ interface RemoteTransactionAttributes {
     document_type_id: number;
     file_name: string;
     status: TransactionStatus;
+    socket_id: string;
 }
 
 // Define the creation attributes (optional fields for new instances)
@@ -33,6 +34,7 @@ class RemoteTransaction extends Model<RemoteTransactionAttributes, RemoteTransac
     public document_type_id!: ForeignKey<DocumentType["id"]>;
     public file_name!: string;
     public status!: TransactionStatus;
+    public socket_id!: string;
 }
 
 export function initRemoteTransaction(sequelize: Sequelize) {
@@ -80,6 +82,10 @@ export function initRemoteTransaction(sequelize: Sequelize) {
             status: {
                 type: DataTypes.ENUM,
                 values: Object.values(TransactionStatus),
+                allowNull: false,
+            },
+            socket_id: {
+                type: DataTypes.STRING,
                 allowNull: false,
             },
         },

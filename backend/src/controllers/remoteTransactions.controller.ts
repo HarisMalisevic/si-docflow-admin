@@ -1,6 +1,6 @@
 import db from "database/db";
 import { Request, Response } from "express";
-import RemoteTransaction, { TransactionStatus, RemoteTransactionCreationAttributes, RemoteTransactionUpdateAttributes } from "database/RemoteTransaction";
+import RemoteTransaction, { TransactionStatus, RemoteTransactionCreationAttributes, RemoteTransactionUpdateAttributes } from "../database/RemoteTransaction";
 
 class RemoteTransactionsController {
     static async getAll(req: Request, res: Response) {
@@ -34,6 +34,42 @@ class RemoteTransactionsController {
         }
     }
 
+    static async getById(req: Request, res: Response) {
+        const getByIdResult = await this.getByIdWithReturn(req);
+
+        if (getByIdResult?.status === 200) {
+            res.status(200).json(getByIdResult?.data);
+        }
+        else {
+            res.status(getByIdResult?.status ?? 500).json({ message: getByIdResult?.message ?? 'Internal server error' });
+        }
+    }
+
+    // handles fetch by id logic, used for calls from RemoteProcessingController
+    static async getByIdWithReturn(req: Request) {
+        const { id } = req.params;
+        const numericId = parseInt(id, 10);
+
+        if (isNaN(numericId)) {
+            return { status: 400, message: "Invalid ID format" };  
+        }
+
+        try {
+            const transaction = await db.remote_transactions.findOne({
+                where: { id: numericId },
+            });
+
+            if(!transaction) {
+                return { status: 404, message: `No remote transaction found for ID: ${id}` };  
+            }
+
+            return { status: 200, data: transaction };    
+        } catch(error) {
+            console.error(`Error updating remote transaction with ID ${id}: ${error}`);
+            return { status: 500, message: "Internal server error" };      
+        }
+    }
+
     static async create(req: Request, res: Response) {
         const createResult = await this.createWithReturn(req);
 
@@ -41,17 +77,22 @@ class RemoteTransactionsController {
             res.status(200).json(createResult?.data);
         }
         else {
-            res.status(createResult?.status ?? 500).json({ message: createResult?.message ?? 'Internal server error' })
+            res.status(createResult?.status ?? 500).json({ message: createResult?.message ?? 'Internal server error' });
         }
     }
 
     // handles create logic, used for calls from RemoteProcessingController
     static async createWithReturn(req: Request) {
         const initiatorKey = req.get('initiator-key');
+        const socketId = req.get('socket-id');
         const jsonReq: RemoteTransaction = req.body || {};
 
         if (!initiatorKey || initiatorKey === '') {
             return { status: 400, message: `Initiator key is required` };
+        }
+
+        if (!socketId || socketId === '') {
+            return { status: 400, message: `Websocket connection ID is required` };
         }
 
         const requiredFields: {
@@ -129,6 +170,7 @@ class RemoteTransactionsController {
                 document_type_id: jsonReq.document_type_id,
                 file_name: jsonReq.file_name,
                 status: jsonReq.status,
+                socket_id: socketId,
             });
 
             return { status: 200, data: newTransaction };
@@ -145,7 +187,7 @@ class RemoteTransactionsController {
             res.status(200).json(updateResult?.data);
         }
         else {
-            res.status(updateResult?.status ?? 500).json({ message: updateResult?.message ?? 'Internal server error' })
+            res.status(updateResult?.status ?? 500).json({ message: updateResult?.message ?? 'Internal server error' });
         }
     }
 
