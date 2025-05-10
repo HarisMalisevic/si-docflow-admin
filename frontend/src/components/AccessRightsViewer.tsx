@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Form, Row, Col, Button, Table, Alert, InputGroup, FormControl } from "react-bootstrap";
+import { Container, Form, Row, Col, Button, Table, Alert, InputGroup, FormControl, Badge } from "react-bootstrap";
 
 interface AccessToken {
   id: number;
@@ -198,7 +198,7 @@ const AccessRightsViewer: React.FC = () => {
               </InputGroup>
             </Form.Group>
             <div className="text-center">
-              <Button variant="primary" type="submit" className="me-2">
+              <Button variant="success" type="submit" className="me-2">
                 {editingId ? "Update" : "Add Token"}
               </Button>
               {editingId && (
@@ -221,7 +221,6 @@ const AccessRightsViewer: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Button variant="secondary">Search</Button>
           </Form>
 
           <div className="table-responsive px-3">
@@ -231,8 +230,8 @@ const AccessRightsViewer: React.FC = () => {
                   <th style={{ width: '4%' }}>#</th>
                   <th style={{ width: '13%' }}>Name</th>
                   <th style={{ width: '22%' }}>Description</th>
-                  <th style={{ width: '40%' }}>Token</th>
-                  <th className="text-center" style={{ width: '6%' }}>Active</th>
+                  <th style={{ width: '36%' }}>Token</th>
+                  <th className="text-center" style={{ width: '10%' }}>Active</th>
                   <th className="text-center" style={{ width: '15%' }}>Actions</th>
                 </tr>
               </thead>
@@ -258,9 +257,14 @@ const AccessRightsViewer: React.FC = () => {
                           {revealedIds.has(t.id) ? 'Hide' : 'Show'}
                         </Button>
                       </td>
-                      <td className="text-center">
-                        {t.is_active ? <span className="text-success">✓</span> : <span className="text-danger">✗</span>}
-                      </td>
+                      <td className="text-center align-middle">
+                      <Badge
+                        bg={t.is_active ? "success" : "secondary"}
+                        pill
+                      >
+                        {t.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
                       <td className="text-center">
                         <div className="d-flex justify-content-center gap-2">
                           <Button variant="outline-primary" size="sm" onClick={() => handleEdit(t)}>
