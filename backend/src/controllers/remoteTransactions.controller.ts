@@ -17,8 +17,8 @@ class RemoteTransactionsController {
         const { n } = req.params;
         const numericN = parseInt(n, 10);
 
-        if (isNaN(numericN)) {
-            res.status(400).json({ message: "Invalid ID format" });
+        if (isNaN(numericN) || numericN < 0) {
+            res.status(400).json({ message: "Invalid number of latest transactions" });
             return;
         }
 
