@@ -13,7 +13,7 @@ export enum TransactionStatus {
 // Define the attributes for the RemoteTransaction model
 interface RemoteTransactionAttributes {
     id: number;
-    initiator_id: number;
+    //initiator_id: number;
     target_instance_id: number;
     document_type_id: number;
     file_name: string;
@@ -29,7 +29,7 @@ export type RemoteTransactionUpdateAttributes = Partial<RemoteTransactionAttribu
 // Define the RemoteTransaction model class
 class RemoteTransaction extends Model<RemoteTransactionAttributes, RemoteTransactionCreationAttributes> implements RemoteTransactionAttributes {
     public id!: number;
-    public initiator_id!: number;    //: ForeignKey<RemoteInitiator["id"]>;
+    //public initiator_id!: number;    //: ForeignKey<RemoteInitiator["id"]>;
     public target_instance_id!: ForeignKey<WindowsAppInstance["id"]>;
     public document_type_id!: ForeignKey<DocumentType["id"]>;
     public file_name!: string;
@@ -45,16 +45,16 @@ export function initRemoteTransaction(sequelize: Sequelize) {
                 autoIncrement: true,
                 primaryKey: true,
             },
-            initiator_id: {
+            /*initiator_id: {                   // Privremeno, dok se ne kreira tabela remote_initiators !!!
                 type: DataTypes.INTEGER,
                 allowNull: false,
-                /*references: {
+                references: {
                     model: RemoteInitiator, 
                     key: "id",
                 },
                 onUpdate: "CASCADE",
-                onDelete: "CASCADE",*/
-            },
+                onDelete: "CASCADE",
+            },*/
             target_instance_id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
