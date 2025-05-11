@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import RemoteTransactionsController from "./remoteTransactions.controller";
 import { TransactionStatus } from "../database/RemoteTransaction";
 import { processingNamespace } from "../server";
-import { Socket } from "socket.io";
 
 interface RemoteProcessingCommandAttributes {
     target_instance_id: number;
@@ -15,17 +14,6 @@ interface RemoteProcessingResultAttributes {
     file_name: string;
     ocr_result: JSON;
 }
-
-processingNamespace.on("connection", (socket: Socket) => {
-    console.log(`New socket connected: ${socket.id}`);
-
-    // Send the socket ID back to the client, they will send this with the processing command
-    socket.emit("connected", socket.id);
-
-    socket.on("disconnect", () => {
-        console.log(`Socket disconnected: ${socket.id}`);
-    });
-});
 
 class RemoteProcessingController {
     static async receiveAndForwardProcessingCommand(req: Request, res: Response) {

@@ -4,7 +4,7 @@ import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import API_ROUTER from "./routes/apiRouter";
 import { createServer } from "http";
-import { Server } from "socket.io";
+import { Server, Socket } from "socket.io";
 
 const APP = express();
 const PORT = 5000;
@@ -22,6 +22,17 @@ const io = new Server(httpServer, {
 
 // Define namespaces
 export const processingNamespace = io.of("/processing");
+
+processingNamespace.on("connection", (socket: Socket) => {
+    console.log(`New socket connected: ${socket.id}`);
+
+    // Send the socket ID back to the client, they will send this with the processing command
+    socket.emit("connected", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log(`Socket disconnected: ${socket.id}`);
+    });
+});
 
 APP.use(express.json());
 
