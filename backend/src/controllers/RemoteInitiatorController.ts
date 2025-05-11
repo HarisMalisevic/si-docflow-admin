@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import db from "../database/db";
-import RemoteInitiator from "database/RemoteInitiator";
+import RemoteInitiator from "../database/RemoteInitiator";
 import { v4 as uuidv4 } from "uuid"; // Import UUID library
 
 class RemoteInitiatorController {

@@ -10,9 +10,9 @@ interface ApplicationInstance {
     id: number;
     title: string;
     location: string;
-    machineId: string;
-    operationalMode: OperationalMode;
-    pollingFrequencyHours?: number;
+    machine_id: string;
+    operational_mode: OperationalMode;
+    polling_frequency?: number;
 }
 
 function WindowsAppInstanceManager() {
@@ -25,13 +25,19 @@ function WindowsAppInstanceManager() {
     const [successMessage, setSuccessMessage] = useState<string>("");
     const [appInstances, setAppInstances] = useState<ApplicationInstance[]>([]);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [pollingFreqEditingId, setPollingFreqEditingId] = useState<number | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [changesMade, setChangesMade] = useState(false);
-    const [showPollingFreqModal, setShowPollingFreqModal] = useState(false);
     const [waitingForSave, setWaitingForSave] = useState(false);
 
     const fetchAppInstances = async () => {
-        // add after the routes are implemented
+        try {
+            const response = await fetch("/api/windows-app-instance");
+            const data = await response.json();
+            setAppInstances(data);
+        } catch(error) {
+            console.error("Error while fetching app instances: ", error);
+        }
     };
 
     useEffect(() => { fetchAppInstances(); }, []);
@@ -70,11 +76,31 @@ function WindowsAppInstanceManager() {
         if (!validateForm()) return;
 
         try {
-            // add after the routes are implemented
+            const response = await fetch(
+                editingId ? `/api/windows-app-instance/${editingId}` : `/api/windows-app-instance`, {
+                method: editingId ? "PUT" : "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title: title,
+                    location: location,
+                    machine_id: machineId,
+                    operational_mode: operationalMode,
+                    polling_frequency: pollingFrequencyHours,
+                }),
+            });
 
-            setSuccessMessage("App instance successfully saved!");
-            resetForm();
-            window.setTimeout(() => setSuccessMessage(""), 3000);
+            if (response.ok) {
+                setSuccessMessage("App instance successfully saved!");
+                fetchAppInstances();
+                resetForm();
+                setPollingFrequencyHours(0);
+                window.setTimeout(() => setSuccessMessage(""), 3000);
+            } else {
+                console.error("Failed to add app instance");
+            }
         } catch (error) {
             console.error("Error saving application instance: ", error);
         }
@@ -87,6 +113,7 @@ function WindowsAppInstanceManager() {
         }
         
         resetForm();
+        setPollingFrequencyHours(0);
     };
 
     const handleEdit = (appInstance: ApplicationInstance) => {
@@ -94,8 +121,9 @@ function WindowsAppInstanceManager() {
         setEditingId(appInstance.id);
         setTitle(appInstance.title);
         setLocation(appInstance.location);
-        setMachineId(appInstance.machineId);
-        setOperationalMode(appInstance.operationalMode);
+        setMachineId(appInstance.machine_id);
+        setOperationalMode(appInstance.operational_mode);
+        setPollingFrequencyHours(appInstance.polling_frequency ?? 0);
     };
 
     const handleDelete = async (id: number) => {
@@ -103,21 +131,55 @@ function WindowsAppInstanceManager() {
         if (!confirmDelete) return;
 
         try {
-            // add after the routes are implemented
+            const response = await fetch(`/api/windows-app-instance/${id}`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                fetchAppInstances();
+                resetForm();
+                setPollingFrequencyHours(0);
+            } else {
+                console.error("Failed to delete app instance");
+            }
         } catch (error) {
             console.error("Error deleting document: ", error);
         }
     };
 
+    const handleConfigure = (appInstance: ApplicationInstance) => {
+        resetForm();
+        setPollingFreqEditingId(appInstance.id);
+        setPollingFrequencyHours(appInstance.polling_frequency ?? 0);
+    }
+
     const handleSavePollingFrequency = async () => {
         setWaitingForSave(true);
 
-        // add after the routes are implemented
+        try {
+            const response = await fetch(`/api/windows-app-instance/${pollingFreqEditingId}`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    polling_frequency: pollingFrequencyHours,
+                }),
+            });
 
-        window.alert("Polling frequency successfully configured!");
-        setShowPollingFreqModal(false);
-        setPollingFrequencyHours(0);
-        setWaitingForSave(false);
+            if (response.ok) {
+                window.alert("Polling frequency successfully configured!");
+                setPollingFreqEditingId(null);
+                setPollingFrequencyHours(0);
+                setWaitingForSave(false);
+                fetchAppInstances();
+            } else {
+                console.error("Failed to configure polling frequency");
+            }
+        } catch (error) {
+            console.error("Error saving polling frequency: ", error);
+        }
     };
 
     const filteredAppInstances = appInstances.filter((app: any) =>
@@ -247,9 +309,9 @@ function WindowsAppInstanceManager() {
                                         <td>{index + 1}</td>
                                         <td>{app.title}</td>
                                         <td>{app.location}</td>
-                                        <td>{app.machineId}</td>
-                                        <td>{app.operationalMode}</td>
-                                        <td>{app.pollingFrequencyHours ? app.pollingFrequencyHours : '-'}</td>
+                                        <td>{app.machine_id}</td>
+                                        <td>{app.operational_mode}</td>
+                                        <td>{!app.polling_frequency ? '-' : app.polling_frequency}</td>
                                         <td className="text-center" style={{ whiteSpace: "nowrap", padding: "5px 5px 0px 5px" }}>
                                             <Button
                                                 variant="danger"
@@ -271,13 +333,7 @@ function WindowsAppInstanceManager() {
                                             <Button
                                                 variant="secondary"
                                                 size="sm"
-                                                onClick={() => {
-                                                    setShowPollingFreqModal(true);
-                                                    if (app.pollingFrequencyHours) 
-                                                        setPollingFrequencyHours(app.pollingFrequencyHours);
-                                                    else 
-                                                        setPollingFrequencyHours(0);
-                                                }}
+                                                onClick={() => handleConfigure(app)}
                                             >
                                                 Configure
                                             </Button>
@@ -294,7 +350,7 @@ function WindowsAppInstanceManager() {
                         </tbody>
                     </Table>
 
-                    <Modal show={showPollingFreqModal} onHide={() => setShowPollingFreqModal(false)}>
+                    <Modal show={pollingFreqEditingId !== null} onHide={() => setPollingFreqEditingId(null)}>
                         <Modal.Header closeButton>
                         <Modal.Title>Configure Polling Frequency</Modal.Title>
                         </Modal.Header>
@@ -322,7 +378,7 @@ function WindowsAppInstanceManager() {
                             <Button 
                                 variant="outline-secondary" 
                                 onClick={() => {
-                                    setShowPollingFreqModal(false);
+                                    setPollingFreqEditingId(null);
                                     setPollingFrequencyHours(0);
                                     setWaitingForSave(false);
                                 }} 
