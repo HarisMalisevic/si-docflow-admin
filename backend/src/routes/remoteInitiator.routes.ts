@@ -8,7 +8,7 @@ router.get(
     RemoteInitatorController.getRemoteInitiatorKey
 );
 
-router.get(
+router.post(
     "/validate",
     RemoteInitatorController.validateRemoteInitiatorKey
 );
