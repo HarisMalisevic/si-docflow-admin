@@ -1,46 +1,33 @@
 import { Request, Response } from "express";
 import db from "../database/db";
 import RemoteInitiator from "database/RemoteInitiator";
-import { randomBytes } from "crypto";
+import { v4 as uuidv4 } from "uuid"; // Import UUID library
 
 class RemoteInitiatorController {
 
-    private static readonly KEY_SIZE_BYTES = 16;
-
     private static async generateKey(): Promise<string> {
         // Static method to generate a new unique initiator key
-        let key: string;
-        let exists: RemoteInitiator | null;
 
-        do {
-            // Generate a random string
-            key = randomBytes(RemoteInitiatorController.KEY_SIZE_BYTES).toString();
+        // Generate a UUID
+        const key = uuidv4().toString();
 
-            exists = await db.remote_initiators.findOne({
-                where: { initiator_key: key }
-            });
-
-        } while (exists); // Repeat until a unique key is found
+        console.log("Generated initiator key: ", key);
 
         return key;
     }
 
     private static async validateKey(initiator_key: string): Promise<boolean> {
-
         if (!initiator_key) {
             throw new Error("Missing initiator key");
         }
 
         try {
-            const exists = await db.remote_initiators.findOne({
+            // Check if the key exists in the database
+            const exists = await RemoteInitiator.findOne({
                 where: { initiator_key }
             });
 
-            if (exists) {
-                return true; // Key is valid
-            } else {
-                return false; // Key is invalid
-            }
+            return !!exists; // Return true if the key exists, otherwise false
         } catch (error) {
             console.error("Error validating initiator key:", error);
             throw new Error("Internal server error");
@@ -59,7 +46,7 @@ class RemoteInitiatorController {
             res.status(200).send({ initiator_key: initiatorKey });
         } catch (error) {
             console.error("Error generating initiator key:", error);
-            res.status(500).send({ error: "Internal server error" });
+            res.status(500).send({ message: "Internal server error" });
         }
     }
 
@@ -78,7 +65,7 @@ class RemoteInitiatorController {
             }
         } catch (error) {
             console.error("Error validating initiator key:", error);
-            res.status(500).send({ error: "Internal server error" });
+            res.status(500).send({ message: "Internal server error" });
         }
     }
 
