@@ -16,7 +16,7 @@ class RemoteInitiatorController {
         return key;
     }
 
-    private static async validateKey(initiator_key: string): Promise<boolean> {
+    public static async validateKey(initiator_key: string): Promise<boolean> {
         if (!initiator_key) {
             throw new Error("Missing initiator key");
         }
