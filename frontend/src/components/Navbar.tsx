@@ -13,6 +13,7 @@ var NAV_BAR_LINKS = [
   { to: "/api-endpoints", label: "API Endpoints" },
   { to: "/processing-rules", label: "Processing Rules" },
   { to: "/ftp-endpoints", label: "FTP Endpoints" },
+  { to: "/app-instance-manager", label: "App Instances" },
 ];
 
 async function isSuperAdmin() {
