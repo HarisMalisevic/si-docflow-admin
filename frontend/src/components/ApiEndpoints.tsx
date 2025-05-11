@@ -27,6 +27,7 @@ interface ApiEndpoint {
   headers: string;
   body?: string;
   timeout_seconds: number;
+  send_file: boolean;
 }
 
 const ApiEndpoints: React.FC = () => {

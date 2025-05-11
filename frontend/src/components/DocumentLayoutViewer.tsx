@@ -1,16 +1,11 @@
-import { get } from "http";
 import { useState, useEffect } from "react";
-import { Container, Form, Row, Col, Button, Table, Alert } from "react-bootstrap";
+import { Container, Form, Row, Col, Button, Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 function DocumentTypeViewer() {
-    const [layoutName, setlayoutName] = useState("");
-    const [documentType, setDocumentType] = useState("");
     const [documents, setDocuments] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
-    const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
-    const [successMessage, setSuccessMessage] = useState("");
     const [selectedDocumentType, setSelectedDocumentType] = useState<number | "">("");
     const [canCreateNew, setCanCreateNew] = useState(false);
         

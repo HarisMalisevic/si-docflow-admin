@@ -2,7 +2,6 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react"; // dodano
 import Dropdown from "react-bootstrap/Dropdown"; // dodano
 
@@ -35,7 +34,6 @@ function AppNavbar() {
     role: "Admin"
   });
 
-  const navigate = useNavigate();
 
   useEffect(() => {
 

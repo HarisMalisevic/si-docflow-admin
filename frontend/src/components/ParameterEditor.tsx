@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Button, Form, Card, Row, Col } from 'react-bootstrap';
 
 export enum ParameterType {
@@ -27,18 +27,11 @@ interface ParameterEditorProps {
 }
 
 export const ParameterEditor: React.FC<ParameterEditorProps> = ({ location, value, onChange }) => {
-  // For HEADER and BODY
-  const [textValue, setTextValue] = useState(
-    typeof value === 'string' ? value : ''
-  );
-
-  // For QUERY parameters
-  const [parameters, setParameters] = useState<Record<string, QueryParameter>>(
-    typeof value === 'object' ? value : {}
-  );
+  
+  const textValue = typeof value === 'string' ? value : '';
+  const parameters = typeof value === 'object' ? value : {};
 
   const handleTextChange = useCallback((newValue: string) => {
-    setTextValue(newValue);
     onChange(newValue);
   }, [onChange]);
 
@@ -50,32 +43,25 @@ export const ParameterEditor: React.FC<ParameterEditorProps> = ({ location, valu
       required: false
     };
     
-    const paramKey = `param-${Object.keys(parameters).length}`;
-    setParameters(prev => ({
-      ...prev,
-      [paramKey]: newParam
-    }));
-  }, [parameters]);
+    const key = `param-${Object.keys(parameters).length}`;
+    onChange({
+      ...parameters,
+      [key]: newParam,
+    });
+  }, [parameters, onChange]);
 
   const updateQueryParameter = useCallback((key: string, updates: Partial<QueryParameter>) => {
-    setParameters(prev => {
-      const updated = {
-        ...prev,
-        [key]: { ...prev[key], ...updates }
-      };
-      onChange(updated);
-      return updated;
+    onChange({
+      ...parameters,
+      [key]: { ...parameters[key], ...updates },
     });
-  }, [onChange]);
+  }, [parameters, onChange]);
 
   const removeQueryParameter = useCallback((key: string) => {
-    setParameters(prev => {
-      const updated = { ...prev };
-      delete updated[key];
-      onChange(updated);
-      return updated;
-    });
-  }, [onChange]);
+    const next = { ...parameters };
+    delete next[key];
+    onChange(next);
+  }, [parameters, onChange]);
 
   if (location === ParameterLocation.HEADER || location === ParameterLocation.BODY) {
     return (

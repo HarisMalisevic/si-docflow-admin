@@ -11,6 +11,8 @@ import windowsAppInstance from "../routes/windowsAppInstance.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 import processingRuleDestinationRoutes from "../routes/processingRuleDestination.routes";
 import processingRuleRoutes from "../routes/processingRule.routes";
+import remoteInitiatorRoutes from "../routes/remoteInitiator.routes";
+import clientLogRoutes from "../routes/ClientLog.routes";
 import path from "path";
 
 // Define the path to the frontend build folder
@@ -74,9 +76,7 @@ API_ROUTER.use("/api/document-layouts", documentLayoutRoutes);
 
 API_ROUTER.use("/api/access-rights", accessRights);
 
-API_ROUTER.use(
-  "/api/processing-rules/destinations",
-  processingRuleDestinationRoutes
+API_ROUTER.use("/api/processing-rules/destinations", processingRuleDestinationRoutes
 );
 API_ROUTER.use("/api/processing-rules", processingRuleRoutes);
 
@@ -86,7 +86,13 @@ API_ROUTER.use("/api/ftp-endpoints", ftpEndpoints);
 
 API_ROUTER.use("/api/local-storage-folder", localStorageFolder);
 
-API_ROUTER.use("/api/windows-app-instance", windowsAppInstance);
+API_ROUTER.use("/api/windows-app-instance", windowsAppInstance
+);
+
+// Remote Initiator Routes
+API_ROUTER.use("/api/auth/key", remoteInitiatorRoutes);
+
+API_ROUTER.use("/api/client-log", clientLogRoutes);  // AuthMiddleware.isLoggedIn, TODO: Skontati autorizaciju za client logging (po potrebi!)
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get("*", (req, res) => {
