@@ -153,7 +153,7 @@ class RemoteTransactionsController {
             }
         }
 
-        /*const initiator = await db.remote_initiators.findOne({
+        const initiator = await db.remote_initiators.findOne({
             where: { initiator_key: initiatorKey }
         });
 
@@ -161,11 +161,11 @@ class RemoteTransactionsController {
 
         if(!initiator || typeof initiatorId !== "number") {
             return { status: 404, message: `No initiator found for initiator key: ${initiatorKey}` };
-        }*/
+        }
 
         try {
             const newTransaction = await db.remote_transactions.create({
-                //initiator_id: initiatorId,
+                initiator_id: initiatorId,
                 target_instance_id: jsonReq.target_instance_id,
                 document_type_id: jsonReq.document_type_id,
                 file_name: jsonReq.file_name,
