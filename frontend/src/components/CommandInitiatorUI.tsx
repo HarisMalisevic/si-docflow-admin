@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Container, Alert, Spinner, Form, Button } from "react-bootstrap";
+import { io, Socket } from "socket.io-client"; // Import Socket.IO client
 
 function CommandInitiatorUI() {
     const [documentTypes, setDocumentTypes] = useState([]);
@@ -12,6 +13,42 @@ function CommandInitiatorUI() {
     const [fileName, setFileName] = useState("");
     const [initiatorKey, setInitiatorKey] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+    const [socket, setSocket] = useState<Socket | null>(null); // State to store the socket instance
+    const [socketId, setSocketId] = useState<string | null>(null); // State to store the socket ID
+    const [commandResponse, setCommandResponse] = useState<object | null>(null); // State to store the command response
+
+    useEffect(() => {
+        // Establish a connection to the Socket.IO server
+        const newSocket = io("http://localhost:5000/processing");
+        setSocket(newSocket);
+
+        // Listen for the "connected" event to get the socket ID
+        newSocket.on("connected", (id: string) => {
+            console.log("Connected to Socket.IO server with ID:", id);
+            setSocketId(id);
+        });
+
+        // Listen for the "processingResult" event to receive the response
+        newSocket.on("processingResult", (data: object, callback: (response: { success: boolean; message: string }) => void) => {
+            console.log("Received processing result:", data);
+            setCommandResponse(data); // Update the state with the received response
+
+            // Use the callback to confirm the data was processed
+            callback({ success: true, message: "Processing result displayed successfully." });
+        });
+
+        // Handle disconnection
+        newSocket.on("disconnect", () => {
+            console.log("Disconnected from Socket.IO server");
+            setSocketId(null);
+        });
+
+        // Cleanup on component unmount
+        return () => {
+            newSocket.disconnect();
+        };
+    }, []);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -54,12 +91,16 @@ function CommandInitiatorUI() {
             return;
         }
 
+        if (!socketId) {
+            setError("Socket ID is missing. Ensure the connection to the server is established.");
+            return;
+        }
+
         console.log("Selected Document Type:", selectedDocumentType);
         console.log("Selected Windows App Instance:", selectedWindowsAppInstance);
-        console.log(typeof selectedDocumentType);
         console.log("File Name:", fileName);
         console.log("Initiator Key:", initiatorKey);
-        console.log("Socket ID:", "some-socket-id"); // Replace with actual socket ID if available
+        console.log("Socket ID:", socketId);
 
         try {
             const response = await fetch("/api/remote/process", {
@@ -67,10 +108,10 @@ function CommandInitiatorUI() {
                 headers: {
                     "Content-Type": "application/json",
                     "initiator-key": initiatorKey,
-                    "socket-id": "some-socket-id", // Replace with actual socket ID if available
+                    "socket-id": socketId, // Use the actual socket ID
                 },
                 body: JSON.stringify({
-                    target_instance_id: selectedWindowsAppInstance, // Numeric ID
+                    target_instance_id: selectedWindowsAppInstance,
                     document_type_id: selectedDocumentType,
                     file_name: fileName,
                 }),
@@ -141,13 +182,13 @@ function CommandInitiatorUI() {
                     <Form.Label>Windows App Instance</Form.Label>
                     <Form.Select
                         value={selectedWindowsAppInstance}
-                        onChange={(e) => setSelectedWindowsAppInstance(Number(e.target.value))} // Parse value as a number
+                        onChange={(e) => setSelectedWindowsAppInstance(Number(e.target.value))}
                         required
                     >
                         <option value="">Select a Windows App Instance</option>
                         {windowsAppInstances.map((instance: any) => (
                             <option key={instance.id} value={instance.id}>
-                                {instance.title} {/* Display the title */}
+                                {instance.title}
                             </option>
                         ))}
                     </Form.Select>
@@ -177,6 +218,25 @@ function CommandInitiatorUI() {
                 <Alert variant="success">
                     Generated Initiator Key: <strong>{initiatorKey}</strong>
                 </Alert>
+            )}
+
+            {commandResponse && (
+                <div className="mt-4">
+                    <h5>Command Response:</h5>
+                    <textarea
+                        readOnly
+                        value={JSON.stringify(commandResponse, null, 2)}
+                        style={{
+                            width: "100%",
+                            height: "200px",
+                            backgroundColor: "#f8f9fa",
+                            padding: "10px",
+                            borderRadius: "5px",
+                            border: "1px solid #ced4da",
+                            fontFamily: "monospace",
+                        }}
+                    />
+                </div>
             )}
         </Container>
     );
