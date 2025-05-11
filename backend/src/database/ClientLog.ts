@@ -41,7 +41,7 @@ export function initClientLog(sequelize: Sequelize) {
                 type: DataTypes.INTEGER,
                 allowNull: false,
                 references: {
-                    model: "WindowsAppInstance", // FK to WindowsAppInstance table
+                    model: "windows_app_instances", // FK to WindowsAppInstance table
                     key: "id",
                 },
             },
