@@ -49,8 +49,6 @@ class RemoteProcessingController {
             return;
         }
 
-
-
         // save the parameters to remote_transactions
         const transactionCreateResult = await RemoteProcessingController.createTransaction(initiatorKey, socketId, jsonReq);
 
@@ -89,7 +87,7 @@ class RemoteProcessingController {
         const transactionGetByIdResult = await RemoteProcessingController.getTransactionById(transactionId);
 
         if (transactionGetByIdResult?.status !== 200) {
-            console.error("Failed to update transaction, status: ", transactionGetByIdResult?.status);
+            console.error("Failed to fetch transaction, status: ", transactionGetByIdResult?.status);
             res.status(transactionGetByIdResult?.status ?? 500).json({ message: transactionGetByIdResult?.message ?? 'Internal server error' });
             return;
         }

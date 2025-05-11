@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Container, Alert, Spinner, Form, Button } from "react-bootstrap";
 import { io, Socket } from "socket.io-client"; // Import Socket.IO client
+
+interface RemoteProcessingResultAttributes {
+    document_type_id: number;
+    file_name: string;
+    ocr_result: JSON;
+}
 
 function CommandInitiatorUI() {
     const [documentTypes, setDocumentTypes] = useState([]);
@@ -16,7 +22,10 @@ function CommandInitiatorUI() {
 
     const [socket, setSocket] = useState<Socket | null>(null); // State to store the socket instance
     const [socketId, setSocketId] = useState<string | null>(null); // State to store the socket ID
-    const [commandResponse, setCommandResponse] = useState<object | null>(null); // State to store the command response
+    const [commandResponse, setCommandResponse] = useState<RemoteProcessingResultAttributes | null>(null); // State to store the command response
+
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [initiatorKeyError, setInitiatorKeyError] = useState<string | null>(null);
 
     useEffect(() => {
         // Establish a connection to the Socket.IO server
@@ -30,9 +39,10 @@ function CommandInitiatorUI() {
         });
 
         // Listen for the "processingResult" event to receive the response
-        newSocket.on("processingResult", (data: object, callback: (response: { success: boolean; message: string }) => void) => {
+        newSocket.on("processingResult", (data: RemoteProcessingResultAttributes, callback: (response: { success: boolean; message: string }) => void) => {
             console.log("Received processing result:", data);
             setCommandResponse(data); // Update the state with the received response
+            setSuccessMessage("Remote processing finished successfully.");
 
             // Use the callback to confirm the data was processed
             callback({ success: true, message: "Processing result displayed successfully." });
@@ -62,7 +72,6 @@ function CommandInitiatorUI() {
                 }
                 const documentTypesData = await documentTypesResponse.json();
                 setDocumentTypes(documentTypesData);
-                console.log("Document Types:", documentTypesData);
 
                 const windowsAppInstancesResponse = await fetch("/api/windows-app-instance");
                 if (!windowsAppInstancesResponse.ok) {
@@ -70,7 +79,6 @@ function CommandInitiatorUI() {
                 }
                 const windowsAppInstancesData = await windowsAppInstancesResponse.json();
                 setWindowsAppInstances(windowsAppInstancesData);
-                console.log("Windows App Instances:", windowsAppInstancesData);
             } catch (err: any) {
                 setError(err.message || "An error occurred while fetching data.");
             } finally {
@@ -81,13 +89,31 @@ function CommandInitiatorUI() {
         fetchData();
     }, []);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const validateForm = () => {
+        const newErrors: Record<string, string> = {};
+
+        if (!selectedDocumentType) {
+            newErrors.documentType = "Document type is required.";
+        }
+        if (!selectedWindowsAppInstance) {
+            newErrors.appInstance = "Application instance is required.";
+        }
+        if (!fileName.trim()) {
+            newErrors.fileName = "File name is required.";
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSubmit = async () => {
+        if (!validateForm()) return;
+
         setError(null);
         setSuccessMessage(null);
 
         if (!initiatorKey) {
-            setError("Initiator key is required. Please generate it first.");
+            setInitiatorKeyError("Initiator key is required. Please generate it first.");
             return;
         }
 
@@ -142,6 +168,7 @@ function CommandInitiatorUI() {
 
             const data = await response.json();
             setInitiatorKey(data.initiator_key);
+            setInitiatorKeyError(null);
         } catch (err: any) {
             setError(err.message || "An error occurred while generating the key.");
         }
@@ -159,15 +186,29 @@ function CommandInitiatorUI() {
         <Container className="py-4">
             {error && <Alert variant="danger">{error}</Alert>}
             {successMessage && <Alert variant="success">{successMessage}</Alert>}
-            <h1>Initiate Remote Command</h1>
+            <h1 className="mb-3">Initiate Remote Command</h1>
 
-            <Form onSubmit={handleSubmit} className="mb-4">
+            {initiatorKey && (
+                <Alert variant="success" className="mb-2">
+                    Generated Initiator Key: <strong>{initiatorKey}</strong>
+                </Alert>
+            )}
+
+            {initiatorKeyError && (
+                <Alert variant="danger" className="mb-2">{initiatorKeyError}</Alert>
+            )}
+
+            <Button variant="secondary" onClick={handleGenerateKey} className="mb-3">
+                Generate Key
+            </Button>
+
+            <Form className="mb-4">
                 <Form.Group className="mb-3" controlId="documentTypeSelect">
                     <Form.Label>Document Type</Form.Label>
                     <Form.Select
                         value={selectedDocumentType}
                         onChange={(e) => setSelectedDocumentType(Number(e.target.value))}
-                        required
+                        isInvalid={!!errors.documentType}
                     >
                         <option value="">Select a Document Type</option>
                         {documentTypes.map((docType: any) => (
@@ -176,6 +217,9 @@ function CommandInitiatorUI() {
                             </option>
                         ))}
                     </Form.Select>
+                    <Form.Control.Feedback type="invalid">
+                        {errors.documentType}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="windowsAppInstanceSelect">
@@ -183,7 +227,7 @@ function CommandInitiatorUI() {
                     <Form.Select
                         value={selectedWindowsAppInstance}
                         onChange={(e) => setSelectedWindowsAppInstance(Number(e.target.value))}
-                        required
+                        isInvalid={!!errors.appInstance}
                     >
                         <option value="">Select a Windows App Instance</option>
                         {windowsAppInstances.map((instance: any) => (
@@ -192,6 +236,9 @@ function CommandInitiatorUI() {
                             </option>
                         ))}
                     </Form.Select>
+                    <Form.Control.Feedback type="invalid">
+                        {errors.appInstance}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
                 <Form.Group className="mb-3" controlId="fileNameInput">
@@ -201,31 +248,24 @@ function CommandInitiatorUI() {
                         placeholder="example.pdf"
                         value={fileName}
                         onChange={(e) => setFileName(e.target.value)}
-                        required
+                        isInvalid={!!errors.fileName}
                     />
+                    <Form.Control.Feedback type="invalid">
+                        {errors.fileName}
+                    </Form.Control.Feedback>
                 </Form.Group>
 
-                <Button variant="primary" type="submit">
+                <Button variant="primary" onClick={handleSubmit}>
                     Submit
                 </Button>
             </Form>
-
-            <Button variant="secondary" onClick={handleGenerateKey} className="mb-3">
-                Generate Remote Initiator Key
-            </Button>
-
-            {initiatorKey && (
-                <Alert variant="success">
-                    Generated Initiator Key: <strong>{initiatorKey}</strong>
-                </Alert>
-            )}
 
             {commandResponse && (
                 <div className="mt-4">
                     <h5>Command Response:</h5>
                     <textarea
                         readOnly
-                        value={JSON.stringify(commandResponse, null, 2)}
+                        value={JSON.stringify(commandResponse.ocr_result, null, 2)}
                         style={{
                             width: "100%",
                             height: "200px",
