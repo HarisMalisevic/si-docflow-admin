@@ -10,6 +10,7 @@ import localStorageFolder from "../routes/localStorageFolders.routes";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 import processingRuleDestinationRoutes from "../routes/processingRuleDestination.routes";
 import processingRuleRoutes from "../routes/processingRule.routes";
+import remoteInitiatorRoutes from "../routes/remoteInitiator.routes";
 import clientLogRoutes from "../routes/ClientLog.routes";
 import path from 'path';
 
@@ -121,6 +122,12 @@ API_ROUTER.use(
 API_ROUTER.use(
     "/api/local-storage-folder",
     localStorageFolder
+);
+
+// Remote Initiator Routes
+API_ROUTER.use(
+    "/api/auth/key",
+    remoteInitiatorRoutes
 );
 
 API_ROUTER.use(
