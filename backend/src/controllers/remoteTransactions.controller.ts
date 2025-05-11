@@ -35,7 +35,7 @@ class RemoteTransactionsController {
     }
 
     static async getById(req: Request, res: Response) {
-        const getByIdResult = await this.getByIdWithReturn(req);
+        const getByIdResult = await RemoteTransactionsController.getByIdWithReturn(req);
 
         if (getByIdResult?.status === 200) {
             res.status(200).json(getByIdResult?.data);
@@ -71,7 +71,7 @@ class RemoteTransactionsController {
     }
 
     static async create(req: Request, res: Response) {
-        const createResult = await this.createWithReturn(req);
+        const createResult = await RemoteTransactionsController.createWithReturn(req);
 
         if (createResult?.status === 200) {
             res.status(200).json(createResult?.data);
@@ -181,7 +181,7 @@ class RemoteTransactionsController {
     }
 
     static async updateStatus(req: Request, res: Response) {
-        const updateResult = await this.updateStatusWithReturn(req);
+        const updateResult = await RemoteTransactionsController.updateStatusWithReturn(req);
 
         if (updateResult?.status === 200) {
             res.status(200).json(updateResult?.data);
@@ -201,8 +201,8 @@ class RemoteTransactionsController {
             return { status: 400, message: "Invalid ID format" };  
         }
 
-        if (!jsonReq || Object.keys(jsonReq).length === 0) {
-            return { status: 400, message: "Request body cannot be empty for update." };  
+        if (!jsonReq || !jsonReq?.status) {
+            return { status: 400, message: "Request body for status update must contain a status" };  
         }
 
         if (!Object.values(TransactionStatus).includes(jsonReq.status as TransactionStatus)) {
