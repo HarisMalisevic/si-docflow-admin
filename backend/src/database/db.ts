@@ -13,7 +13,7 @@ import { initProcessingRule } from './ProcessingRule';
 import { initLocalStorageFolder } from './LocalStorageFolder';
 import { initProcessingRuleDestination } from './ProcessingRuleDestination';
 import { initWindowsAppInstance } from './WindowsAppInstance';
-import { initRemoteInitiator } from './RemoteInitiator';¸
+import { initRemoteInitiator } from './RemoteInitiator';
 import { initClientLog } from './ClientLog';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
