@@ -20,7 +20,7 @@ function CommandInitiatorUI() {
 
     useEffect(() => {
         // Establish a connection to the Socket.IO server
-        const newSocket = io("http://localhost:5000/processing");
+        const newSocket = io("/processing");
         setSocket(newSocket);
 
         // Listen for the "connected" event to get the socket ID
