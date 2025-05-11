@@ -103,10 +103,12 @@ export function initExternalAPIEndpoint(sequelize: Sequelize): typeof ExternalAP
             timeout_seconds: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
+                defaultValue: 30,
             },
             send_file: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
+                defaultValue: false,
             },
             created_by: {
                 type: DataTypes.INTEGER,

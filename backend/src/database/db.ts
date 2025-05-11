@@ -13,6 +13,8 @@ import { initProcessingRule } from './ProcessingRule';
 import { initLocalStorageFolder } from './LocalStorageFolder';
 import { initProcessingRuleDestination } from './ProcessingRuleDestination';
 import { initWindowsAppInstance } from './WindowsAppInstance';
+import { initRemoteInitiator } from './RemoteInitiator';
+import { initClientLog } from './ClientLog';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -48,6 +50,8 @@ db.processing_rules = initProcessingRule(sequelize_obj);
 db.local_storage_folders = initLocalStorageFolder(sequelize_obj);
 db.processing_rule_destinations = initProcessingRuleDestination(sequelize_obj);
 db.windows_app_instances = initWindowsAppInstance(sequelize_obj);
+db.remote_initiators = initRemoteInitiator(sequelize_obj);
+db.client_logs = initClientLog(sequelize_obj);
 
 // Relacije
 db.sso_providers.hasMany(db.admin_users, {
