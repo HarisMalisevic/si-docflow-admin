@@ -5,8 +5,8 @@ import WindowsAppInstance from "./WindowsAppInstance";
 export enum ClientActionType {
     INSTANCE_STARTED = "instance_started",
     PROCESSING_REQ_SENT = "processing_req_sent",
-    PROCESSING_RESULT_RECEIVED = "processing_result_recieved",
-    COMMAND_RECEIVED = "command_recieved",
+    PROCESSING_RESULT_RECEIVED = "processing_result_received",
+    COMMAND_RECEIVED = "command_received",
 }
 
 // Define the attributes for the ClientLog model

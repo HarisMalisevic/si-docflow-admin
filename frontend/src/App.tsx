@@ -18,6 +18,7 @@ import ProcessingRuleViewer from "./components/ProcessingRuleViewer";
 import ProcessingRuleDestinationViewer from "./components/ProcessingRuleDestinationViewer";
 import FTPEndPointsViewer from "./components/FTPEndpointsViewer";
 import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
+import LogsViewer from "./components/LogsViewer";
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
         <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
         <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
+        <Route path="/logs" element={<LogsViewer/>} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
