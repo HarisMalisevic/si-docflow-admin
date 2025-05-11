@@ -22,6 +22,7 @@ const io = new Server(httpServer, {
 
 // Define namespaces
 export const processingNamespace = io.of("/processing");
+export const logsNamespace = io.of("/logs");
 
 processingNamespace.on("connection", (socket: Socket) => {
     console.log(`New socket connected: ${socket.id}`);
@@ -32,6 +33,14 @@ processingNamespace.on("connection", (socket: Socket) => {
     socket.on("disconnect", () => {
         console.log(`Socket disconnected: ${socket.id}`);
     });
+});
+
+logsNamespace.on("connection", (socket: Socket) => {
+  console.log(`New socket connected to /logs: ${socket.id}`);
+  socket.emit("connected_logs"); 
+  socket.on("disconnect", () => {
+    console.log(`Socket disconnected from /logs: ${socket.id}`);
+  });
 });
 
 APP.use(express.json());

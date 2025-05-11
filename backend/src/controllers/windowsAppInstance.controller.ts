@@ -65,8 +65,6 @@ class WindowsAppInstanceController {
     }
   }
 
-<<<<<<< HEAD
-=======
   static async getByMachineId(req: Request, res: Response) {
     const { machine_id } = req.params;
 
@@ -91,7 +89,6 @@ class WindowsAppInstanceController {
     }
   }
 
->>>>>>> dev
   static async create(req: Request, res: Response) {
     const jsonReq: WindowsAppInstanceCreationAttributes = req.body || {};
 
@@ -147,15 +144,9 @@ class WindowsAppInstanceController {
       {
         key: "polling_frequency",
         name: "Polling frequency",
-<<<<<<< HEAD
         typeDescription: "positive integer",
         isInvalid: (v) =>
           typeof v !== "number" || !Number.isInteger(v) || v <= 0,
-=======
-        typeDescription: "non-negative integer",
-        isInvalid: (v) =>
-          typeof v !== "number" || !Number.isInteger(v) || v < 0,
->>>>>>> dev
       },
     ];
 
@@ -251,15 +242,9 @@ class WindowsAppInstanceController {
       {
         key: "polling_frequency",
         name: "Polling frequency",
-<<<<<<< HEAD
         typeDescription: "positive integer",
         isInvalid: (v) =>
           typeof v !== "number" || !Number.isInteger(v) || v <= 0,
-=======
-        typeDescription: "non-negative integer",
-        isInvalid: (v) =>
-          typeof v !== "number" || !Number.isInteger(v) || v < 0,
->>>>>>> dev
       },
     ];
 

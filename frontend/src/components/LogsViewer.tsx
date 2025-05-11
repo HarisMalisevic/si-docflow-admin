@@ -9,11 +9,12 @@ import {
   Alert,
   Badge,
 } from "react-bootstrap";
+import io, { Socket } from "socket.io-client";
 
 export enum ClientActionType {
   INSTANCE_STARTED = "instance_started",
   PROCESSING_REQ_SENT = "processing_req_sent",
-  PROCESSING_RESULT_RECEIVED = "processing_result_received",
+  PROCESSING_RESULT_RECEIVED = "processing_res_received",
   COMMAND_RECEIVED = "command_received",
 }
 
@@ -49,13 +50,15 @@ interface RemoteTransactionAttributes {
 
 interface Initiator {
   id: number;
-  name: string;
+  initiator_key: string;
 }
 
 interface DocumentType {
   id: number;
   name: string;
 }
+
+const SOCKET_SERVER_URL = "http://localhost:5000";
 
 const Logs: React.FC = () => {
   const [clientLogs, setClientLogs] = useState<ClientLogAttributes[]>([]);
@@ -73,10 +76,6 @@ const Logs: React.FC = () => {
   const [initiators, setInitiators] = useState<Initiator[]>([]);
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [selectedInitiatorId, setSelectedInitiatorId] = useState<string>("");
-  const [selectedTargetInstanceId, setSelectedTargetInstanceId] =
-    useState<string>("");
-  const [selectedDocumentTypeId, setSelectedDocumentTypeId] =
-    useState<string>("");
   const [selectedTransactionStatus, setSelectedTransactionStatus] =
     useState<string>("");
   const [transactionLogsLoading, setTransactionLogsLoading] = useState(true);
@@ -84,31 +83,29 @@ const Logs: React.FC = () => {
     string | null
   >(null);
 
+  const [socket, setSocket] = useState<Socket | null>(null);
+
   useEffect(() => {
     const fetchClientLogData = async () => {
       setClientLogsLoading(true);
       setClientLogsError(null);
       try {
         const [logsRes, instancesRes] = await Promise.all([
-          fetch("/api/client-logs"),
-          fetch("/api/windows-app-instances"),
+          fetch("/api/client-log"),
+          fetch("/api/windows-app-instance"),
         ]);
-
         if (!logsRes.ok) {
           const errorText = await logsRes.text();
-          console.error("Client Logs API Error Response:", errorText);
           throw new Error(
-            `Failed to fetch client logs: ${logsRes.status} ${logsRes.statusText}`
+            `Failed to fetch client logs: ${logsRes.status} ${errorText}`
           );
         }
         if (!instancesRes.ok) {
           const errorText = await instancesRes.text();
-          console.error("Windows App Instances API Error Response:", errorText);
           throw new Error(
-            `Failed to fetch Windows app instances: ${instancesRes.status} ${instancesRes.statusText}`
+            `Failed to fetch Windows app instances: ${instancesRes.status} ${errorText}`
           );
         }
-
         setClientLogs(await logsRes.json());
         setWindowsAppInstances(await instancesRes.json());
       } catch (err: any) {
@@ -124,32 +121,27 @@ const Logs: React.FC = () => {
       try {
         const [logsRes, initiatorsRes, docTypesRes] = await Promise.all([
           fetch("/api/remote-transactions"),
-          fetch("/api/initiators"),
+          fetch("/api/initiators/keys"),
           fetch("/api/document-types"),
         ]);
-
         if (!logsRes.ok) {
           const errorText = await logsRes.text();
-          console.error("Transaction Logs API Error Response:", errorText);
           throw new Error(
-            `Failed to fetch transaction logs: ${logsRes.status} ${logsRes.statusText}`
+            `Failed to fetch transaction logs: ${logsRes.status} ${errorText}`
           );
         }
         if (!initiatorsRes.ok) {
           const errorText = await initiatorsRes.text();
-          console.error("Initiators API Error Response:", errorText);
           throw new Error(
-            `Failed to fetch initiators: ${initiatorsRes.status} ${initiatorsRes.statusText}`
+            `Failed to fetch initiators: ${initiatorsRes.status} ${errorText}`
           );
         }
         if (!docTypesRes.ok) {
           const errorText = await docTypesRes.text();
-          console.error("Document Types API Error Response:", errorText);
           throw new Error(
-            `Failed to fetch document types: ${docTypesRes.status} ${docTypesRes.statusText}`
+            `Failed to fetch document types: ${docTypesRes.status} ${errorText}`
           );
         }
-
         setTransactionLogs(await logsRes.json());
         setInitiators(await initiatorsRes.json());
         setDocumentTypes(await docTypesRes.json());
@@ -164,6 +156,65 @@ const Logs: React.FC = () => {
 
     fetchClientLogData();
     fetchTransactionData();
+
+    const newSocket = io(`${SOCKET_SERVER_URL}/logs`);
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+      console.log("Connected to WebSocket server on /logs namespace!");
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("Disconnected from WebSocket server /logs namespace.");
+    });
+
+    newSocket.on("new_client_log", (newLog: ClientLogAttributes) => {
+      setClientLogs((prevLogs) => [
+        newLog,
+        ...prevLogs.filter((log) => log.id !== newLog.id),
+      ]);
+    });
+    newSocket.on("updated_client_log", (updatedLog: ClientLogAttributes) => {
+      setClientLogs((prevLogs) =>
+        prevLogs.map((log) => (log.id === updatedLog.id ? updatedLog : log))
+      );
+    });
+    newSocket.on("deleted_client_log", (data: { id: number }) => {
+      setClientLogs((prevLogs) => prevLogs.filter((log) => log.id !== data.id));
+    });
+
+    newSocket.on(
+      "new_transaction_log",
+      (newLog: RemoteTransactionAttributes) => {
+        setTransactionLogs((prevLogs) => [
+          newLog,
+          ...prevLogs.filter((log) => log.id !== newLog.id),
+        ]);
+      }
+    );
+    newSocket.on(
+      "updated_transaction_log",
+      (updatedLog: RemoteTransactionAttributes) => {
+        setTransactionLogs((prevLogs) =>
+          prevLogs.map((log) => (log.id === updatedLog.id ? updatedLog : log))
+        );
+      }
+    );
+    newSocket.on("deleted_transaction_log", (data: { id: number }) => {
+      setTransactionLogs((prevLogs) =>
+        prevLogs.filter((log) => log.id !== data.id)
+      );
+    });
+
+    return () => {
+      newSocket.off("new_client_log");
+      newSocket.off("updated_client_log");
+      newSocket.off("deleted_client_log");
+      newSocket.off("new_transaction_log");
+      newSocket.off("updated_transaction_log");
+      newSocket.off("deleted_transaction_log");
+      newSocket.disconnect();
+    };
   }, []);
 
   const filteredClientLogs = clientLogs.filter((log) => {
@@ -178,20 +229,9 @@ const Logs: React.FC = () => {
     const matchesInitiator =
       !selectedInitiatorId ||
       log.initiator_id === parseInt(selectedInitiatorId);
-    const matchesTargetInstance =
-      !selectedTargetInstanceId ||
-      log.target_instance_id === parseInt(selectedTargetInstanceId);
-    const matchesDocumentType =
-      !selectedDocumentTypeId ||
-      log.document_type_id === parseInt(selectedDocumentTypeId);
     const matchesStatus =
       !selectedTransactionStatus || log.status === selectedTransactionStatus;
-    return (
-      matchesInitiator &&
-      matchesTargetInstance &&
-      matchesDocumentType &&
-      matchesStatus
-    );
+    return matchesInitiator && matchesStatus;
   });
 
   const formatDate = (dateString?: string) => {
@@ -270,7 +310,7 @@ const Logs: React.FC = () => {
         </Row>
         <Row>
           <Col>
-            {clientLogsLoading ? (
+            {clientLogsLoading && clientLogs.length === 0 ? (
               <div className="text-center py-3">
                 <Spinner animation="border" role="status">
                   <span className="visually-hidden">
@@ -327,7 +367,8 @@ const Logs: React.FC = () => {
           </Col>
         </Row>
         <Row className="mb-3 align-items-end">
-          <Col md={3}>
+          <Col md={6} lg={4}>
+            {" "}
             <Form.Group controlId="transactionLogInitiatorFilter">
               <Form.Label>Filter by Initiator</Form.Label>
               <Form.Select
@@ -338,47 +379,13 @@ const Logs: React.FC = () => {
                 <option value="">All Initiators</option>
                 {initiators.map((initiator) => (
                   <option key={initiator.id} value={initiator.id}>
-                    {initiator.name} (ID: {initiator.id})
+                    {initiator.initiator_key} (ID: {initiator.id})
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col md={3}>
-            <Form.Group controlId="transactionLogTargetInstanceFilter">
-              <Form.Label>Filter by Target Instance</Form.Label>
-              <Form.Select
-                value={selectedTargetInstanceId}
-                onChange={(e) => setSelectedTargetInstanceId(e.target.value)}
-                aria-label="Filter by Target Instance"
-              >
-                <option value="">All Target Instances</option>
-                {windowsAppInstances.map((instance) => (
-                  <option key={instance.id} value={instance.id}>
-                    {instance.title} (ID: {instance.id})
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-          <Col md={3}>
-            <Form.Group controlId="transactionLogDocumentTypeFilter">
-              <Form.Label>Filter by Document Type</Form.Label>
-              <Form.Select
-                value={selectedDocumentTypeId}
-                onChange={(e) => setSelectedDocumentTypeId(e.target.value)}
-                aria-label="Filter by Document Type"
-              >
-                <option value="">All Document Types</option>
-                {documentTypes.map((docType) => (
-                  <option key={docType.id} value={docType.id}>
-                    {docType.name} (ID: {docType.id})
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
-          <Col md={3}>
+          <Col md={6} lg={4}>
             <Form.Group controlId="transactionLogStatusFilter">
               <Form.Label>Filter by Status</Form.Label>
               <Form.Select
@@ -395,10 +402,11 @@ const Logs: React.FC = () => {
               </Form.Select>
             </Form.Group>
           </Col>
+          <Col md={0} lg={4}></Col>
         </Row>
         <Row>
           <Col>
-            {transactionLogsLoading ? (
+            {transactionLogsLoading && transactionLogs.length === 0 ? (
               <div className="text-center py-3">
                 <Spinner animation="border" role="status">
                   <span className="visually-hidden">
@@ -416,12 +424,9 @@ const Logs: React.FC = () => {
                   <tr>
                     <th>#</th>
                     <th>Initiator</th>
-                    <th>Target Instance</th>
-                    <th>Doc Type</th>
                     <th>File Name</th>
                     <th>Status</th>
                     <th>Socket ID</th>
-                    <th>Timestamp</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -432,17 +437,7 @@ const Logs: React.FC = () => {
                         <td>
                           {initiators.find(
                             (init) => init.id === log.initiator_id
-                          )?.name || `ID: ${log.initiator_id}`}
-                        </td>
-                        <td>
-                          {windowsAppInstances.find(
-                            (inst) => inst.id === log.target_instance_id
-                          )?.title || `ID: ${log.target_instance_id}`}
-                        </td>
-                        <td>
-                          {documentTypes.find(
-                            (dt) => dt.id === log.document_type_id
-                          )?.name || `ID: ${log.document_type_id}`}
+                          )?.initiator_key || `ID: ${log.initiator_id}`}
                         </td>
                         <td>{log.file_name}</td>
                         <td>
@@ -451,12 +446,11 @@ const Logs: React.FC = () => {
                           </Badge>
                         </td>
                         <td>{log.socket_id}</td>
-                        <td>{formatDate(log.created_at)}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={8} className="text-center py-3">
+                      <td colSpan={6} className="text-center py-3">
                         No transaction logs found matching your criteria.
                       </td>
                     </tr>

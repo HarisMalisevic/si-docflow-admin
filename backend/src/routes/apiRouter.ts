@@ -92,7 +92,7 @@ API_ROUTER.use("/api/windows-app-instance", windowsAppInstance
 );
 
 // Remote Initiator Routes
-API_ROUTER.use("/api/auth/key", remoteInitiatorRoutes);
+API_ROUTER.use("/api/initiators", remoteInitiatorRoutes);
 
 API_ROUTER.use("/api/client-log", clientLogRoutes);  // AuthMiddleware.isLoggedIn, TODO: Skontati autorizaciju za client logging (po potrebi!)
 
