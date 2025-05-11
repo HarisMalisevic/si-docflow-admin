@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import RemoteTransactionsController from "./remoteTransactions.controller";
 import { TransactionStatus } from "../database/RemoteTransaction";
 import { processingNamespace } from "../server";
-import RemoteInitiatorController from "./RemoteInitiatorController"; // Import the RemoteInitiatorController
+import RemoteInitiatorController from "./RemoteInitiator.controller"; // Import the RemoteInitiatorController
 
 interface RemoteProcessingCommandAttributes {
     target_instance_id: number;
@@ -52,7 +52,7 @@ class RemoteProcessingController {
 
 
         // save the parameters to remote_transactions
-        const transactionCreateResult = await this.createTransaction(initiatorKey, socketId, jsonReq);
+        const transactionCreateResult = await RemoteProcessingController.createTransaction(initiatorKey, socketId, jsonReq);
 
         if (transactionCreateResult?.status !== 200) {
             console.error("Failed to create transaction, status: ", transactionCreateResult?.status);
@@ -69,7 +69,7 @@ class RemoteProcessingController {
         // command successfully forwarded to Windows App Instance
 
         // update transaction status to FORWARDED
-        const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FORWARDED);
+        const transactionUpdateResult = await RemoteProcessingController.updateTransactionStatus(transactionId, TransactionStatus.FORWARDED);
 
         if (transactionUpdateResult?.status !== 200) {
             console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
@@ -86,7 +86,7 @@ class RemoteProcessingController {
         const jsonReq: RemoteProcessingResultAttributes = req.body || {};
 
         // fetch transaction for transactionId to get the socket ID
-        const transactionGetByIdResult = await this.getTransactionById(transactionId);
+        const transactionGetByIdResult = await RemoteProcessingController.getTransactionById(transactionId);
 
         if (transactionGetByIdResult?.status !== 200) {
             console.error("Failed to update transaction, status: ", transactionGetByIdResult?.status);
@@ -105,7 +105,7 @@ class RemoteProcessingController {
 
         if (!jsonReq["ocr_result"]) {
             // update transaction status to FAILED
-            const transactionUpdateResult = await this.updateTransactionStatus(transactionId, TransactionStatus.FAILED);
+            const transactionUpdateResult = await RemoteProcessingController.updateTransactionStatus(transactionId, TransactionStatus.FAILED);
 
             if (transactionUpdateResult?.status !== 200) {
                 console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
@@ -135,7 +135,7 @@ class RemoteProcessingController {
                     console.log("Initiator acknowledged processing result:", response.message);
 
                     // update transaction status to FINISHED
-                    this.updateTransactionStatus(transactionId, TransactionStatus.FINISHED)
+                    RemoteProcessingController.updateTransactionStatus(transactionId, TransactionStatus.FINISHED)
                         .then((transactionUpdateResult) => {
                             if (transactionUpdateResult?.status !== 200) {
                                 console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
@@ -152,7 +152,7 @@ class RemoteProcessingController {
                     console.error("Initiator did not acknowledge processing result: ", response.message);
 
                     // update transaction status to FAILED
-                    this.updateTransactionStatus(transactionId, TransactionStatus.FAILED)
+                    RemoteProcessingController.updateTransactionStatus(transactionId, TransactionStatus.FAILED)
                         .then((transactionUpdateResult) => {
                             if (transactionUpdateResult?.status !== 200) {
                                 console.error("Failed to update transaction, status: ", transactionUpdateResult?.status);
