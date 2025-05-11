@@ -65,6 +65,30 @@ class WindowsAppInstanceController {
     }
   }
 
+  static async getByMachineId(req: Request, res: Response) {
+    const { machine_id } = req.params;
+
+    try {
+      const instance = await db.windows_app_instances.findOne({
+        where: { machine_id: machine_id },
+      });
+
+      if (!instance) {
+        res
+          .status(404)
+          .json({ message: `Windows app instance with machine ID ${machine_id} not found.` });
+        return;
+      }
+      res.status(200).json(instance);
+    } catch (error) {
+      console.error(
+        `Error fetching Windows app instance with ID ${machine_id}: `,
+        error
+      );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
   static async create(req: Request, res: Response) {
     const jsonReq: WindowsAppInstanceCreationAttributes = req.body || {};
 
@@ -120,9 +144,9 @@ class WindowsAppInstanceController {
       {
         key: "polling_frequency",
         name: "Polling frequency",
-        typeDescription: "positive integer",
+        typeDescription: "non-negative integer",
         isInvalid: (v) =>
-          typeof v !== "number" || !Number.isInteger(v) || v <= 0,
+          typeof v !== "number" || !Number.isInteger(v) || v < 0,
       },
     ];
 
@@ -218,9 +242,9 @@ class WindowsAppInstanceController {
       {
         key: "polling_frequency",
         name: "Polling frequency",
-        typeDescription: "positive integer",
+        typeDescription: "non-negative integer",
         isInvalid: (v) =>
-          typeof v !== "number" || !Number.isInteger(v) || v <= 0,
+          typeof v !== "number" || !Number.isInteger(v) || v < 0,
       },
     ];
 

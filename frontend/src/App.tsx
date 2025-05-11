@@ -17,6 +17,7 @@ import ProcessingRuleViewer from "./components/ProcessingRuleViewer";
 import ProcessingRuleDestinationViewer from "./components/ProcessingRuleDestinationViewer";
 import FTPEndPointsViewer from "./components/FTPEndpointsViewer";
 import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
+import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
         <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
         <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
+        <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
