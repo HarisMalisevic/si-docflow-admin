@@ -1,5 +1,5 @@
 import { Router } from "express";
-import APIEndpointsController from "../controllers/apiEndpointsController";
+import APIEndpointsController from "../controllers/apiEndpoints.controller";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 
 const router = Router();

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import RemoteInitatorController from "../controllers/RemoteInitiatorController";
+import RemoteInitatorController from "../controllers/RemoteInitiator.controller";
 
 const router = Router();
 

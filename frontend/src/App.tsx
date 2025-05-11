@@ -21,7 +21,7 @@ import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
 import LogsViewer from "./components/LogsViewer";
 =======
 import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
->>>>>>> dev
+import CommandInitiatorUI from "./components/CommandInitiatorUI";
 
 function App() {
   return (
@@ -68,7 +68,7 @@ function App() {
         <Route path="/logs" element={<LogsViewer/>} />
 =======
         <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
->>>>>>> dev
+        <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
