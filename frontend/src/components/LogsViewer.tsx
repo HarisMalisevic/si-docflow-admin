@@ -59,8 +59,6 @@ interface DocumentType {
   name: string;
 }
 
-const SOCKET_SERVER_URL = "http://localhost:5000";
-
 const Logs: React.FC = () => {
   const [clientLogs, setClientLogs] = useState<ClientLogAttributes[]>([]);
   const [windowsAppInstances, setWindowsAppInstances] = useState<
@@ -158,7 +156,7 @@ const Logs: React.FC = () => {
     fetchClientLogData();
     fetchTransactionData();
 
-    const newSocket = io(`${SOCKET_SERVER_URL}/logs`);
+    const newSocket = io(`/logs`);
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
