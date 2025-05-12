@@ -16,6 +16,7 @@ export enum ClientActionType {
   PROCESSING_REQ_SENT = "processing_req_sent",
   PROCESSING_RESULT_RECEIVED = "processing_res_received",
   COMMAND_RECEIVED = "command_received",
+  INSTANCE_STOPPED = "instance_stopped"
 }
 
 export enum TransactionStatus {
@@ -121,7 +122,7 @@ const Logs: React.FC = () => {
       try {
         const [logsRes, initiatorsRes, docTypesRes] = await Promise.all([
           fetch("/api/remote-transactions"),
-          fetch("/api/initiators/keys"),
+          fetch("/api/auth/key/keys"),
           fetch("/api/document-types"),
         ]);
         if (!logsRes.ok) {
