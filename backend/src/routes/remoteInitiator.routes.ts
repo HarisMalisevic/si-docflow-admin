@@ -13,4 +13,6 @@ router.post(
     RemoteInitatorController.validateRemoteInitiatorKey
 );
 
+router.get("/keys", RemoteInitatorController.getAll)
+
 export default router;
