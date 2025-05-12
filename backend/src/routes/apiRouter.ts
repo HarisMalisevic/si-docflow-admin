@@ -13,6 +13,8 @@ import processingRuleDestinationRoutes from "../routes/processingRuleDestination
 import processingRuleRoutes from "../routes/processingRule.routes";
 import remoteInitiatorRoutes from "../routes/remoteInitiator.routes";
 import clientLogRoutes from "../routes/ClientLog.routes";
+import remoteTransactionRoutes from "../routes/remoteTransactions.routes"
+import remoteProcessingRoutes from "../routes/remoteProcessing.routes"
 import path from "path";
 
 // Define the path to the frontend build folder
@@ -93,6 +95,16 @@ API_ROUTER.use("/api/windows-app-instance", windowsAppInstance
 API_ROUTER.use("/api/auth/key", remoteInitiatorRoutes);
 
 API_ROUTER.use("/api/client-log", clientLogRoutes);  // AuthMiddleware.isLoggedIn, TODO: Skontati autorizaciju za client logging (po potrebi!)
+
+API_ROUTER.use(
+    "/api/remote-transactions",
+    remoteTransactionRoutes
+);
+
+API_ROUTER.use(
+    "/api/remote",
+    remoteProcessingRoutes
+);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get("*", (req, res) => {
