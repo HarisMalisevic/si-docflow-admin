@@ -188,16 +188,16 @@ const Logs: React.FC = () => {
       "new_transaction_log",
       async (newLog: RemoteTransactionAttributes) => {
         try {
+          setTransactionLogs((prevLogs) => [
+            newLog,
+            ...prevLogs.filter((log) => log.id !== newLog.id),
+          ]);
+
           const initiatorsRes = await fetch("/api/auth/key/keys");
           if (initiatorsRes.ok) {
             const initiators = await initiatorsRes.json();
             setInitiators(initiators);
           }
-
-          setTransactionLogs((prevLogs) => [
-            newLog,
-            ...prevLogs.filter((log) => log.id !== newLog.id),
-          ]);
         } catch (err) {
           console.error("Error updating on new transaction log:", err);
         } 
@@ -417,7 +417,7 @@ const Logs: React.FC = () => {
         </Row>
         <Row>
           <Col>
-            {transactionLogsLoading && transactionLogs.length === 0 ? (
+            {transactionLogsLoading ? (
               <div className="text-center py-3">
                 <Spinner animation="border" role="status">
                   <span className="visually-hidden">
