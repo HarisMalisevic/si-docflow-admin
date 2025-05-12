@@ -27,6 +27,7 @@ interface ApiEndpoint {
   headers: string;
   body?: string;
   timeout_seconds: number;
+  send_file: boolean;
 }
 
 const ApiEndpoints: React.FC = () => {
@@ -161,8 +162,8 @@ const ApiEndpoints: React.FC = () => {
         </Col>
       </Row>
 
-      <Row className="mb-4" style={{ marginTop: "70px" }}>
-        <Col md={10} lg={8} className="mx-auto">
+      <Row className="mb-4 mt-5">
+        <Col md={10} className="mx-auto">
           {error && (
             <Alert variant="danger" onClose={() => setError(null)} dismissible>
               {error}
@@ -178,7 +179,7 @@ const ApiEndpoints: React.FC = () => {
             </Alert>
           )}
           <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div className="d-flex flex-grow-1 flex-wrap gap-2">
+            <div className="d-flex">
               <Form.Select
                 className="me-2"
                 style={{ width: "auto", minWidth: "120px" }}
@@ -203,7 +204,7 @@ const ApiEndpoints: React.FC = () => {
                 type="text"
                 placeholder="Search endpoints..."
                 className="me-2 flex-grow-1"
-                style={{ minWidth: "200px" }}
+                style={{ minWidth: "300px" }}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 aria-label="Search endpoints"
@@ -211,7 +212,7 @@ const ApiEndpoints: React.FC = () => {
             </div>
             <Button
               variant="success"
-              style={{ minWidth: "100px" }}
+              style={{ minWidth: "7rem" }}
               onClick={() => navigate("/api-endpoints/create")}
             >
               Add New
@@ -228,10 +229,10 @@ const ApiEndpoints: React.FC = () => {
                 <th style={{ width: "5%" }}>#</th>
                 <th style={{ width: "15%" }}>Title</th>
                 <th style={{ width: "20%" }}>Description</th>
-                <th style={{ width: "20%" }}>Full URL</th>
-                <th style={{ width: "10%", textAlign: "center" }}>Status</th>
-                <th style={{ width: "10%", textAlign: "center" }}>Method</th>
-                <th style={{ width: "10%", textAlign: "center" }}>Auth</th>
+                <th style={{ width: "23%" }}>Full URL</th>
+                <th style={{ width: "9%", textAlign: "center" }}>Status</th>
+                <th style={{ width: "9%", textAlign: "center" }}>Method</th>
+                <th style={{ width: "9%", textAlign: "center" }}>Auth</th>
                 <th style={{ width: "10%", textAlign: "center" }}>Actions</th>
               </tr>
             </thead>

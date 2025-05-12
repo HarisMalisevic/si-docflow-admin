@@ -2,7 +2,6 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react"; 
 import Dropdown from "react-bootstrap/Dropdown"; 
 import HoverNavDropdown from "./HoverNavDropdown";
@@ -24,6 +23,9 @@ var NAV_BAR_LINKS = [
     ]
   },
   { to: "/access-rights", label: "Access Rights" },
+  { to: "/ftp-endpoints", label: "FTP Endpoints" },
+  { to: "/app-instance-manager", label: "App Instances" },
+  { to: "/local-storage-folder", label: "Local Storage"} 
 ];
 
 async function isSuperAdmin() {
@@ -45,7 +47,6 @@ function AppNavbar() {
     role: "Admin"
   });
 
-  const navigate = useNavigate();
 
   useEffect(() => {
 
