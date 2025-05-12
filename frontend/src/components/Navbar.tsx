@@ -20,12 +20,17 @@ var NAV_BAR_LINKS = [
     children: [
       { to: "/processing-rules", label: "Rules" },
       { to: "/api-endpoints", label: "API Endpoints" },
+      { to: "/ftp-endpoints", label: "FTP Endpoints" },
+      { to: "/local-storage-folder", label: "Local Storage"} 
     ]
   },
   { to: "/access-rights", label: "Access Rights" },
-  { to: "/ftp-endpoints", label: "FTP Endpoints" },
-  { to: "/app-instance-manager", label: "App Instances" },
-  { to: "/local-storage-folder", label: "Local Storage"} 
+  {
+    label: "Windows App",
+    children: [
+      { to: "/app-instance-manager", label: "App Instances" },
+    ]
+  },
 ];
 
 async function isSuperAdmin() {
