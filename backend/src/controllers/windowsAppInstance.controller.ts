@@ -144,9 +144,9 @@ class WindowsAppInstanceController {
       {
         key: "polling_frequency",
         name: "Polling frequency",
-        typeDescription: "positive integer",
+        typeDescription: "non-negative integer",
         isInvalid: (v) =>
-          typeof v !== "number" || !Number.isInteger(v) || v <= 0,
+          typeof v !== "number" || !Number.isInteger(v) || v < 0,
       },
     ];
 
@@ -242,9 +242,9 @@ class WindowsAppInstanceController {
       {
         key: "polling_frequency",
         name: "Polling frequency",
-        typeDescription: "positive integer",
+        typeDescription: "non-negative integer",
         isInvalid: (v) =>
-          typeof v !== "number" || !Number.isInteger(v) || v <= 0,
+          typeof v !== "number" || !Number.isInteger(v) || v < 0,
       },
     ];
 
