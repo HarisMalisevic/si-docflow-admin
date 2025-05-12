@@ -14,6 +14,7 @@ var NAV_BAR_LINKS = [
   { to: "/processing-rules", label: "Processing Rules" },
   { to: "/ftp-endpoints", label: "FTP Endpoints" },
   { to: "/app-instance-manager", label: "App Instances" },
+  { to: "/local-storage-folder", label: "Local Storage"} 
 ];
 
 async function isSuperAdmin() {

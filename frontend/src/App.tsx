@@ -20,6 +20,7 @@ import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
 import LogsViewer from "./components/LogsViewer";
 import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 import CommandInitiatorUI from "./components/CommandInitiatorUI";
+import LocalStorageFolder from "./components/LocalStorageFolder";
 
 function App() {
   return (
@@ -73,20 +74,11 @@ function App() {
         <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
         <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
-        <Route
-          path="/ftp-endpoints/edit/:id"
-          element={<FTPEndpointsCreate />}
-        />
+        <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
         <Route path="/logs" element={<LogsViewer />} />
-
-        <Route
-          path="/app-instance-manager"
-          element={<WindowsAppInstanceManager />}
-        />
-        <Route
-          path="/remote-command/initiate"
-          element={<CommandInitiatorUI />}
-        />
+        <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
+        <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
+        <Route path="/local-storage-folder" element={<LocalStorageFolder />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
