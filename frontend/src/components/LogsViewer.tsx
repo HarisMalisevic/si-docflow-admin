@@ -186,11 +186,21 @@ const Logs: React.FC = () => {
 
     newSocket.on(
       "new_transaction_log",
-      (newLog: RemoteTransactionAttributes) => {
-        setTransactionLogs((prevLogs) => [
-          newLog,
-          ...prevLogs.filter((log) => log.id !== newLog.id),
-        ]);
+      async (newLog: RemoteTransactionAttributes) => {
+        try {
+          const initiatorsRes = await fetch("/api/auth/key/keys");
+          if (initiatorsRes.ok) {
+            const initiators = await initiatorsRes.json();
+            setInitiators(initiators);
+          }
+
+          setTransactionLogs((prevLogs) => [
+            newLog,
+            ...prevLogs.filter((log) => log.id !== newLog.id),
+          ]);
+        } catch (err) {
+          console.error("Error updating on new transaction log:", err);
+        } 
       }
     );
     newSocket.on(
