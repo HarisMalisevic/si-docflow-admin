@@ -19,6 +19,7 @@ import FTPEndPointsViewer from "./components/FTPEndpointsViewer";
 import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
 import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 import CommandInitiatorUI from "./components/CommandInitiatorUI";
+import LocalStorageFolder from "./components/LocalStorageFolder";
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
         <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
         <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
         <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
+        <Route path="/local-storage-folder" element={<LocalStorageFolder />} />
         {/*redirect unknown routes*/}
         <Route path="*" element={<HomeRedirect />} />
       </Routes>
