@@ -17,6 +17,7 @@ import ProcessingRuleViewer from "./components/ProcessingRuleViewer";
 import ProcessingRuleDestinationViewer from "./components/ProcessingRuleDestinationViewer";
 import FTPEndPointsViewer from "./components/FTPEndpointsViewer";
 import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
+import LogsViewer from "./components/LogsViewer";
 import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 import CommandInitiatorUI from "./components/CommandInitiatorUI";
 import LocalStorageFolder from "./components/LocalStorageFolder";
@@ -48,20 +49,33 @@ function App() {
         />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/logout" element={<LoginForm />} />
-        
+
         <Route path="/document-layouts" element={<DocumentLayoutViewer />} />
-        <Route path="/document-layouts/create" element={<DocumentLayoutCreate />} />
-        <Route path="/document-layouts/edit/:id" element={<DocumentLayoutEdit />} />
+        <Route
+          path="/document-layouts/create"
+          element={<DocumentLayoutCreate />}
+        />
+        <Route
+          path="/document-layouts/edit/:id"
+          element={<DocumentLayoutEdit />}
+        />
         <Route path="/home" element={<HomePage />} />
         <Route path="/access-rights" element={<AccessRightsViewer />} />
         <Route path="/api-endpoints" element={<ApiEndpoints />} />
         <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
-        <Route path="/api-endpoints/edit/:id" element={<ApiEndpointsCreate />} />
-        <Route path="/processing-rules/:id/destinations" element={<ProcessingRuleDestinationViewer />} />
+        <Route
+          path="/api-endpoints/edit/:id"
+          element={<ApiEndpointsCreate />}
+        />
+        <Route
+          path="/processing-rules/:id/destinations"
+          element={<ProcessingRuleDestinationViewer />}
+        />
         <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
         <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
         <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
+        <Route path="/logs" element={<LogsViewer />} />
         <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
         <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
         <Route path="/local-storage-folder" element={<LocalStorageFolder />} />
