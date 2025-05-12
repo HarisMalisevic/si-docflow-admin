@@ -26,9 +26,10 @@ var NAV_BAR_LINKS = [
   },
   { to: "/access-rights", label: "Access Rights" },
   {
-    label: "Windows App",
+    label: "Remote Processing",
     children: [
-      { to: "/app-instance-manager", label: "App Instances" },
+      { to: "/app-instance-manager", label: "Windows Clients" },
+      { to: "/logs", label: "Logs" },
     ]
   },
 ];
