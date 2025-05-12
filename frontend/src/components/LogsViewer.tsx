@@ -46,7 +46,7 @@ interface RemoteTransactionAttributes {
   file_name: string;
   status: TransactionStatus;
   socket_id: string;
-  created_at?: string;
+  updatedAt?: string;
 }
 
 interface Initiator {
@@ -427,7 +427,7 @@ const Logs: React.FC = () => {
                     <th>Initiator</th>
                     <th>File Name</th>
                     <th>Status</th>
-                    <th>Socket ID</th>
+                    <th>Timestamp</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -446,7 +446,7 @@ const Logs: React.FC = () => {
                             {log.status}
                           </Badge>
                         </td>
-                        <td>{log.socket_id}</td>
+                        <td>{formatDate(log.updatedAt)}</td>
                       </tr>
                     ))
                   ) : (
