@@ -30,7 +30,7 @@ interface ClientLogAttributes {
   id: number;
   instance_id: number;
   action: ClientActionType;
-  created_at?: string;
+  createdAt?: string;
 }
 
 interface WindowsAppInstance {
@@ -352,7 +352,7 @@ const Logs: React.FC = () => {
                           )?.title || `ID: ${log.instance_id}`}
                         </td>
                         <td>{log.action}</td>
-                        <td>{formatDate(log.created_at)}</td>
+                        <td>{formatDate(log.createdAt)}</td>
                       </tr>
                     ))
                   ) : (
