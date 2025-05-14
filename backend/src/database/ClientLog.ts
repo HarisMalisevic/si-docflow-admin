@@ -15,18 +15,16 @@ interface ClientLogAttributes {
     id: number;
     instance_id: number;
     action: ClientActionType;
-    created_at?: Date;
 }
 
 // Define the creation attributes (optional fields for new instances)
-type ClientLogCreationAttributes = Optional<ClientLogAttributes, "id" | "created_at">;
+type ClientLogCreationAttributes = Optional<ClientLogAttributes, "id">;
 
 // Define the ClientLog model class
 class ClientLog extends Model<ClientLogAttributes, ClientLogCreationAttributes> implements ClientLogAttributes {
     public id!: number;
     public instance_id!: ForeignKey<WindowsAppInstance["id"]>;
     public action!: ClientActionType;
-    public created_at?: Date;
 }
 
 export function initClientLog(sequelize: Sequelize) {
@@ -49,12 +47,7 @@ export function initClientLog(sequelize: Sequelize) {
                 type: DataTypes.ENUM,
                 values: Object.values(ClientActionType),
                 allowNull: false,
-            },
-            created_at: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-            },
+            }
         },
         {
             sequelize,

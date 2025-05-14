@@ -2,13 +2,13 @@ import { Request, Response } from "express";
 import db from "../database/db";
 import ClientLog, { ClientActionType } from "../database/ClientLog";
 import WindowsAppInstance from "../database/WindowsAppInstance";
-import { logsNamespace } from "../server"; 
+import { logsNamespace } from "../server";
 
 class ClientLogController {
   static async getAll(req: Request, res: Response): Promise<void> {
     try {
       const logs: ClientLog[] = await db.client_logs.findAll({
-        order: [["created_at", "DESC"]],
+        order: [["createdAt", "DESC"]],
       });
       res.json(logs);
     } catch (error) {
@@ -26,7 +26,7 @@ class ClientLogController {
     try {
       const logs: ClientLog[] = await db.client_logs.findAll({
         limit: n,
-        order: [["created_at", "DESC"]],
+        order: [["createdAt", "DESC"]],
       });
       res.json(logs);
     } catch (error) {
