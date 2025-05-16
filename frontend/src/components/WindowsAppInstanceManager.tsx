@@ -314,7 +314,7 @@ function WindowsAppInstanceManager() {
                                         <td>{!app.polling_frequency ? '-' : app.polling_frequency}</td>
                                         <td className="text-center" style={{ whiteSpace: "nowrap", padding: "5px 5px 0px 5px" }}>
                                             <Button
-                                                variant="danger"
+                                                variant="primary"
                                                 className="me-2"
                                                 size="sm"
                                                 onClick={() => handleEdit(app)}
@@ -322,7 +322,7 @@ function WindowsAppInstanceManager() {
                                                 Edit
                                             </Button>
                                             <Button
-                                                variant="primary"
+                                                variant="danger"
                                                 className="me-2"
                                                 size="sm"
                                                 onClick={() => handleDelete(app.id)}

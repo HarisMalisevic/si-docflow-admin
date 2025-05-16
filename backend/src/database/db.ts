@@ -16,6 +16,8 @@ import { initWindowsAppInstance } from './WindowsAppInstance';
 import { initRemoteInitiator } from './RemoteInitiator';
 import { initClientLog } from './ClientLog';
 import { initRemoteTransaction } from './RemoteTransaction';
+import { initApplicationLog } from './ApplicationLog';
+import { initSystemLog } from './SystemLog';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -54,6 +56,8 @@ db.windows_app_instances = initWindowsAppInstance(sequelize_obj);
 db.remote_initiators = initRemoteInitiator(sequelize_obj);
 db.client_logs = initClientLog(sequelize_obj);
 db.remote_transactions = initRemoteTransaction(sequelize_obj);
+db.application_logs = initApplicationLog(sequelize_obj);
+db.system_logs = initSystemLog(sequelize_obj);
 
 // Relacije
 db.sso_providers.hasMany(db.admin_users, {
