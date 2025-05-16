@@ -11,6 +11,14 @@ import {
 } from "react-bootstrap";
 import io, { Socket } from "socket.io-client";
 
+export enum SeverityLevel {
+  INFORMATION = "Information",
+  WARNING = "Warning",
+  ERROR = "Error",
+  CRITICAL = "Critical",
+  VERBOSE = "Verbose",
+}
+
 export enum ClientActionType {
   INSTANCE_STARTED = "instance_started",
   PROCESSING_REQ_SENT = "processing_req_sent",
@@ -49,6 +57,16 @@ interface RemoteTransactionAttributes {
   updatedAt?: string;
 }
 
+interface AppOrSystemLog {
+    id: number;
+    level: SeverityLevel;
+    source: string;
+    event_id: string;
+    task_category: string;
+    app_instance_id: number;
+    createdAt?: string;
+}
+
 interface Initiator {
   id: number;
   initiator_key: string;
@@ -81,6 +99,21 @@ const Logs: React.FC = () => {
   const [transactionLogsError, setTransactionLogsError] = useState<
     string | null
   >(null);
+
+  // Application logs
+  const [applicationLogs, setApplicationLogs] = useState<AppOrSystemLog[]>([]);
+  const [appLogLoading, setAppLogLoading] = useState(true);
+  const [appLogError, setAppLogError] = useState<string | null>(null);
+  const [appLogInstance, setAppLogInstance] = useState<string>("");
+  const [appLogLevel, setAppLogLevel] = useState<string>("");
+
+  // System logs
+  const [systemLogs, setSystemLogs] = useState<AppOrSystemLog[]>([]);
+  const [sysLogLoading, setSysLogLoading] = useState(true);
+  const [sysLogError, setSysLogError] = useState<string | null>(null);
+  const [sysLogInstance, setSysLogInstance] = useState<string>("");
+  const [sysLogLevel, setSysLogLevel] = useState<string>("");
+
 
   const [socket, setSocket] = useState<Socket | null>(null);
 
@@ -153,6 +186,39 @@ const Logs: React.FC = () => {
       }
     };
 
+    // Application Logs
+    const fetchAppLogs = async () => {
+      setAppLogLoading(true);
+      setAppLogError(null);
+      try {
+        const res = await fetch("/api/application-logs");
+        if (!res.ok) throw new Error(await res.text());
+        setApplicationLogs(await res.json());
+      } catch (err: any) {
+        setAppLogError(err.message || "Failed to load application logs.");
+      } finally {
+        setAppLogLoading(false);
+      }
+    };
+
+    // System Logs
+    const fetchSysLogs = async () => {
+      setSysLogLoading(true);
+      setSysLogError(null);
+      try {
+        const res = await fetch("/api/system-logs");
+        if (!res.ok) throw new Error(await res.text());
+        setSystemLogs(await res.json());
+      } catch (err: any) {
+        setSysLogError(err.message || "Failed to load system logs.");
+      } finally {
+        setSysLogLoading(false);
+      }
+    };
+
+    fetchAppLogs();
+    fetchSysLogs();
+
     fetchClientLogData();
     fetchTransactionData();
 
@@ -215,6 +281,30 @@ const Logs: React.FC = () => {
       );
     });
 
+    newSocket.on("new_application_log", (newLog: AppOrSystemLog) => {
+      setApplicationLogs((prev) => [newLog, ...prev.filter(l => l.id !== newLog.id)]);
+    });
+    newSocket.on("updated_application_log", (updatedLog: AppOrSystemLog) => {
+      setApplicationLogs((prev) =>
+        prev.map((l) => (l.id === updatedLog.id ? updatedLog : l))
+      );
+    });
+    newSocket.on("deleted_system_log", (data: { id: number }) => {
+      setApplicationLogs((prev) => prev.filter(l => l.id !== data.id));
+    });
+
+    newSocket.on("new_system_log", (newLog: AppOrSystemLog) => {
+      setSystemLogs((prev) => [newLog, ...prev.filter(l => l.id !== newLog.id)]);
+    });
+    newSocket.on("updated_system_log", (updatedLog: AppOrSystemLog) => {
+      setSystemLogs((prev) =>
+        prev.map((l) => (l.id === updatedLog.id ? updatedLog : l))
+      );
+    });
+    newSocket.on("deleted_system_log", (data: { id: number }) => {
+      setSystemLogs((prev) => prev.filter(l => l.id !== data.id));
+    });
+
     return () => {
       newSocket.off("new_client_log");
       newSocket.off("updated_client_log");
@@ -222,6 +312,12 @@ const Logs: React.FC = () => {
       newSocket.off("new_transaction_log");
       newSocket.off("updated_transaction_log");
       newSocket.off("deleted_transaction_log");
+      newSocket.off("new_application_log");
+      newSocket.off("updated_application_log");
+      newSocket.off("deleted_application_log");
+      newSocket.off("new_system_log");
+      newSocket.off("updated_system_log");
+      newSocket.off("deleted_system_log");
       newSocket.disconnect();
     };
   }, []);
@@ -241,6 +337,18 @@ const Logs: React.FC = () => {
     const matchesStatus =
       !selectedTransactionStatus || log.status === selectedTransactionStatus;
     return matchesInitiator && matchesStatus;
+  });
+
+  const filteredAppLogs = applicationLogs.filter((log) => {
+    const matchesInstance = !appLogInstance || log.app_instance_id === parseInt(appLogInstance);
+    const matchesLevel = !appLogLevel || log.level === appLogLevel;
+    return matchesInstance && matchesLevel;
+  });
+
+  const filteredSysLogs = systemLogs.filter((log) => {
+    const matchesInstance = !sysLogInstance || log.app_instance_id === parseInt(sysLogInstance);
+    const matchesLevel = !sysLogLevel || log.level === sysLogLevel;
+    return matchesInstance && matchesLevel;
   });
 
   const formatDate = (dateString?: string) => {
@@ -470,6 +578,181 @@ const Logs: React.FC = () => {
           </Col>
         </Row>
       </section>
+      <section id="application-logs" className="mt-5">
+        <Row>
+          <Col>
+            <h2 className="mb-3">Application Logs</h2>
+          </Col>
+        </Row>
+        <Row className="mb-3 align-items-end">
+          <Col md={4}>
+            <Form.Group controlId="appLogInstanceFilter">
+              <Form.Label>Filter by Instance</Form.Label>
+              <Form.Select
+                value={appLogInstance}
+                onChange={(e) => setAppLogInstance(e.target.value)}
+              >
+                <option value="">All Instances</option>
+                {windowsAppInstances.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.title} (ID: {inst.id})
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group controlId="appLogLevelFilter">
+              <Form.Label>Filter by Severity</Form.Label>
+              <Form.Select
+                value={appLogLevel}
+                onChange={(e) => setAppLogLevel(e.target.value)}
+              >
+                <option value="">All Severities</option>
+                {Object.values(SeverityLevel).map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            {appLogLoading && applicationLogs.length === 0 ? (
+              <div className="text-center py-3">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                    Loading Application Logs...
+                  </span>
+                </Spinner>
+              </div>
+            ) : appLogError ? (
+              <Alert variant="danger" className="mt-3">
+                {appLogError}
+              </Alert>
+            ) : (
+              <Table striped bordered hover responsive size="sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Instance</th>
+                    <th>SeverityLevel</th>
+                    <th>Source</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredAppLogs.length > 0 ? (
+                    filteredAppLogs.map((log, index) => (
+                      <tr key={log.id}>
+                        <td>{index + 1}</td>
+                        <td>
+                          {windowsAppInstances.find(
+                            (inst) => inst.id === log.app_instance_id
+                          )?.title || `ID: ${log.app_instance_id}`}
+                        </td>
+                        <td>{log.level}</td>
+                        <td>{log.source}</td>
+                        <td>{formatDate(log.createdAt)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="text-center py-3">
+                        No application logs found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            )}
+          </Col>
+        </Row>
+      </section>
+      <section id="system-logs" className="mt-5">
+        <Row>
+          <Col>
+            <h2 className="mb-3">System Logs</h2>
+          </Col>
+        </Row>
+        <Row className="mb-3 align-items-end">
+          <Col md={4}>
+            <Form.Group controlId="sysLogInstanceFilter">
+              <Form.Label>Filter by Instance</Form.Label>
+              <Form.Select
+                value={sysLogInstance}
+                onChange={(e) => setSysLogInstance(e.target.value)}
+              >
+                <option value="">All Instances</option>
+                {windowsAppInstances.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.title} (ID: {inst.id})
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group controlId="sysLogLevelFilter">
+              <Form.Label>Filter by Severity</Form.Label>
+              <Form.Select
+                value={sysLogLevel}
+                onChange={(e) => setSysLogLevel(e.target.value)}
+              >
+                <option value="">All Severities</option>
+                {Object.values(SeverityLevel).map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            {sysLogLoading ? (
+              <div className="text-center py-3">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading System Logs...</span>
+                </Spinner>
+              </div>
+            ) : sysLogError ? (
+              <Alert variant="danger" className="mt-3">{sysLogError}</Alert>
+            ) : (
+              <Table striped bordered hover responsive size="sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Instance</th>
+                    <th>Level</th>
+                    <th>Source</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredSysLogs.length > 0 ? (
+                    filteredSysLogs.map((log, idx) => (
+                      <tr key={log.id}>
+                        <td>{idx + 1}</td>
+                        <td>{windowsAppInstances.find(inst => inst.id === log.app_instance_id)?.title || `ID: ${log.app_instance_id}`}</td>
+                        <td>{log.level}</td>
+                        <td>{log.source}</td>
+                        <td>{formatDate(log.createdAt)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="text-center py-3">
+                        No system logs found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            )}
+          </Col>
+        </Row>
+      </section>
+
     </Container>
   );
 };
