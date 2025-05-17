@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
 import db from "../database/db";
-import SystemLog, { SystemLogCreationAttributes } from "../database/SystemLog";
+import SystemLog from "../database/SystemLog";
 
 class SystemLogsController {
     static async getAll(req: Request, res: Response) {
         try {
-            const logs = await db.system_logs.findAll( {
+            const logs: SystemLog[] = await db.system_logs.findAll( {
                 order: [["createdAt", "DESC"]],
             });
             res.status(200).json(logs);
@@ -25,7 +25,7 @@ class SystemLogsController {
         }
 
         try {
-            const logs = await db.system_logs.findAll({
+            const logs: SystemLog[] = await db.system_logs.findAll({
                 order: [["createdAt", "DESC"]],
                 limit: numericN,
             });
