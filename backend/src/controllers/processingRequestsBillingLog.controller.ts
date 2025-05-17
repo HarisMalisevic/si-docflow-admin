@@ -5,9 +5,10 @@ import ProcessingRequestsBillingLog from "../database/ProcessingRequestsBillingL
 class ProcessingRequestsBillingLogController {
   static async getAll(req: Request, res: Response) {
     try {
-      const billing: ProcessingRequestsBillingLog[] = await db.processing_requests_billing_logs.findAll({
-        order: [["createdAt", "DESC"]],
-      });
+      const billing: ProcessingRequestsBillingLog[] =
+        await db.processing_requests_billing_logs.findAll({
+          order: [["createdAt", "DESC"]],
+        });
       res.status(200).json(billing);
     } catch (error) {
       console.error("Error fetching processing requests billing log: ", error);
@@ -20,19 +21,18 @@ class ProcessingRequestsBillingLogController {
     const numericN = parseInt(n, 10);
 
     if (isNaN(numericN) || numericN < 0) {
-      res
-        .status(400)
-        .json({
-          message: "Invalid number of latest processing requests billing logs",
-        });
+      res.status(400).json({
+        message: "Invalid number of latest processing requests billing logs",
+      });
       return;
     }
 
     try {
-      const billing: ProcessingRequestsBillingLog[] = await db.processing_requests_billing_logs.findAll({
-        order: [["createdAt", "DESC"]],
-        limit: numericN,
-      });
+      const billing: ProcessingRequestsBillingLog[] =
+        await db.processing_requests_billing_logs.findAll({
+          order: [["createdAt", "DESC"]],
+          limit: numericN,
+        });
       res.status(200).json(billing);
     } catch (error) {
       console.error("Error fetching processing requests billing log: ", error);

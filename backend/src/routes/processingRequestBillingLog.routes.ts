@@ -5,6 +5,6 @@ import ProcessingRequestsBillingLogController from "../controllers/processingReq
 const router = Router();
 
 router.get("/", AuthMiddleware.isLoggedIn, ProcessingRequestsBillingLogController.getAll);
-router.get("/latest/:id", AuthMiddleware.isLoggedIn, ProcessingRequestsBillingLogController.getLatestN);
+router.get("/latest/:n", AuthMiddleware.isLoggedIn, ProcessingRequestsBillingLogController.getLatestN);
 
 export default router;
