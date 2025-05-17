@@ -19,7 +19,7 @@ class SystemLogsController {
         const { n } = req.params;
         const numericN = parseInt(n, 10);
 
-        if(isNaN(numericN)) {
+        if(isNaN(numericN) || numericN < 0) {
             res.status(400).json({ message: "Invalid number of latest system logs" });
             return;
         }
@@ -31,7 +31,7 @@ class SystemLogsController {
             });
             res.status(200).json(logs);
         } catch (error) {
-            console.error(`Error catching latest ${n} system logs: `, error);
+            console.error(`Error fetching latest ${n} system logs: `, error);
             res.status(500).json({ message: "Internal server error" });
         }
     }
