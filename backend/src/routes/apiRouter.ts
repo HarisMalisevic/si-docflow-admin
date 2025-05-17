@@ -13,8 +13,9 @@ import processingRuleDestinationRoutes from "../routes/processingRuleDestination
 import processingRuleRoutes from "../routes/processingRule.routes";
 import remoteInitiatorRoutes from "../routes/remoteInitiator.routes";
 import clientLogRoutes from "../routes/ClientLog.routes";
-import remoteTransactionRoutes from "../routes/remoteTransactions.routes"
-import remoteProcessingRoutes from "../routes/remoteProcessing.routes"
+import remoteTransactionRoutes from "../routes/remoteTransactions.routes";
+import remoteProcessingRoutes from "../routes/remoteProcessing.routes";
+import ProcessingRequestsBillingLogRouter from "../routes/processingRequestBillingLog.routes";
 import path from "path";
 
 // Define the path to the frontend build folder
@@ -105,6 +106,8 @@ API_ROUTER.use(
     "/api/remote",
     remoteProcessingRoutes
 );
+
+API_ROUTER.use("/api/processing-requests-billing-logs", ProcessingRequestsBillingLogRouter);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get("*", (req, res) => {
