@@ -15,7 +15,7 @@ import remoteInitiatorRoutes from "../routes/remoteInitiator.routes";
 import clientLogRoutes from "../routes/ClientLog.routes";
 import remoteTransactionRoutes from "../routes/remoteTransactions.routes";
 import remoteProcessingRoutes from "../routes/remoteProcessing.routes";
-import ProcessingRequestsBillingLogRouter from "../routes/processingRequestBillingLog.routes";
+import ProcessingRequestsBillingLogRouter from "./processingRequestsBillingLog.routes";
 import path from "path";
 
 // Define the path to the frontend build folder
