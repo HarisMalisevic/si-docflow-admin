@@ -15,7 +15,7 @@ import io, { Socket } from "socket.io-client";
 export enum ClientActionType {
   INSTANCE_STARTED = "instance_started",
   PROCESSING_REQ_SENT = "processing_req_sent",
-  PROCESSING_RESULT_RECEIVED = "processing_res_received", 
+  PROCESSING_RESULT_RECEIVED = "processing_res_received",
   COMMAND_RECEIVED = "command_received",
   INSTANCE_STOPPED = "instance_stopped",
 }
@@ -31,7 +31,7 @@ interface ClientLogAttributes {
   id: number;
   instance_id: number;
   action: ClientActionType;
-  createdAt?: string; 
+  createdAt?: string;
 }
 
 interface WindowsAppInstance {
@@ -47,8 +47,8 @@ interface RemoteTransactionAttributes {
   file_name: string;
   status: TransactionStatus;
   socket_id: string;
-  createdAt?: string; 
-  updatedAt?: string; 
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Initiator {
@@ -97,8 +97,8 @@ const Logs: React.FC = () => {
       setClientLogsError(null);
       try {
         const [logsRes, instancesRes] = await Promise.all([
-          fetch("/api/client-log"), 
-          fetch("/api/windows-app-instance"), 
+          fetch("/api/client-log"),
+          fetch("/api/windows-app-instance"),
         ]);
         if (!logsRes.ok) {
           const errorText = await logsRes.text();
@@ -127,8 +127,8 @@ const Logs: React.FC = () => {
       try {
         const [logsRes, initiatorsRes, docTypesRes] = await Promise.all([
           fetch("/api/remote-transactions"),
-          fetch("/api/auth/key/keys"), 
-          fetch("/api/document-types"), 
+          fetch("/api/auth/key/keys"),
+          fetch("/api/document-types"),
         ]);
         if (!logsRes.ok) {
           const errorText = await logsRes.text();
@@ -198,18 +198,28 @@ const Logs: React.FC = () => {
 
     newSocket.on(
       "new_transaction_log",
-      (newLog: RemoteTransactionAttributes) => {
-        setTransactionLogs((prevLogs) => {
-          const updatedLogs = [
-            newLog,
-            ...prevLogs.filter((log) => log.id !== newLog.id),
-          ];
-          return updatedLogs.sort(
-            (a, b) =>
-              new Date(b.updatedAt || b.createdAt || 0).getTime() -
-              new Date(a.updatedAt || a.createdAt || 0).getTime()
-          );
-        });
+      async (newLog: RemoteTransactionAttributes) => {
+        try {
+          setTransactionLogs((prevLogs) => {
+            const updatedLogs = [
+              newLog,
+              ...prevLogs.filter((log) => log.id !== newLog.id),
+            ];
+            return updatedLogs.sort(
+              (a, b) =>
+                new Date(b.updatedAt || b.createdAt || 0).getTime() -
+                new Date(a.updatedAt || a.createdAt || 0).getTime()
+            );
+          });
+
+          const initiatorsRes = await fetch("/api/auth/key/keys");
+          if (initiatorsRes.ok) {
+            const initiators = await initiatorsRes.json();
+            setInitiators(initiators);
+          }
+        } catch (err) {
+          console.error("Error processing new_transaction_log event:", err);
+        }
       }
     );
     newSocket.on(
@@ -325,7 +335,7 @@ const Logs: React.FC = () => {
     <Container fluid="lg" className="py-4">
       <Row>
         <Col className="text-center mb-4">
-          <h1> Client & Transaction logs </h1>
+          <h1> Client & Transaction logs</h1>
         </Col>
       </Row>
 
