@@ -8,6 +8,7 @@ import {
   Spinner,
   Alert,
   Badge,
+  Pagination,
 } from "react-bootstrap";
 import io, { Socket } from "socket.io-client";
 
@@ -24,7 +25,7 @@ export enum ClientActionType {
   PROCESSING_REQ_SENT = "processing_req_sent",
   PROCESSING_RESULT_RECEIVED = "processing_res_received",
   COMMAND_RECEIVED = "command_received",
-  INSTANCE_STOPPED = "instance_stopped"
+  INSTANCE_STOPPED = "instance_stopped",
 }
 
 export enum TransactionStatus {
@@ -54,6 +55,7 @@ interface RemoteTransactionAttributes {
   file_name: string;
   status: TransactionStatus;
   socket_id: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
@@ -77,6 +79,8 @@ interface DocumentType {
   name: string;
 }
 
+const ITEMS_PER_PAGE = 5;
+
 const Logs: React.FC = () => {
   const [clientLogs, setClientLogs] = useState<ClientLogAttributes[]>([]);
   const [windowsAppInstances, setWindowsAppInstances] = useState<
@@ -86,6 +90,7 @@ const Logs: React.FC = () => {
   const [selectedClientAction, setSelectedClientAction] = useState<string>("");
   const [clientLogsLoading, setClientLogsLoading] = useState(true);
   const [clientLogsError, setClientLogsError] = useState<string | null>(null);
+  const [currentClientLogPage, setCurrentClientLogPage] = useState(1);
 
   const [transactionLogs, setTransactionLogs] = useState<
     RemoteTransactionAttributes[]
@@ -99,6 +104,8 @@ const Logs: React.FC = () => {
   const [transactionLogsError, setTransactionLogsError] = useState<
     string | null
   >(null);
+  const [currentTransactionLogsPage, setCurrentTransactionLogsPage] =
+    useState(1);
 
   // Application logs
   const [applicationLogs, setApplicationLogs] = useState<AppOrSystemLog[]>([]);
@@ -234,10 +241,17 @@ const Logs: React.FC = () => {
     });
 
     newSocket.on("new_client_log", (newLog: ClientLogAttributes) => {
-      setClientLogs((prevLogs) => [
-        newLog,
-        ...prevLogs.filter((log) => log.id !== newLog.id),
-      ]);
+      setClientLogs((prevLogs) => {
+        const updatedLogs = [
+          newLog,
+          ...prevLogs.filter((log) => log.id !== newLog.id),
+        ];
+        return updatedLogs.sort(
+          (a, b) =>
+            new Date(b.createdAt || 0).getTime() -
+            new Date(a.createdAt || 0).getTime()
+        );
+      });
     });
     newSocket.on("updated_client_log", (updatedLog: ClientLogAttributes) => {
       setClientLogs((prevLogs) =>
@@ -252,10 +266,17 @@ const Logs: React.FC = () => {
       "new_transaction_log",
       async (newLog: RemoteTransactionAttributes) => {
         try {
-          setTransactionLogs((prevLogs) => [
-            newLog,
-            ...prevLogs.filter((log) => log.id !== newLog.id),
-          ]);
+          setTransactionLogs((prevLogs) => {
+            const updatedLogs = [
+              newLog,
+              ...prevLogs.filter((log) => log.id !== newLog.id),
+            ];
+            return updatedLogs.sort(
+              (a, b) =>
+                new Date(b.updatedAt || b.createdAt || 0).getTime() -
+                new Date(a.updatedAt || a.createdAt || 0).getTime()
+            );
+          });
 
           const initiatorsRes = await fetch("/api/auth/key/keys");
           if (initiatorsRes.ok) {
@@ -263,8 +284,8 @@ const Logs: React.FC = () => {
             setInitiators(initiators);
           }
         } catch (err) {
-          console.error("Error updating on new transaction log:", err);
-        } 
+          console.error("Error processing new_transaction_log event:", err);
+        }
       }
     );
     newSocket.on(
@@ -375,11 +396,54 @@ const Logs: React.FC = () => {
     }
   };
 
+  const indexOfLastClientLog = currentClientLogPage * ITEMS_PER_PAGE;
+  const indexOfFirstClientLog = indexOfLastClientLog - ITEMS_PER_PAGE;
+  const currentClientLogs = filteredClientLogs.slice(
+    indexOfFirstClientLog,
+    indexOfLastClientLog
+  );
+  const totalClientLogPages = Math.ceil(
+    filteredClientLogs.length / ITEMS_PER_PAGE
+  );
+
+  const indexOfLastTransactionLog = currentTransactionLogsPage * ITEMS_PER_PAGE;
+  const indexOfFirstTransactionLog = indexOfLastTransactionLog - ITEMS_PER_PAGE;
+  const currentTransactionLogs = filteredTransactionLogs.slice(
+    indexOfFirstTransactionLog,
+    indexOfLastTransactionLog
+  );
+  const totalTransactionLogsPages = Math.ceil(
+    filteredTransactionLogs.length / ITEMS_PER_PAGE
+  );
+
+  const renderPagination = (
+    currentPage: number,
+    totalPages: number,
+    onPageChange: (page: number) => void
+  ) => {
+    if (totalPages <= 1) return null;
+    const items = [];
+    for (let number = 1; number <= totalPages; number++) {
+      items.push(
+        <Pagination.Item
+          key={number}
+          active={number === currentPage}
+          onClick={() => onPageChange(number)}
+        >
+          {number}
+        </Pagination.Item>
+      );
+    }
+    return (
+      <Pagination className="justify-content-center mt-3">{items}</Pagination>
+    );
+  };
+
   return (
     <Container fluid="lg" className="py-4">
       <Row>
         <Col className="text-center mb-4">
-          <h1>System Logs</h1>
+          <h1> Client & Transaction logs</h1>
         </Col>
       </Row>
 
@@ -395,7 +459,10 @@ const Logs: React.FC = () => {
               <Form.Label>Filter by Windows App Instance</Form.Label>
               <Form.Select
                 value={selectedInstanceId}
-                onChange={(e) => setSelectedInstanceId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedInstanceId(e.target.value);
+                  setCurrentClientLogPage(1);
+                }}
                 aria-label="Filter by Windows App Instance"
               >
                 <option value="">All Instances</option>
@@ -412,7 +479,10 @@ const Logs: React.FC = () => {
               <Form.Label>Filter by Client Action Type</Form.Label>
               <Form.Select
                 value={selectedClientAction}
-                onChange={(e) => setSelectedClientAction(e.target.value)}
+                onChange={(e) => {
+                  setSelectedClientAction(e.target.value);
+                  setCurrentClientLogPage(1);
+                }}
                 aria-label="Filter by Client Action Type"
               >
                 <option value="">All Actions</option>
@@ -440,38 +510,45 @@ const Logs: React.FC = () => {
                 {clientLogsError}
               </Alert>
             ) : (
-              <Table striped bordered hover responsive size="sm">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Instance</th>
-                    <th>Action</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredClientLogs.length > 0 ? (
-                    filteredClientLogs.map((log, index) => (
-                      <tr key={log.id}>
-                        <td>{index + 1}</td>
-                        <td>
-                          {windowsAppInstances.find(
-                            (inst) => inst.id === log.instance_id
-                          )?.title || `ID: ${log.instance_id}`}
-                        </td>
-                        <td>{log.action}</td>
-                        <td>{formatDate(log.createdAt)}</td>
-                      </tr>
-                    ))
-                  ) : (
+              <>
+                <Table striped bordered hover responsive size="sm">
+                  <thead>
                     <tr>
-                      <td colSpan={4} className="text-center py-3">
-                        No client logs found matching your criteria.
-                      </td>
+                      <th>#</th>
+                      <th>Instance</th>
+                      <th>Action</th>
+                      <th>Timestamp</th>
                     </tr>
-                  )}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {currentClientLogs.length > 0 ? (
+                      currentClientLogs.map((log, index) => (
+                        <tr key={log.id}>
+                          <td>{indexOfFirstClientLog + index + 1}</td>
+                          <td>
+                            {windowsAppInstances.find(
+                              (inst) => inst.id === log.instance_id
+                            )?.title || `ID: ${log.instance_id}`}
+                          </td>
+                          <td>{log.action}</td>
+                          <td>{formatDate(log.createdAt)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="text-center py-3">
+                          No client logs found matching your criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+                {renderPagination(
+                  currentClientLogPage,
+                  totalClientLogPages,
+                  setCurrentClientLogPage
+                )}
+              </>
             )}
           </Col>
         </Row>
@@ -485,12 +562,14 @@ const Logs: React.FC = () => {
         </Row>
         <Row className="mb-3 align-items-end">
           <Col md={6} lg={4}>
-            {" "}
             <Form.Group controlId="transactionLogInitiatorFilter">
               <Form.Label>Filter by Initiator</Form.Label>
               <Form.Select
                 value={selectedInitiatorId}
-                onChange={(e) => setSelectedInitiatorId(e.target.value)}
+                onChange={(e) => {
+                  setSelectedInitiatorId(e.target.value);
+                  setCurrentTransactionLogsPage(1);
+                }}
                 aria-label="Filter by Initiator"
               >
                 <option value="">All Initiators</option>
@@ -507,7 +586,10 @@ const Logs: React.FC = () => {
               <Form.Label>Filter by Status</Form.Label>
               <Form.Select
                 value={selectedTransactionStatus}
-                onChange={(e) => setSelectedTransactionStatus(e.target.value)}
+                onChange={(e) => {
+                  setSelectedTransactionStatus(e.target.value);
+                  setCurrentTransactionLogsPage(1);
+                }}
                 aria-label="Filter by Status"
               >
                 <option value="">All Statuses</option>
@@ -519,11 +601,10 @@ const Logs: React.FC = () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col md={0} lg={4}></Col>
         </Row>
         <Row>
           <Col>
-            {transactionLogsLoading ? (
+            {transactionLogsLoading && transactionLogs.length === 0 ? (
               <div className="text-center py-3">
                 <Spinner animation="border" role="status">
                   <span className="visually-hidden">
@@ -536,44 +617,53 @@ const Logs: React.FC = () => {
                 {transactionLogsError}
               </Alert>
             ) : (
-              <Table striped bordered hover responsive size="sm">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Initiator</th>
-                    <th>File Name</th>
-                    <th>Status</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTransactionLogs.length > 0 ? (
-                    filteredTransactionLogs.map((log, index) => (
-                      <tr key={log.id}>
-                        <td>{index + 1}</td>
-                        <td>
-                          {initiators.find(
-                            (init) => init.id === log.initiator_id
-                          )?.initiator_key || `ID: ${log.initiator_id}`}
-                        </td>
-                        <td>{log.file_name}</td>
-                        <td>
-                          <Badge bg={getTransactionStatusBadge(log.status)}>
-                            {log.status}
-                          </Badge>
-                        </td>
-                        <td>{formatDate(log.updatedAt)}</td>
-                      </tr>
-                    ))
-                  ) : (
+              <>
+                <Table striped bordered hover responsive size="sm">
+                  <thead>
                     <tr>
-                      <td colSpan={6} className="text-center py-3">
-                        No transaction logs found matching your criteria.
-                      </td>
+                      <th>#</th>
+                      <th>Initiator</th>
+                      <th>File Name</th>
+                      <th>Status</th>
+                      <th>Socket ID</th>
+                      <th>Timestamp</th>
                     </tr>
-                  )}
-                </tbody>
-              </Table>
+                  </thead>
+                  <tbody>
+                    {currentTransactionLogs.length > 0 ? (
+                      currentTransactionLogs.map((log, index) => (
+                        <tr key={log.id}>
+                          <td>{indexOfFirstTransactionLog + index + 1}</td>
+                          <td>
+                            {initiators.find(
+                              (init) => init.id === log.initiator_id
+                            )?.initiator_key || `ID: ${log.initiator_id}`}
+                          </td>
+                          <td>{log.file_name}</td>
+                          <td>
+                            <Badge bg={getTransactionStatusBadge(log.status)}>
+                              {log.status}
+                            </Badge>
+                          </td>
+                          <td>{log.socket_id}</td>
+                          <td>{formatDate(log.updatedAt || log.createdAt)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="text-center py-3">
+                          No transaction logs found matching your criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+                {renderPagination(
+                  currentTransactionLogsPage,
+                  totalTransactionLogsPages,
+                  setCurrentTransactionLogsPage
+                )}
+              </>
             )}
           </Col>
         </Row>
