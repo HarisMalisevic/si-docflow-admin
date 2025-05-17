@@ -15,6 +15,8 @@ import remoteInitiatorRoutes from "../routes/remoteInitiator.routes";
 import clientLogRoutes from "../routes/ClientLog.routes";
 import remoteTransactionRoutes from "../routes/remoteTransactions.routes";
 import remoteProcessingRoutes from "../routes/remoteProcessing.routes";
+import applicationLogsRoutes from "../routes/applicationLogs.routes";
+import systemLogsRoutes from "../routes/systemLogs.routes";
 import ProcessingRequestsBillingLogRouter from "../routes/processingRequestBillingLog.routes";
 import path from "path";
 
@@ -97,15 +99,13 @@ API_ROUTER.use("/api/auth/key", remoteInitiatorRoutes);
 
 API_ROUTER.use("/api/client-log", clientLogRoutes);  // AuthMiddleware.isLoggedIn, TODO: Skontati autorizaciju za client logging (po potrebi!)
 
-API_ROUTER.use(
-    "/api/remote-transactions",
-    remoteTransactionRoutes
-);
+API_ROUTER.use("/api/remote-transactions", remoteTransactionRoutes);
 
-API_ROUTER.use(
-    "/api/remote",
-    remoteProcessingRoutes
-);
+API_ROUTER.use("/api/remote", remoteProcessingRoutes);
+
+API_ROUTER.use("/api/application-logs", applicationLogsRoutes);
+
+API_ROUTER.use("/api/system-logs", systemLogsRoutes);
 
 API_ROUTER.use("/api/processing-requests-billing-logs", ProcessingRequestsBillingLogRouter);
 
