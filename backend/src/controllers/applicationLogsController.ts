@@ -1,8 +1,8 @@
 import db from "../database/db";
 import { Request, Response } from "express";
-import ApplicationLog, { SeverityLevel, ApplicationLogCreationAttributes } from "database/ApplicationLog";
+import ApplicationLog from "database/ApplicationLog";
 
-class ApplicationLogController {
+class ApplicationLogsController {
     static async getAll(req: Request, res: Response) {
         try {
             const logs: ApplicationLog[] = await db.application_logs.findAll({
@@ -23,6 +23,7 @@ class ApplicationLogController {
             res.status(400).json({ message: "Invalid number of latest application logs" });
             return;
         }
+
         try {
             const logs: ApplicationLog[] = await db.application_logs.findAll({
                 order: [["createdAt", "DESC"]],
@@ -30,10 +31,10 @@ class ApplicationLogController {
             })
             res.status(200).json(logs);
         } catch (error) {
-            console.error(`Error catching latest ${n} transactions: `, error);
+            console.error(`Error catching latest ${n} application logs: `, error);
             res.status(500).json({ message: "Internal server error" });
         }
     }
 }
 
-export default ApplicationLogController;
+export default ApplicationLogsController;
