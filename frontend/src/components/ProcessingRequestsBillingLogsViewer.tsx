@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"; 
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Row,
@@ -9,7 +9,7 @@ import {
   Alert,
   Pagination,
   InputGroup,
-  Button, 
+  Button,
 } from "react-bootstrap";
 
 interface AIProviderAttributes {
@@ -42,7 +42,8 @@ const BillingLogsViewer: React.FC = () => {
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
 
   const [selectedAiProviderId, setSelectedAiProviderId] = useState<string>("");
-  const [priceFilter, setPriceFilter] = useState<string>("");
+  const [minPriceFilter, setMinPriceFilter] = useState<string>("");
+  const [maxPriceFilter, setMaxPriceFilter] = useState<string>("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,41 +59,55 @@ const BillingLogsViewer: React.FC = () => {
         fetch("/api/document-types"),
       ]);
 
-      if (!logsRes.ok) {
-        const errorText = await logsRes.text();
-        throw new Error(
-          `Failed to fetch billing logs: ${logsRes.status} ${errorText}`
-        );
-      }
-      if (!providersRes.ok) {
-        const errorText = await providersRes.text();
-        throw new Error(
-          `Failed to fetch AI providers: ${providersRes.status} ${errorText}`
-        );
-      }
-      if (!docTypesRes.ok) {
-        const errorText = await docTypesRes.text();
-        throw new Error(
-          `Failed to fetch document types: ${docTypesRes.status} ${errorText}`
-        );
-      }
+      const processResponse = async (res: Response, name: string) => {
+        const responseText = await res.text();
+        if (!res.ok) {
+          console.error(
+            `${name} API Error Response (Status ${res.status}):`,
+            responseText
+          );
+          throw new Error(
+            `Failed to fetch ${name.toLowerCase()}: ${res.status} ${
+              res.statusText
+            }`
+          );
+        }
+        try {
+          return JSON.parse(responseText);
+        } catch (parseError) {
+          console.error(`${name} JSON Parse Error. Raw text:`, responseText);
+          throw new Error(
+            `Failed to parse ${name.toLowerCase()} data: Invalid JSON format.`
+          );
+        }
+      };
 
-      setBillingLogs(await logsRes.json());
-      setAiProviders(await providersRes.json());
-      setDocumentTypes(await docTypesRes.json());
+      const billingLogsData = await processResponse(logsRes, "Billing Logs");
+      const aiProvidersData = await processResponse(
+        providersRes,
+        "AI Providers"
+      );
+      const documentTypesData = await processResponse(
+        docTypesRes,
+        "Document Types"
+      );
+
+      setBillingLogs(billingLogsData);
+      setAiProviders(aiProvidersData);
+      setDocumentTypes(documentTypesData);
     } catch (err: any) {
       setError(err.message || "Failed to load data.");
     } finally {
       setLoading(false);
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     fetchInitialData();
-  }, [fetchInitialData]); 
+  }, [fetchInitialData]);
 
   const handleRefresh = () => {
-    setCurrentPage(1); 
+    setCurrentPage(1);
     fetchInitialData();
   };
 
@@ -101,12 +116,23 @@ const BillingLogsViewer: React.FC = () => {
       !selectedAiProviderId ||
       log.ai_provider_id === parseInt(selectedAiProviderId);
 
-    const matchesPrice =
-      !priceFilter ||
-      log.price.toString().includes(priceFilter) ||
-      log.price === parseFloat(priceFilter);
+    let matchesMinPrice = true;
+    if (minPriceFilter) {
+      const minPrice = parseFloat(minPriceFilter);
+      if (!isNaN(minPrice)) {
+        matchesMinPrice = log.price >= minPrice;
+      }
+    }
 
-    return matchesAiProvider && matchesPrice;
+    let matchesMaxPrice = true;
+    if (maxPriceFilter) {
+      const maxPrice = parseFloat(maxPriceFilter);
+      if (!isNaN(maxPrice)) {
+        matchesMaxPrice = log.price <= maxPrice;
+      }
+    }
+
+    return matchesAiProvider && matchesMinPrice && matchesMaxPrice;
   });
 
   const formatDate = (dateString?: string) => {
@@ -154,7 +180,7 @@ const BillingLogsViewer: React.FC = () => {
       </Row>
 
       <Row className="mb-3 align-items-end">
-        <Col md={4} xs={12} className="mb-2 mb-md-0">
+        <Col md={3} xs={12} className="mb-2 mb-md-0">
           <Form.Group controlId="aiProviderFilter">
             <Form.Label>Filter by AI Provider</Form.Label>
             <Form.Select
@@ -168,36 +194,65 @@ const BillingLogsViewer: React.FC = () => {
               <option value="">All AI Providers</option>
               {aiProviders.map((provider) => (
                 <option key={provider.id} value={provider.id}>
-                  {provider.name} (ID: {provider.id})
+                  {provider.name}
                 </option>
               ))}
             </Form.Select>
           </Form.Group>
         </Col>
-        <Col md={4} xs={12} className="mb-2 mb-md-0">
-          <Form.Group controlId="priceFilter">
-            <Form.Label>Filter by Price</Form.Label>
+        <Col md={3} xs={12} className="mb-2 mb-md-0">
+          <Form.Group controlId="minPriceFilter">
+            <Form.Label>Min Price</Form.Label>
             <InputGroup>
               <InputGroup.Text>$</InputGroup.Text>
               <Form.Control
                 type="number"
-                placeholder="Enter price"
-                value={priceFilter}
+                placeholder="Min"
+                value={minPriceFilter}
                 onChange={(e) => {
-                  setPriceFilter(e.target.value);
+                  setMinPriceFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                aria-label="Filter by Price"
+                aria-label="Filter by Minimum Price"
+                step="0.01"
               />
             </InputGroup>
           </Form.Group>
         </Col>
+        <Col md={3} xs={12} className="mb-2 mb-md-0">
+          <Form.Group controlId="maxPriceFilter">
+            <Form.Label>Max Price</Form.Label>
+            <InputGroup>
+              <InputGroup.Text>$</InputGroup.Text>
+              <Form.Control
+                type="number"
+                placeholder="Max"
+                value={maxPriceFilter}
+                onChange={(e) => {
+                  setMaxPriceFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                aria-label="Filter by Maximum Price"
+                step="0.01"
+              />
+            </InputGroup>
+          </Form.Group>
+        </Col>
+        <Col md={2} xs={12}>
+            {/* empty column for better visual distribution of elements */}
+        </Col>
         <Col
-          md={4}
-          xs={12}
+          md={1}
+          xs={2}
           className="d-flex align-items-end justify-content-md-end justify-content-center"
         >
-          <Button variant="success" onClick={handleRefresh} disabled={loading}>
+          <Button
+            variant="success"
+            onClick={handleRefresh}
+            disabled={loading}
+            className="w-100 w-md-auto"
+            style={{ minWidth: "100px" }}
+          >
             {loading ? (
               <Spinner
                 as="span"
@@ -215,7 +270,7 @@ const BillingLogsViewer: React.FC = () => {
 
       <Row>
         <Col>
-          {loading && billingLogs.length === 0 ? ( 
+          {loading && billingLogs.length === 0 ? (
             <div className="text-center py-3">
               <Spinner animation="border" role="status">
                 <span className="visually-hidden">Loading Billing Logs...</span>
