@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Container,
   Row,
@@ -9,6 +9,7 @@ import {
   Alert,
   Badge,
   Pagination,
+  Button,
 } from "react-bootstrap";
 import io, { Socket } from "socket.io-client";
 
@@ -113,6 +114,7 @@ const Logs: React.FC = () => {
   const [appLogError, setAppLogError] = useState<string | null>(null);
   const [appLogInstance, setAppLogInstance] = useState<string>("");
   const [appLogLevel, setAppLogLevel] = useState<string>("");
+  const [currentAppLogPage, setCurrentAppLogPage] = useState(1);
 
   // System logs
   const [systemLogs, setSystemLogs] = useState<AppOrSystemLog[]>([]);
@@ -120,9 +122,39 @@ const Logs: React.FC = () => {
   const [sysLogError, setSysLogError] = useState<string | null>(null);
   const [sysLogInstance, setSysLogInstance] = useState<string>("");
   const [sysLogLevel, setSysLogLevel] = useState<string>("");
+  const [currentSystemLogPage, setCurrentSystemLogPage] = useState(1);
 
 
   const [socket, setSocket] = useState<Socket | null>(null);
+
+  const fetchAppLogs = async () => {
+      setAppLogLoading(true);
+      setAppLogError(null);
+      try {
+        const res = await fetch("/api/application-logs/");
+        if (!res.ok) throw new Error(await res.text());
+        setApplicationLogs(await res.json());
+      } catch (err: any) {
+        setAppLogError(err.message || "Failed to load application logs.");
+      } finally {
+        setAppLogLoading(false);
+      }
+    };
+
+    // System Logs
+    const fetchSysLogs = async () => {
+      setSysLogLoading(true);
+      setSysLogError(null);
+      try {
+        const res = await fetch("/api/system-logs");
+        if (!res.ok) throw new Error(await res.text());
+        setSystemLogs(await res.json());
+      } catch (err: any) {
+        setSysLogError(err.message || "Failed to load system logs.");
+      } finally {
+        setSysLogLoading(false);
+      }
+    };
 
   useEffect(() => {
     const fetchClientLogData = async () => {
@@ -190,36 +222,6 @@ const Logs: React.FC = () => {
         );
       } finally {
         setTransactionLogsLoading(false);
-      }
-    };
-
-    // Application Logs
-    const fetchAppLogs = async () => {
-      setAppLogLoading(true);
-      setAppLogError(null);
-      try {
-        const res = await fetch("/api/application-logs");
-        if (!res.ok) throw new Error(await res.text());
-        setApplicationLogs(await res.json());
-      } catch (err: any) {
-        setAppLogError(err.message || "Failed to load application logs.");
-      } finally {
-        setAppLogLoading(false);
-      }
-    };
-
-    // System Logs
-    const fetchSysLogs = async () => {
-      setSysLogLoading(true);
-      setSysLogError(null);
-      try {
-        const res = await fetch("/api/system-logs");
-        if (!res.ok) throw new Error(await res.text());
-        setSystemLogs(await res.json());
-      } catch (err: any) {
-        setSysLogError(err.message || "Failed to load system logs.");
-      } finally {
-        setSysLogLoading(false);
       }
     };
 
@@ -301,31 +303,7 @@ const Logs: React.FC = () => {
         prevLogs.filter((log) => log.id !== data.id)
       );
     });
-
-    newSocket.on("new_application_log", (newLog: AppOrSystemLog) => {
-      setApplicationLogs((prev) => [newLog, ...prev.filter(l => l.id !== newLog.id)]);
-    });
-    newSocket.on("updated_application_log", (updatedLog: AppOrSystemLog) => {
-      setApplicationLogs((prev) =>
-        prev.map((l) => (l.id === updatedLog.id ? updatedLog : l))
-      );
-    });
-    newSocket.on("deleted_system_log", (data: { id: number }) => {
-      setApplicationLogs((prev) => prev.filter(l => l.id !== data.id));
-    });
-
-    newSocket.on("new_system_log", (newLog: AppOrSystemLog) => {
-      setSystemLogs((prev) => [newLog, ...prev.filter(l => l.id !== newLog.id)]);
-    });
-    newSocket.on("updated_system_log", (updatedLog: AppOrSystemLog) => {
-      setSystemLogs((prev) =>
-        prev.map((l) => (l.id === updatedLog.id ? updatedLog : l))
-      );
-    });
-    newSocket.on("deleted_system_log", (data: { id: number }) => {
-      setSystemLogs((prev) => prev.filter(l => l.id !== data.id));
-    });
-
+    
     return () => {
       newSocket.off("new_client_log");
       newSocket.off("updated_client_log");
@@ -333,15 +311,21 @@ const Logs: React.FC = () => {
       newSocket.off("new_transaction_log");
       newSocket.off("updated_transaction_log");
       newSocket.off("deleted_transaction_log");
-      newSocket.off("new_application_log");
-      newSocket.off("updated_application_log");
-      newSocket.off("deleted_application_log");
-      newSocket.off("new_system_log");
-      newSocket.off("updated_system_log");
-      newSocket.off("deleted_system_log");
       newSocket.disconnect();
     };
   }, []);
+
+  
+    const handleAppRefresh = () => {
+      setCurrentAppLogPage(1);
+      fetchAppLogs();
+    }
+
+    const handleSystemRefresh = () => {
+      setCurrentSystemLogPage(1);
+      fetchSysLogs();
+    }
+
 
   const filteredClientLogs = clientLogs.filter((log) => {
     const matchesInstance =
@@ -414,6 +398,26 @@ const Logs: React.FC = () => {
   );
   const totalTransactionLogsPages = Math.ceil(
     filteredTransactionLogs.length / ITEMS_PER_PAGE
+  );
+
+  const indexOfLastAppLog = currentAppLogPage * ITEMS_PER_PAGE;
+  const indexOfFirstAppLog = indexOfLastAppLog - ITEMS_PER_PAGE;
+  const currentAppLogs = filteredAppLogs.slice(
+    indexOfFirstAppLog,
+    indexOfLastAppLog
+  );
+  const totalAppLogsPages = Math.ceil(
+    filteredAppLogs.length / ITEMS_PER_PAGE
+  );
+
+  const indexOfLastSystemLog = currentSystemLogPage * ITEMS_PER_PAGE;
+  const indexOfFirstSystemLog = indexOfLastSystemLog - ITEMS_PER_PAGE;
+  const currentSystemLogs = filteredSysLogs.slice(
+    indexOfFirstSystemLog,
+    indexOfLastSystemLog
+  );
+  const totalSystemLogsPages = Math.ceil(
+    filteredSysLogs.length / ITEMS_PER_PAGE
   );
 
   const renderPagination = (
@@ -698,12 +702,40 @@ const Logs: React.FC = () => {
                 value={appLogLevel}
                 onChange={(e) => setAppLogLevel(e.target.value)}
               >
-                <option value="">All Severities</option>
+                <option value="">All Severity Levels</option>
                 {Object.values(SeverityLevel).map((level) => (
                   <option key={level} value={level}>{level}</option>
                 ))}
               </Form.Select>
             </Form.Group>
+          </Col>
+           <Col md={3} xs={12}>
+              {/* empty column for better visual distribution of elements */}
+            </Col>
+            <Col
+              md={1}
+              xs={2}
+              className="d-flex align-items-end justify-content-md-end justify-content-center"
+            >
+            <Button
+              variant="success"
+              onClick={handleAppRefresh}
+              disabled={appLogLoading}
+              className="w-100 w-md-auto"
+              style={{ minWidth: "100px" }}
+            >
+            {appLogLoading ? (
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+            ) : (
+              "Refresh"
+            )}
+            </Button>
           </Col>
         </Row>
         <Row>
@@ -721,21 +753,22 @@ const Logs: React.FC = () => {
                 {appLogError}
               </Alert>
             ) : (
+              <>
               <Table striped bordered hover responsive size="sm">
                 <thead>
                   <tr>
                     <th>#</th>
                     <th>Instance</th>
-                    <th>SeverityLevel</th>
+                    <th>Severity Level</th>
                     <th>Source</th>
                     <th>Timestamp</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredAppLogs.length > 0 ? (
-                    filteredAppLogs.map((log, index) => (
+                  {currentAppLogs.length > 0 ? (
+                    currentAppLogs.map((log, index) => (
                       <tr key={log.id}>
-                        <td>{index + 1}</td>
+                        <td>{indexOfFirstAppLog + index + 1}</td>
                         <td>
                           {windowsAppInstances.find(
                             (inst) => inst.id === log.app_instance_id
@@ -748,13 +781,19 @@ const Logs: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="text-center py-3">
+                      <td colSpan={5} className="text-center py-3">
                         No application logs found matching your criteria.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </Table>
+              {renderPagination(
+                  currentAppLogPage,
+                  totalAppLogsPages,
+                  setCurrentAppLogPage
+                )}
+              </>
             )}
           </Col>
         </Row>
@@ -789,17 +828,45 @@ const Logs: React.FC = () => {
                 value={sysLogLevel}
                 onChange={(e) => setSysLogLevel(e.target.value)}
               >
-                <option value="">All Severities</option>
+                <option value="">All Severity Levels</option>
                 {Object.values(SeverityLevel).map((level) => (
                   <option key={level} value={level}>{level}</option>
                 ))}
               </Form.Select>
             </Form.Group>
           </Col>
+          <Col md={3} xs={12}>
+              {/* empty column for better visual distribution of elements */}
+            </Col>
+            <Col
+              md={1}
+              xs={2}
+              className="d-flex align-items-end justify-content-md-end justify-content-center"
+            >
+            <Button
+              variant="success"
+              onClick={handleSystemRefresh}
+              disabled={sysLogLoading}
+              className="w-100 w-md-auto"
+              style={{ minWidth: "100px" }}
+            >
+            {sysLogLoading ? (
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+            ) : (
+              "Refresh"
+            )}
+            </Button>
+          </Col>
         </Row>
         <Row>
           <Col>
-            {sysLogLoading ? (
+            {sysLogLoading && systemLogs.length === 0 ? (
               <div className="text-center py-3">
                 <Spinner animation="border" role="status">
                   <span className="visually-hidden">Loading System Logs...</span>
@@ -808,21 +875,22 @@ const Logs: React.FC = () => {
             ) : sysLogError ? (
               <Alert variant="danger" className="mt-3">{sysLogError}</Alert>
             ) : (
+              <>
               <Table striped bordered hover responsive size="sm">
                 <thead>
                   <tr>
                     <th>#</th>
                     <th>Instance</th>
-                    <th>Level</th>
+                    <th>Severity Level</th>
                     <th>Source</th>
                     <th>Timestamp</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSysLogs.length > 0 ? (
-                    filteredSysLogs.map((log, idx) => (
+                  {currentSystemLogs.length > 0 ? (
+                    currentSystemLogs.map((log, index) => (
                       <tr key={log.id}>
-                        <td>{idx + 1}</td>
+                        <td>{indexOfFirstSystemLog + index + 1}</td>
                         <td>{windowsAppInstances.find(inst => inst.id === log.app_instance_id)?.title || `ID: ${log.app_instance_id}`}</td>
                         <td>{log.level}</td>
                         <td>{log.source}</td>
@@ -831,13 +899,19 @@ const Logs: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={7} className="text-center py-3">
+                      <td colSpan={5} className="text-center py-3">
                         No system logs found matching your criteria.
                       </td>
                     </tr>
                   )}
                 </tbody>
               </Table>
+              {renderPagination(
+                  currentSystemLogPage,
+                  totalSystemLogsPages,
+                  setCurrentSystemLogPage
+                )}
+              </>
             )}
           </Col>
         </Row>
