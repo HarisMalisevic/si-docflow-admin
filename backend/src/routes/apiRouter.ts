@@ -17,6 +17,7 @@ import remoteTransactionRoutes from "../routes/remoteTransactions.routes";
 import remoteProcessingRoutes from "../routes/remoteProcessing.routes";
 import applicationLogsRoutes from "../routes/applicationLogs.routes";
 import systemLogsRoutes from "../routes/systemLogs.routes";
+import aiProviderRoutes from "../routes/aiProvider.routes";
 import path from "path";
 
 // Define the path to the frontend build folder
@@ -105,6 +106,8 @@ API_ROUTER.use("/api/remote", remoteProcessingRoutes);
 API_ROUTER.use("/api/application-logs", applicationLogsRoutes);
 
 API_ROUTER.use("/api/system-logs", systemLogsRoutes);
+
+API_ROUTER.use("/api/ai-providers", aiProviderRoutes);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get("*", (req, res) => {

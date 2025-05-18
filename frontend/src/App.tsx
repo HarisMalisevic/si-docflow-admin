@@ -18,6 +18,7 @@ import ProcessingRuleDestinationViewer from "./components/ProcessingRuleDestinat
 import FTPEndPointsViewer from "./components/FTPEndpointsViewer";
 import FTPEndpointsCreate from "./components/FTPEndpointsCreate";
 import LogsViewer from "./components/LogsViewer";
+import ProcessingRequestsBillingLogsViewer from "./components/ProcessingRequestsBillingLogsViewer";
 import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 import CommandInitiatorUI from "./components/CommandInitiatorUI";
 import LocalStorageFolder from "./components/LocalStorageFolder";
@@ -76,6 +77,7 @@ function App() {
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
         <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
         <Route path="/logs" element={<LogsViewer />} />
+        <Route path="/processing-requests-billing-logs" element={<ProcessingRequestsBillingLogsViewer />} />
         <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
         <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
         <Route path="/local-storage-folder" element={<LocalStorageFolder />} />

@@ -30,6 +30,7 @@ var NAV_BAR_LINKS = [
     children: [
       { to: "/app-instance-manager", label: "Windows Clients" },
       { to: "/logs", label: "Logs" },
+      { to: "/processing-requests-billing-logs", label: "Billing information and logs"}
     ]
   },
 ];
