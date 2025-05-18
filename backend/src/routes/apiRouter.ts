@@ -17,7 +17,7 @@ import remoteTransactionRoutes from "../routes/remoteTransactions.routes";
 import remoteProcessingRoutes from "../routes/remoteProcessing.routes";
 import applicationLogsRoutes from "../routes/applicationLogs.routes";
 import systemLogsRoutes from "../routes/systemLogs.routes";
-import aiProviderRoutes from "../routes/aiProvider.routes";
+import aiProviderRoutes from "./aiProviders.routes";
 import ProcessingRequestsBillingLogRouter from "./processingRequestsBillingLog.routes";
 import path from "path";
 

@@ -76,7 +76,7 @@ function App() {
         <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
         <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
         <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
-        <Route path="/logs" element={<LogsViewer />} />
+        <Route path="/client-transaction-logs" element={<LogsViewer />} />
         <Route path="/processing-requests-billing-logs" element={<ProcessingRequestsBillingLogsViewer />} />
         <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
         <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />

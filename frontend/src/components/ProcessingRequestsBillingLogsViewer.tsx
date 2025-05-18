@@ -114,7 +114,7 @@ const BillingLogsViewer: React.FC = () => {
   const filteredBillingLogs = billingLogs.filter((log) => {
     const matchesAiProvider =
       !selectedAiProviderId ||
-      log.ai_provider_id === parseInt(selectedAiProviderId);
+      log.ai_provider_id === parseInt(selectedAiProviderId, 10);
 
     let matchesMinPrice = true;
     if (minPriceFilter) {
@@ -175,7 +175,7 @@ const BillingLogsViewer: React.FC = () => {
     <Container fluid="lg" className="py-4">
       <Row>
         <Col className="text-center mb-4">
-          <h1>Processing Requests Billing Logs</h1>
+          <h1>Processing Requests & Billing Logs</h1>
         </Col>
       </Row>
 
@@ -239,7 +239,7 @@ const BillingLogsViewer: React.FC = () => {
           </Form.Group>
         </Col>
         <Col md={2} xs={12}>
-            {/* empty column for better visual distribution of elements */}
+          {/* empty column for better visual distribution of elements */}
         </Col>
         <Col
           md={1}
