@@ -8,12 +8,12 @@ import HoverNavDropdown from "./HoverNavDropdown";
 
 var NAV_BAR_LINKS = [
   { to: "/", label: "Home" },
-  { 
+  {
     label: "Documents",
     children: [
       { to: "/document-types", label: "Types" },
       { to: "/document-layouts", label: "Layouts" },
-    ]
+    ],
   },
   {
     label: "Processing Rules",
@@ -21,16 +21,17 @@ var NAV_BAR_LINKS = [
       { to: "/processing-rules", label: "Rules" },
       { to: "/api-endpoints", label: "API Endpoints" },
       { to: "/ftp-endpoints", label: "FTP Endpoints" },
-      { to: "/local-storage-folder", label: "Local Storage"} 
-    ]
+      { to: "/local-storage-folder", label: "Local Storage" },
+    ],
   },
   { to: "/access-rights", label: "Access Rights" },
   {
     label: "Remote Processing",
     children: [
       { to: "/app-instance-manager", label: "Windows Clients" },
-      { to: "/logs", label: "Logs" },
-    ]
+      { to: "/client-transaction-logs", label: "Client & Transaction Logs" },
+      { to: "/processing-requests-billing-logs", label: "Processing & Billing Logs" },
+    ],
   },
 ];
 
