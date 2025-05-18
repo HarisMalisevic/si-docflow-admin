@@ -3,6 +3,8 @@ import RemoteTransactionsController from "./remoteTransactions.controller";
 import { TransactionStatus } from "../database/RemoteTransaction";
 import { processingNamespace } from "../server";
 import RemoteInitiatorController from "./RemoteInitiator.controller"; // Import the RemoteInitiatorController
+import WindowsAppInstanceController from "./windowsAppInstance.controller";
+import fetch from 'node-fetch';
 
 interface RemoteProcessingCommandAttributes {
     target_instance_id: number;
@@ -62,7 +64,46 @@ class RemoteProcessingController {
         const transactionId = transactionCreateResult.data?.id;
         console.log(`Transaction with ID ${transactionId} STARTED`);
 
-        // forward command to Windows App Instance ??????????
+        // fetch instance by target_instance_id to get machine ID
+        const targetInstanceId = jsonReq.target_instance_id;
+        const instanceGetByIdResult = await RemoteProcessingController.getInstanceById(targetInstanceId);
+
+        if (instanceGetByIdResult?.status !== 200) {
+            console.error("Failed to fetch instance, status: ", instanceGetByIdResult?.status);
+            res.status(instanceGetByIdResult?.status ?? 500).json({ message: instanceGetByIdResult?.message ?? 'Internal server error' });
+            return;
+        }
+
+        // get the machine ID
+        const machineId = instanceGetByIdResult.data?.machine_id;
+
+        if (!machineId) {
+            console.error(`Missing machine ID for target instance ID ${targetInstanceId}`);
+            res.status(500).json({ message: 'Internal server error' });
+            return;
+        }
+
+        // forward command to Windows App Instance
+        const command = {
+            transaction_id: transactionId,
+            document_type_id: jsonReq.document_type_id,
+            file_name: jsonReq.file_name,
+        }
+
+        const { default: fetch } = await import("node-fetch");
+        const processingRequestResponse = await fetch(`http://${machineId}:8080/process`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(command),
+        });
+
+        if (!processingRequestResponse.ok) {
+            console.error("Failed to forward processing command");
+            res.status(500).json({ message: 'Internal server error' });
+            return;
+        }
 
         // command successfully forwarded to Windows App Instance
 
@@ -226,6 +267,22 @@ class RemoteProcessingController {
         }
         catch (error) {
             console.error(`Error while fetching transaction with id ${transactionId} : `, error);
+            return { status: 500, message: 'Internal server error' };
+        }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private static async getInstanceById(instanceId: any) {
+        const reqForInstanceFetch = {
+            params: { id: instanceId },
+        } as Partial<Request> as Request;
+
+        try {
+            const instanceGetByIdResult = await WindowsAppInstanceController.getByIdWithReturn(reqForInstanceFetch);
+            return { status: instanceGetByIdResult?.status, message: instanceGetByIdResult?.message, data: instanceGetByIdResult?.data };
+        }
+        catch (error) {
+            console.error(`Error while fetching instance with id ${instanceId} : `, error);
             return { status: 500, message: 'Internal server error' };
         }
     }
