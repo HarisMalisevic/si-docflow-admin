@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import {
   Container,
   Row,
@@ -9,8 +9,17 @@ import {
   Alert,
   Badge,
   Pagination,
+  Button,
 } from "react-bootstrap";
 import io, { Socket } from "socket.io-client";
+
+export enum SeverityLevel {
+  INFORMATION = "Information",
+  WARNING = "Warning",
+  ERROR = "Error",
+  CRITICAL = "Critical",
+  VERBOSE = "Verbose",
+}
 
 export enum ClientActionType {
   INSTANCE_STARTED = "instance_started",
@@ -51,6 +60,16 @@ interface RemoteTransactionAttributes {
   updatedAt?: string;
 }
 
+interface AppOrSystemLog {
+    id: number;
+    level: SeverityLevel;
+    source: string;
+    event_id: string;
+    task_category: string;
+    app_instance_id: number;
+    createdAt?: string;
+}
+
 interface Initiator {
   id: number;
   initiator_key: string;
@@ -89,7 +108,53 @@ const Logs: React.FC = () => {
   const [currentTransactionLogsPage, setCurrentTransactionLogsPage] =
     useState(1);
 
+  // Application logs
+  const [applicationLogs, setApplicationLogs] = useState<AppOrSystemLog[]>([]);
+  const [appLogLoading, setAppLogLoading] = useState(true);
+  const [appLogError, setAppLogError] = useState<string | null>(null);
+  const [appLogInstance, setAppLogInstance] = useState<string>("");
+  const [appLogLevel, setAppLogLevel] = useState<string>("");
+  const [currentAppLogPage, setCurrentAppLogPage] = useState(1);
+
+  // System logs
+  const [systemLogs, setSystemLogs] = useState<AppOrSystemLog[]>([]);
+  const [sysLogLoading, setSysLogLoading] = useState(true);
+  const [sysLogError, setSysLogError] = useState<string | null>(null);
+  const [sysLogInstance, setSysLogInstance] = useState<string>("");
+  const [sysLogLevel, setSysLogLevel] = useState<string>("");
+  const [currentSystemLogPage, setCurrentSystemLogPage] = useState(1);
+
+
   const [socket, setSocket] = useState<Socket | null>(null);
+
+  const fetchAppLogs = async () => {
+      setAppLogLoading(true);
+      setAppLogError(null);
+      try {
+        const res = await fetch("/api/application-logs/");
+        if (!res.ok) throw new Error(await res.text());
+        setApplicationLogs(await res.json());
+      } catch (err: any) {
+        setAppLogError(err.message || "Failed to load application logs.");
+      } finally {
+        setAppLogLoading(false);
+      }
+    };
+
+    // System Logs
+    const fetchSysLogs = async () => {
+      setSysLogLoading(true);
+      setSysLogError(null);
+      try {
+        const res = await fetch("/api/system-logs");
+        if (!res.ok) throw new Error(await res.text());
+        setSystemLogs(await res.json());
+      } catch (err: any) {
+        setSysLogError(err.message || "Failed to load system logs.");
+      } finally {
+        setSysLogLoading(false);
+      }
+    };
 
   useEffect(() => {
     const fetchClientLogData = async () => {
@@ -159,6 +224,9 @@ const Logs: React.FC = () => {
         setTransactionLogsLoading(false);
       }
     };
+
+    fetchAppLogs();
+    fetchSysLogs();
 
     fetchClientLogData();
     fetchTransactionData();
@@ -235,7 +303,7 @@ const Logs: React.FC = () => {
         prevLogs.filter((log) => log.id !== data.id)
       );
     });
-
+    
     return () => {
       newSocket.off("new_client_log");
       newSocket.off("updated_client_log");
@@ -246,6 +314,18 @@ const Logs: React.FC = () => {
       newSocket.disconnect();
     };
   }, []);
+
+  
+    const handleAppRefresh = () => {
+      setCurrentAppLogPage(1);
+      fetchAppLogs();
+    }
+
+    const handleSystemRefresh = () => {
+      setCurrentSystemLogPage(1);
+      fetchSysLogs();
+    }
+
 
   const filteredClientLogs = clientLogs.filter((log) => {
     const matchesInstance =
@@ -262,6 +342,18 @@ const Logs: React.FC = () => {
     const matchesStatus =
       !selectedTransactionStatus || log.status === selectedTransactionStatus;
     return matchesInitiator && matchesStatus;
+  });
+
+  const filteredAppLogs = applicationLogs.filter((log) => {
+    const matchesInstance = !appLogInstance || log.app_instance_id === parseInt(appLogInstance);
+    const matchesLevel = !appLogLevel || log.level === appLogLevel;
+    return matchesInstance && matchesLevel;
+  });
+
+  const filteredSysLogs = systemLogs.filter((log) => {
+    const matchesInstance = !sysLogInstance || log.app_instance_id === parseInt(sysLogInstance);
+    const matchesLevel = !sysLogLevel || log.level === sysLogLevel;
+    return matchesInstance && matchesLevel;
   });
 
   const formatDate = (dateString?: string) => {
@@ -306,6 +398,26 @@ const Logs: React.FC = () => {
   );
   const totalTransactionLogsPages = Math.ceil(
     filteredTransactionLogs.length / ITEMS_PER_PAGE
+  );
+
+  const indexOfLastAppLog = currentAppLogPage * ITEMS_PER_PAGE;
+  const indexOfFirstAppLog = indexOfLastAppLog - ITEMS_PER_PAGE;
+  const currentAppLogs = filteredAppLogs.slice(
+    indexOfFirstAppLog,
+    indexOfLastAppLog
+  );
+  const totalAppLogsPages = Math.ceil(
+    filteredAppLogs.length / ITEMS_PER_PAGE
+  );
+
+  const indexOfLastSystemLog = currentSystemLogPage * ITEMS_PER_PAGE;
+  const indexOfFirstSystemLog = indexOfLastSystemLog - ITEMS_PER_PAGE;
+  const currentSystemLogs = filteredSysLogs.slice(
+    indexOfFirstSystemLog,
+    indexOfLastSystemLog
+  );
+  const totalSystemLogsPages = Math.ceil(
+    filteredSysLogs.length / ITEMS_PER_PAGE
   );
 
   const renderPagination = (
@@ -560,6 +672,251 @@ const Logs: React.FC = () => {
           </Col>
         </Row>
       </section>
+      <section id="application-logs" className="mt-5">
+        <Row>
+          <Col>
+            <h2 className="mb-3">Application Logs</h2>
+          </Col>
+        </Row>
+        <Row className="mb-3 align-items-end">
+          <Col md={4}>
+            <Form.Group controlId="appLogInstanceFilter">
+              <Form.Label>Filter by Instance</Form.Label>
+              <Form.Select
+                value={appLogInstance}
+                onChange={(e) => setAppLogInstance(e.target.value)}
+              >
+                <option value="">All Instances</option>
+                {windowsAppInstances.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.title} (ID: {inst.id})
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group controlId="appLogLevelFilter">
+              <Form.Label>Filter by Severity</Form.Label>
+              <Form.Select
+                value={appLogLevel}
+                onChange={(e) => setAppLogLevel(e.target.value)}
+              >
+                <option value="">All Severity Levels</option>
+                {Object.values(SeverityLevel).map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+           <Col md={3} xs={12}>
+              {/* empty column for better visual distribution of elements */}
+            </Col>
+            <Col
+              md={1}
+              xs={2}
+              className="d-flex align-items-end justify-content-md-end justify-content-center"
+            >
+            <Button
+              variant="success"
+              onClick={handleAppRefresh}
+              disabled={appLogLoading}
+              className="w-100 w-md-auto"
+              style={{ minWidth: "100px" }}
+            >
+            {appLogLoading ? (
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+            ) : (
+              "Refresh"
+            )}
+            </Button>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            {appLogLoading && applicationLogs.length === 0 ? (
+              <div className="text-center py-3">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                    Loading Application Logs...
+                  </span>
+                </Spinner>
+              </div>
+            ) : appLogError ? (
+              <Alert variant="danger" className="mt-3">
+                {appLogError}
+              </Alert>
+            ) : (
+              <>
+              <Table striped bordered hover responsive size="sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Instance</th>
+                    <th>Severity Level</th>
+                    <th>Source</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentAppLogs.length > 0 ? (
+                    currentAppLogs.map((log, index) => (
+                      <tr key={log.id}>
+                        <td>{indexOfFirstAppLog + index + 1}</td>
+                        <td>
+                          {windowsAppInstances.find(
+                            (inst) => inst.id === log.app_instance_id
+                          )?.title || `ID: ${log.app_instance_id}`}
+                        </td>
+                        <td>{log.level}</td>
+                        <td>{log.source}</td>
+                        <td>{formatDate(log.createdAt)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="text-center py-3">
+                        No application logs found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+              {renderPagination(
+                  currentAppLogPage,
+                  totalAppLogsPages,
+                  setCurrentAppLogPage
+                )}
+              </>
+            )}
+          </Col>
+        </Row>
+      </section>
+      <section id="system-logs" className="mt-5">
+        <Row>
+          <Col>
+            <h2 className="mb-3">System Logs</h2>
+          </Col>
+        </Row>
+        <Row className="mb-3 align-items-end">
+          <Col md={4}>
+            <Form.Group controlId="sysLogInstanceFilter">
+              <Form.Label>Filter by Instance</Form.Label>
+              <Form.Select
+                value={sysLogInstance}
+                onChange={(e) => setSysLogInstance(e.target.value)}
+              >
+                <option value="">All Instances</option>
+                {windowsAppInstances.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.title} (ID: {inst.id})
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group controlId="sysLogLevelFilter">
+              <Form.Label>Filter by Severity</Form.Label>
+              <Form.Select
+                value={sysLogLevel}
+                onChange={(e) => setSysLogLevel(e.target.value)}
+              >
+                <option value="">All Severity Levels</option>
+                {Object.values(SeverityLevel).map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={3} xs={12}>
+              {/* empty column for better visual distribution of elements */}
+            </Col>
+            <Col
+              md={1}
+              xs={2}
+              className="d-flex align-items-end justify-content-md-end justify-content-center"
+            >
+            <Button
+              variant="success"
+              onClick={handleSystemRefresh}
+              disabled={sysLogLoading}
+              className="w-100 w-md-auto"
+              style={{ minWidth: "100px" }}
+            >
+            {sysLogLoading ? (
+              <Spinner
+                as="span"
+                animation="border"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+            ) : (
+              "Refresh"
+            )}
+            </Button>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            {sysLogLoading && systemLogs.length === 0 ? (
+              <div className="text-center py-3">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">Loading System Logs...</span>
+                </Spinner>
+              </div>
+            ) : sysLogError ? (
+              <Alert variant="danger" className="mt-3">{sysLogError}</Alert>
+            ) : (
+              <>
+              <Table striped bordered hover responsive size="sm">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Instance</th>
+                    <th>Severity Level</th>
+                    <th>Source</th>
+                    <th>Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentSystemLogs.length > 0 ? (
+                    currentSystemLogs.map((log, index) => (
+                      <tr key={log.id}>
+                        <td>{indexOfFirstSystemLog + index + 1}</td>
+                        <td>{windowsAppInstances.find(inst => inst.id === log.app_instance_id)?.title || `ID: ${log.app_instance_id}`}</td>
+                        <td>{log.level}</td>
+                        <td>{log.source}</td>
+                        <td>{formatDate(log.createdAt)}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="text-center py-3">
+                        No system logs found matching your criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+              {renderPagination(
+                  currentSystemLogPage,
+                  totalSystemLogsPages,
+                  setCurrentSystemLogPage
+                )}
+              </>
+            )}
+          </Col>
+        </Row>
+      </section>
+
     </Container>
   );
 };
