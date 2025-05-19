@@ -1,16 +1,11 @@
-import { get } from "http";
 import { useState, useEffect } from "react";
-import { Container, Form, Row, Col, Button, Table, Alert } from "react-bootstrap";
+import { Container, Form, Row, Col, Button, Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 function DocumentTypeViewer() {
-    const [layoutName, setlayoutName] = useState("");
-    const [documentType, setDocumentType] = useState("");
     const [documents, setDocuments] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
-    const [errors, setErrors] = useState<{ name?: string; description?: string }>({});
-    const [successMessage, setSuccessMessage] = useState("");
     const [selectedDocumentType, setSelectedDocumentType] = useState<number | "">("");
     const [canCreateNew, setCanCreateNew] = useState(false);
         
@@ -85,7 +80,7 @@ function DocumentTypeViewer() {
             <h1>Document Layouts</h1>
             </Col>
         </Row>
-        <Row className="mb-4" style={{ marginTop: "70px" }}>
+        <Row className="mb-4 mt-5">
             <Col md={8} className="mx-auto">
             <div className="d-flex justify-content-between align-items-center">
                 <div className="d-flex">
@@ -109,7 +104,6 @@ function DocumentTypeViewer() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
-                <Button variant="secondary">Search</Button>
                 </div>
                 {canCreateNew && <Button
                 variant="success"

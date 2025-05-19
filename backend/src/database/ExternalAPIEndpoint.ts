@@ -18,6 +18,7 @@ interface ExternalAPIEndpointAttributes {
     headers: string;
     body?: string;
     timeout_seconds: number;
+    send_file: boolean;
     created_by: number;
     updated_by?: number;
 }
@@ -41,6 +42,7 @@ class ExternalAPIEndpoint extends Model<ExternalAPIEndpointAttributes, ExternalA
     public headers!: string;
     public body?: string;
     public timeout_seconds!: number;
+    public send_file!: boolean;
     public created_by!: number;
     public updated_by?: number;
 }
@@ -99,8 +101,14 @@ export function initExternalAPIEndpoint(sequelize: Sequelize): typeof ExternalAP
                 allowNull: true,
             },
             timeout_seconds: {
-                type: DataTypes.TEXT,
+                type: DataTypes.INTEGER,
                 allowNull: false,
+                defaultValue: 30,
+            },
+            send_file: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
             created_by: {
                 type: DataTypes.INTEGER,

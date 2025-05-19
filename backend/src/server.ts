@@ -3,10 +3,45 @@ import passport from 'passport';
 import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import API_ROUTER from "./routes/apiRouter";
+import { createServer } from "http";
+import { Server, Socket } from "socket.io";
 
 const APP = express();
 const PORT = 5000;
 
+// Create the HTTP server using Express
+const httpServer = createServer(APP);
+
+// Create a Socket.IO server and attach it to the HTTP server
+const io = new Server(httpServer, {
+    cors: {
+        origin: "*", // Allows any domain to connect 
+        methods: ["GET", "POST"], // The allowed HTTP methods for WebSocket connections
+    }
+});
+
+// Define namespaces
+export const processingNamespace = io.of("/processing");
+export const logsNamespace = io.of("/logs");
+
+processingNamespace.on("connection", (socket: Socket) => {
+    console.log(`New socket connected: ${socket.id}`);
+
+    // Send the socket ID back to the client, they will send this with the processing command
+    socket.emit("connected", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log(`Socket disconnected: ${socket.id}`);
+    });
+});
+
+logsNamespace.on("connection", (socket: Socket) => {
+  console.log(`New socket connected to /logs: ${socket.id}`);
+  socket.emit("connected_logs"); 
+  socket.on("disconnect", () => {
+    console.log(`Socket disconnected from /logs: ${socket.id}`);
+  });
+});
 
 APP.use(express.json());
 
@@ -27,7 +62,6 @@ APP.use(passport.session());
 
 APP.use("/", API_ROUTER);
 
-APP.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-

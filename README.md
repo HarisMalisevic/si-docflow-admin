@@ -16,10 +16,10 @@ Prerequisite - [**Node.js + npm**](https://nodejs.org/en) & [**Git**](https://gi
 
 ```
 # Clone this repo:
-$ git clone https://github.com/HarisMalisevic/si-docflow-core.git
+$ git clone https://github.com/HarisMalisevic/si-docflow-admin.git
 
 # After cloning is done, go into the project directory with
-$ cd si-dockflow-core
+$ cd si-dockflow-admin
 
 # Install npm dependencies with
 $ npm run dependencies
@@ -34,7 +34,7 @@ Other shortcuts like this one are defined in ```package.json``` files under ```"
 
 ## How to start?
 
-1. After building the app, navigate to the project root folder ```/si-docflow-core```.
+1. After building the app, navigate to the project root folder ```/si-docflow-admin```.
 2. Start the web app and server with: ```npm run start```
 
 This will make a local server on http://localhost:5000/.

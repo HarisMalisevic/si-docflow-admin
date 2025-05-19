@@ -1,5 +1,5 @@
 import { Router } from "express";
-import FTPEndpointsController from "../controllers/ftpEndpointsController";
+import FTPEndpointsController from "../controllers/ftpEndpoints.controller";
 import AuthMiddleware from "../middleware/AuthMiddleware";
 
 const router = Router();
