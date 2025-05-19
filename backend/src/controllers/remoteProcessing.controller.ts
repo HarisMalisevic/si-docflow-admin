@@ -91,7 +91,7 @@ class RemoteProcessingController {
         }
 
         const { default: fetch } = await import("node-fetch");
-        const processingRequestResponse = await fetch(`http://${machineId}:8080/process`, {
+        const processingRequestResponse = await fetch(`http://${machineId}/process`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
