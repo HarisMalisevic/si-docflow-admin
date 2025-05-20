@@ -36,12 +36,23 @@ class WindowsAppInstanceController {
   }
 
   static async getById(req: Request, res: Response) {
+    const getByIdResult = await WindowsAppInstanceController.getByIdWithReturn(req);
+    
+    if(getByIdResult?.status === 200) {
+      res.status(200).json(getByIdResult?.data);
+    } else {
+      res
+        .status(getByIdResult?.status ?? 500)
+        .json({ message: getByIdResult?.message ?? "Internal server error" });
+    }
+  }
+
+  static async getByIdWithReturn(req: Request) {
     const { id } = req.params;
     const numericId = parseInt(id, 10);
 
     if (isNaN(numericId)) {
-      res.status(400).json({ message: "Invalid ID format" });
-      return;
+      return { status: 400, message: "Invalid ID format" };
     }
 
     try {
@@ -50,18 +61,18 @@ class WindowsAppInstanceController {
       });
 
       if (!instance) {
-        res
-          .status(404)
-          .json({ message: `Windows app instance with ID ${id} not found.` });
-        return;
+        return {
+          status: 404,
+          message: `Windows app instance with ID ${id} not found.`,
+        };
       }
-      res.status(200).json(instance);
+      return { status: 200, data: instance };
     } catch (error) {
       console.error(
         `Error fetching Windows app instance with ID ${id}: `,
         error
       );
-      res.status(500).json({ message: "Internal server error" });
+      return { status: 500, message: "Internal server error" };
     }
   }
 
