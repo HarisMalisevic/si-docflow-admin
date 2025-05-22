@@ -36,6 +36,16 @@ export enum TransactionStatus {
   FAILED = "failed",
 }
 
+export enum UniversalDeviceActionType {
+  STATUS_UPDATE = "STATUS_UPDATE",
+  ERROR = "ERROR",
+  RESTART = "RESTART",
+  CONFIG_CHANGE = "CONFIG_CHANGE",
+  HEARTBEAT = "HEARTBEAT",
+  SHUTDOWN = "SHUTDOWN",
+}
+
+
 interface ClientLogAttributes {
   id: number;
   instance_id: number;
@@ -78,6 +88,13 @@ interface Initiator {
 interface DocumentType {
   id: number;
   name: string;
+}
+
+interface UniversalDeviceLog{
+  id: number;
+  instance_id: number; 
+  action: UniversalDeviceActionType;
+  createdAt?: string;
 }
 
 const ITEMS_PER_PAGE = 5;
@@ -124,6 +141,19 @@ const Logs: React.FC = () => {
   const [sysLogLevel, setSysLogLevel] = useState<string>("");
   const [currentSystemLogPage, setCurrentSystemLogPage] = useState(1);
 
+  //Universal device logs
+  const [universalDeviceLogs, setUniversalDeviceLogs] = useState<UniversalDeviceLog[]>([]);
+  const [universalDeviceLogLoading, setUniversalDeviceLogLoading] =
+    useState(true);
+  const [universalDeviceLogError, setUniversalDeviceLogError] = useState<
+    string | null
+  >(null);
+  const [universalDeviceLogInstance, setUniversalDeviceLogInstance] =
+    useState<string>("");
+  const [universalDeviceLogActionType, setUniversalDeviceLogActionType] =
+    useState<string>("");
+  const [currentUniversalDeviceLogPage, setCurrentUniversalDeviceLogPage] =
+    useState(1);
 
   const [socket, setSocket] = useState<Socket | null>(null);
 
@@ -155,6 +185,22 @@ const Logs: React.FC = () => {
         setSysLogLoading(false);
       }
     };
+
+    // Universal device logs
+    const fetchUniversalDeviceLogs = async () => {
+      setUniversalDeviceLogLoading(true);
+      setUniversalDeviceLogError(null);
+      try {
+        // zamijeniti sa pravom rutom
+        const res = await fetch("api/universal-device-logs");
+        if (!res.ok) throw new Error(await res.text());
+        setUniversalDeviceLogError(await res.json());
+      } catch (err: any) {
+        setUniversalDeviceLogError(err.message || "Failed to load universal device logs.");
+      } finally {
+        setUniversalDeviceLogLoading(false);
+      }
+    }
 
   useEffect(() => {
     const fetchClientLogData = async () => {
@@ -227,7 +273,7 @@ const Logs: React.FC = () => {
 
     fetchAppLogs();
     fetchSysLogs();
-
+    fetchUniversalDeviceLogs();
     fetchClientLogData();
     fetchTransactionData();
 
@@ -326,6 +372,11 @@ const Logs: React.FC = () => {
       fetchSysLogs();
     }
 
+    const handleUniversalDeviceRefresh = () => {
+      setCurrentUniversalDeviceLogPage(1);
+      fetchUniversalDeviceLogs();
+    }
+
 
   const filteredClientLogs = clientLogs.filter((log) => {
     const matchesInstance =
@@ -354,6 +405,12 @@ const Logs: React.FC = () => {
     const matchesInstance = !sysLogInstance || log.app_instance_id === parseInt(sysLogInstance);
     const matchesLevel = !sysLogLevel || log.level === sysLogLevel;
     return matchesInstance && matchesLevel;
+  });
+
+  const filteredUniversalDeviceLogs = universalDeviceLogs.filter((log) => {
+    const matchesInstance = !universalDeviceLogInstance || log.instance_id === parseInt(universalDeviceLogInstance);
+    const matchesActionType = !universalDeviceLogActionType || log.action === universalDeviceLogActionType;
+    return matchesInstance && matchesActionType;
   });
 
   const formatDate = (dateString?: string) => {
@@ -418,6 +475,16 @@ const Logs: React.FC = () => {
   );
   const totalSystemLogsPages = Math.ceil(
     filteredSysLogs.length / ITEMS_PER_PAGE
+  );
+
+  const indexOfLastUniversalDeviceLog = currentUniversalDeviceLogPage * ITEMS_PER_PAGE;
+  const indexOfFirstUniversalDeviceLog = indexOfLastUniversalDeviceLog - ITEMS_PER_PAGE;
+  const currentUniversalDeviceLogs = filteredUniversalDeviceLogs.slice(
+    indexOfFirstUniversalDeviceLog,
+    indexOfLastUniversalDeviceLog
+  );
+  const totalUniversalDeviceLogsPages = Math.ceil(
+    filteredUniversalDeviceLogs.length / ITEMS_PER_PAGE
   );
 
   const renderPagination = (
@@ -704,19 +771,21 @@ const Logs: React.FC = () => {
               >
                 <option value="">All Severity Levels</option>
                 {Object.values(SeverityLevel).map((level) => (
-                  <option key={level} value={level}>{level}</option>
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
           </Col>
-           <Col md={3} xs={12}>
-              {/* empty column for better visual distribution of elements */}
-            </Col>
-            <Col
-              md={1}
-              xs={2}
-              className="d-flex align-items-end justify-content-md-end justify-content-center"
-            >
+          <Col md={3} xs={12}>
+            {/* empty column for better visual distribution of elements */}
+          </Col>
+          <Col
+            md={1}
+            xs={2}
+            className="d-flex align-items-end justify-content-md-end justify-content-center"
+          >
             <Button
               variant="success"
               onClick={handleAppRefresh}
@@ -724,17 +793,17 @@ const Logs: React.FC = () => {
               className="w-100 w-md-auto"
               style={{ minWidth: "100px" }}
             >
-            {appLogLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : (
-              "Refresh"
-            )}
+              {appLogLoading ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                "Refresh"
+              )}
             </Button>
           </Col>
         </Row>
@@ -754,41 +823,41 @@ const Logs: React.FC = () => {
               </Alert>
             ) : (
               <>
-              <Table striped bordered hover responsive size="sm">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Instance</th>
-                    <th>Severity Level</th>
-                    <th>Source</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentAppLogs.length > 0 ? (
-                    currentAppLogs.map((log, index) => (
-                      <tr key={log.id}>
-                        <td>{indexOfFirstAppLog + index + 1}</td>
-                        <td>
-                          {windowsAppInstances.find(
-                            (inst) => inst.id === log.app_instance_id
-                          )?.title || `ID: ${log.app_instance_id}`}
-                        </td>
-                        <td>{log.level}</td>
-                        <td>{log.source}</td>
-                        <td>{formatDate(log.createdAt)}</td>
-                      </tr>
-                    ))
-                  ) : (
+                <Table striped bordered hover responsive size="sm">
+                  <thead>
                     <tr>
-                      <td colSpan={5} className="text-center py-3">
-                        No application logs found matching your criteria.
-                      </td>
+                      <th>#</th>
+                      <th>Instance</th>
+                      <th>Severity Level</th>
+                      <th>Source</th>
+                      <th>Timestamp</th>
                     </tr>
-                  )}
-                </tbody>
-              </Table>
-              {renderPagination(
+                  </thead>
+                  <tbody>
+                    {currentAppLogs.length > 0 ? (
+                      currentAppLogs.map((log, index) => (
+                        <tr key={log.id}>
+                          <td>{indexOfFirstAppLog + index + 1}</td>
+                          <td>
+                            {windowsAppInstances.find(
+                              (inst) => inst.id === log.app_instance_id
+                            )?.title || `ID: ${log.app_instance_id}`}
+                          </td>
+                          <td>{log.level}</td>
+                          <td>{log.source}</td>
+                          <td>{formatDate(log.createdAt)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="text-center py-3">
+                          No application logs found matching your criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+                {renderPagination(
                   currentAppLogPage,
                   totalAppLogsPages,
                   setCurrentAppLogPage
@@ -830,19 +899,21 @@ const Logs: React.FC = () => {
               >
                 <option value="">All Severity Levels</option>
                 {Object.values(SeverityLevel).map((level) => (
-                  <option key={level} value={level}>{level}</option>
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
                 ))}
               </Form.Select>
             </Form.Group>
           </Col>
           <Col md={3} xs={12}>
-              {/* empty column for better visual distribution of elements */}
-            </Col>
-            <Col
-              md={1}
-              xs={2}
-              className="d-flex align-items-end justify-content-md-end justify-content-center"
-            >
+            {/* empty column for better visual distribution of elements */}
+          </Col>
+          <Col
+            md={1}
+            xs={2}
+            className="d-flex align-items-end justify-content-md-end justify-content-center"
+          >
             <Button
               variant="success"
               onClick={handleSystemRefresh}
@@ -850,17 +921,17 @@ const Logs: React.FC = () => {
               className="w-100 w-md-auto"
               style={{ minWidth: "100px" }}
             >
-            {sysLogLoading ? (
-              <Spinner
-                as="span"
-                animation="border"
-                size="sm"
-                role="status"
-                aria-hidden="true"
-              />
-            ) : (
-              "Refresh"
-            )}
+              {sysLogLoading ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                "Refresh"
+              )}
             </Button>
           </Col>
         </Row>
@@ -869,44 +940,52 @@ const Logs: React.FC = () => {
             {sysLogLoading && systemLogs.length === 0 ? (
               <div className="text-center py-3">
                 <Spinner animation="border" role="status">
-                  <span className="visually-hidden">Loading System Logs...</span>
+                  <span className="visually-hidden">
+                    Loading System Logs...
+                  </span>
                 </Spinner>
               </div>
             ) : sysLogError ? (
-              <Alert variant="danger" className="mt-3">{sysLogError}</Alert>
+              <Alert variant="danger" className="mt-3">
+                {sysLogError}
+              </Alert>
             ) : (
               <>
-              <Table striped bordered hover responsive size="sm">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Instance</th>
-                    <th>Severity Level</th>
-                    <th>Source</th>
-                    <th>Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentSystemLogs.length > 0 ? (
-                    currentSystemLogs.map((log, index) => (
-                      <tr key={log.id}>
-                        <td>{indexOfFirstSystemLog + index + 1}</td>
-                        <td>{windowsAppInstances.find(inst => inst.id === log.app_instance_id)?.title || `ID: ${log.app_instance_id}`}</td>
-                        <td>{log.level}</td>
-                        <td>{log.source}</td>
-                        <td>{formatDate(log.createdAt)}</td>
-                      </tr>
-                    ))
-                  ) : (
+                <Table striped bordered hover responsive size="sm">
+                  <thead>
                     <tr>
-                      <td colSpan={5} className="text-center py-3">
-                        No system logs found matching your criteria.
-                      </td>
+                      <th>#</th>
+                      <th>Instance</th>
+                      <th>Severity Level</th>
+                      <th>Source</th>
+                      <th>Timestamp</th>
                     </tr>
-                  )}
-                </tbody>
-              </Table>
-              {renderPagination(
+                  </thead>
+                  <tbody>
+                    {currentSystemLogs.length > 0 ? (
+                      currentSystemLogs.map((log, index) => (
+                        <tr key={log.id}>
+                          <td>{indexOfFirstSystemLog + index + 1}</td>
+                          <td>
+                            {windowsAppInstances.find(
+                              (inst) => inst.id === log.app_instance_id
+                            )?.title || `ID: ${log.app_instance_id}`}
+                          </td>
+                          <td>{log.level}</td>
+                          <td>{log.source}</td>
+                          <td>{formatDate(log.createdAt)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="text-center py-3">
+                          No system logs found matching your criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+                {renderPagination(
                   currentSystemLogPage,
                   totalSystemLogsPages,
                   setCurrentSystemLogPage
@@ -917,6 +996,135 @@ const Logs: React.FC = () => {
         </Row>
       </section>
 
+      {/* Universal device logs section */}
+      <section id="universal-device-logs" className="mt-5">
+        <Row>
+          <Col>
+            <h2 className="mb-3">Universal Device Logs</h2>
+          </Col>
+        </Row>
+        <Row className="mb-3 align-items-end">
+          <Col md={4}>
+            <Form.Group controlId="sysLogInstanceFilter">
+              <Form.Label>Filter by Instance</Form.Label>
+              <Form.Select
+                value={universalDeviceLogInstance}
+                onChange={(e) => setUniversalDeviceLogInstance(e.target.value)}
+              >
+                <option value="">All Instances</option>
+                {windowsAppInstances.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.title} (ID: {inst.id})
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={4}>
+            <Form.Group controlId="universalLogActionTypeFilter">
+              <Form.Label>Filter by Action Type</Form.Label>
+              <Form.Select
+                value={universalDeviceLogActionType}
+                onChange={(e) =>
+                  setUniversalDeviceLogActionType(e.target.value)
+                }
+              >
+                <option value="">All Action Types</option>
+                {Object.values(UniversalDeviceActionType).map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+          <Col md={3} xs={12}>
+            {/* empty column for better visual distribution of elements */}
+          </Col>
+          <Col
+            md={1}
+            xs={2}
+            className="d-flex align-items-end justify-content-md-end justify-content-center"
+          >
+            <Button
+              variant="success"
+              onClick={handleUniversalDeviceRefresh}
+              disabled={universalDeviceLogLoading}
+              className="w-100 w-md-auto"
+              style={{ minWidth: "100px" }}
+            >
+              {universalDeviceLogLoading ? (
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              ) : (
+                "Refresh"
+              )}
+            </Button>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            {universalDeviceLogLoading && universalDeviceLogs.length === 0 ? (
+              <div className="text-center py-3">
+                <Spinner animation="border" role="status">
+                  <span className="visually-hidden">
+                    Loading Universal Device Logs...
+                  </span>
+                </Spinner>
+              </div>
+            ) : universalDeviceLogError ? (
+              <Alert variant="danger" className="mt-3">
+                {universalDeviceLogError}
+              </Alert>
+            ) : (
+              <>
+                <Table striped bordered hover responsive size="sm">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Instance</th>
+                      <th>Action Type</th>
+                      <th>Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentUniversalDeviceLogs.length > 0 ? (
+                      currentUniversalDeviceLogs.map((log, index) => (
+                        <tr key={log.id}>
+                          <td>{indexOfFirstUniversalDeviceLog + index + 1}</td>
+                          <td>
+                            {windowsAppInstances.find(
+                              (inst) => inst.id === log.instance_id
+                            )?.title || `ID: ${log.instance_id}`}
+                          </td>
+                          <td>{log.action}</td>
+                          <td>{formatDate(log.createdAt)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="text-center py-3">
+                          No universal device logs found matching your criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+                {renderPagination(
+                  currentUniversalDeviceLogPage,
+                  totalUniversalDeviceLogsPages,
+                  setCurrentUniversalDeviceLogPage
+                )}
+              </>
+            )}
+          </Col>
+        </Row>
+      </section>
     </Container>
   );
 };
