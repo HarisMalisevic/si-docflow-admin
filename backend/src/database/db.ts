@@ -21,6 +21,7 @@ import { initSystemLog } from './SystemLog';
 import { initAIProvider } from './AIProvider';
 import { initProcessingRequestsBillingLog } from './ProcessingRequestsBillingLog';
 import { initProcessingResultsTriplet } from './ProcessingResultsTriplet';
+import { initUniversalDeviceInterfaceLog } from './UniversalDeviceInterfaceLog';
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../../.env"));
@@ -64,6 +65,7 @@ db.system_logs = initSystemLog(sequelize_obj);
 db.ai_providers = initAIProvider(sequelize_obj);
 db.processing_requests_billing_logs = initProcessingRequestsBillingLog(sequelize_obj);
 db.processing_results_triplets = initProcessingResultsTriplet(sequelize_obj);
+db.universal_device_interface_logs = initUniversalDeviceInterfaceLog(sequelize_obj);
 
 // Relacije
 db.sso_providers.hasMany(db.admin_users, {
