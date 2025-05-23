@@ -186,10 +186,9 @@ const Logs: React.FC = () => {
       setUniversalDeviceLogLoading(true);
       setUniversalDeviceLogError(null);
       try {
-        // zamijeniti sa pravom rutom
-        const res = await fetch("api/universal-device-logs");
+        const res = await fetch("/api/universal-device-logs");
         if (!res.ok) throw new Error(await res.text());
-        setUniversalDeviceLogError(await res.json());
+        setUniversalDeviceLogs(await res.json());
       } catch (err: any) {
         setUniversalDeviceLogError(err.message || "Failed to load universal device logs.");
       } finally {
@@ -1085,7 +1084,6 @@ const Logs: React.FC = () => {
                       <th>Instance</th>
                       <th>Severity Level</th>
                       <th>Source</th>
-                      <th>Task Category</th>
                       <th>Message</th>
                       <th>Timestamp</th>
                     </tr>
@@ -1102,14 +1100,13 @@ const Logs: React.FC = () => {
                           </td>
                           <td>{log.level}</td>
                           <td>{log.source}</td>
-                          <td>{log.task_category}</td>
                           <td>{log.message}</td>
                           <td>{formatDate(log.createdAt)}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={5} className="text-center py-3">
+                        <td colSpan={7} className="text-center py-3">
                           No universal device logs found matching your criteria.
                         </td>
                       </tr>

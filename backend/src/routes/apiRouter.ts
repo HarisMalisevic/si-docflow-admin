@@ -18,6 +18,7 @@ import remoteProcessingRoutes from "../routes/remoteProcessing.routes";
 import applicationLogsRoutes from "../routes/applicationLogs.routes";
 import systemLogsRoutes from "../routes/systemLogs.routes";
 import aiProviderRoutes from "./aiProviders.routes";
+import universalDeviceLogsRoutes from "../routes/universalDeviceLogs.routes";
 import ProcessingRequestsBillingLogRouter from "./processingRequestsBillingLog.routes";
 import path from "path";
 
@@ -111,6 +112,8 @@ API_ROUTER.use("/api/system-logs", systemLogsRoutes);
 API_ROUTER.use("/api/ai-providers", aiProviderRoutes);
 
 API_ROUTER.use("/api/processing-requests-billing-logs", ProcessingRequestsBillingLogRouter);
+
+API_ROUTER.use("/api/universal-device-logs", universalDeviceLogsRoutes);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get("*", (req, res) => {
