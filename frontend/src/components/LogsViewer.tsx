@@ -1106,7 +1106,7 @@ const Logs: React.FC = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="text-center py-3">
+                        <td colSpan={6} className="text-center py-3">
                           No universal device logs found matching your criteria.
                         </td>
                       </tr>
