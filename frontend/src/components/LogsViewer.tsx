@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container,
   Row,
@@ -34,15 +34,6 @@ export enum TransactionStatus {
   FORWARDED = "forwarded",
   FINISHED = "finished",
   FAILED = "failed",
-}
-
-export enum UniversalDeviceActionType {
-  STATUS_UPDATE = "STATUS_UPDATE",
-  ERROR = "ERROR",
-  RESTART = "RESTART",
-  CONFIG_CHANGE = "CONFIG_CHANGE",
-  HEARTBEAT = "HEARTBEAT",
-  SHUTDOWN = "SHUTDOWN",
 }
 
 
@@ -90,10 +81,14 @@ interface DocumentType {
   name: string;
 }
 
-interface UniversalDeviceLog{
+interface UniversalDeviceLog {
   id: number;
-  instance_id: number; 
-  action: UniversalDeviceActionType;
+  level: SeverityLevel;
+  source: string;
+  event_id: string;
+  task_category: string;
+  message: string;
+  app_instance_id: number;
   createdAt?: string;
 }
 
@@ -150,7 +145,7 @@ const Logs: React.FC = () => {
   >(null);
   const [universalDeviceLogInstance, setUniversalDeviceLogInstance] =
     useState<string>("");
-  const [universalDeviceLogActionType, setUniversalDeviceLogActionType] =
+  const [universalDeviceLogLevel, setUniversalDeviceLogLevel] =
     useState<string>("");
   const [currentUniversalDeviceLogPage, setCurrentUniversalDeviceLogPage] =
     useState(1);
@@ -408,8 +403,8 @@ const Logs: React.FC = () => {
   });
 
   const filteredUniversalDeviceLogs = universalDeviceLogs.filter((log) => {
-    const matchesInstance = !universalDeviceLogInstance || log.instance_id === parseInt(universalDeviceLogInstance);
-    const matchesActionType = !universalDeviceLogActionType || log.action === universalDeviceLogActionType;
+    const matchesInstance = !universalDeviceLogInstance || log.app_instance_id === parseInt(universalDeviceLogInstance);
+    const matchesActionType = !universalDeviceLogLevel || log.level === universalDeviceLogLevel;
     return matchesInstance && matchesActionType;
   });
 
@@ -1022,15 +1017,15 @@ const Logs: React.FC = () => {
           </Col>
           <Col md={4}>
             <Form.Group controlId="universalLogActionTypeFilter">
-              <Form.Label>Filter by Action Type</Form.Label>
+              <Form.Label>Filter by Severity</Form.Label>
               <Form.Select
-                value={universalDeviceLogActionType}
+                value={universalDeviceLogLevel}
                 onChange={(e) =>
-                  setUniversalDeviceLogActionType(e.target.value)
+                  setUniversalDeviceLogLevel(e.target.value)
                 }
               >
                 <option value="">All Action Types</option>
-                {Object.values(UniversalDeviceActionType).map((level) => (
+                {Object.values(SeverityLevel).map((level) => (
                   <option key={level} value={level}>
                     {level}
                   </option>
@@ -1088,7 +1083,10 @@ const Logs: React.FC = () => {
                     <tr>
                       <th>#</th>
                       <th>Instance</th>
-                      <th>Action Type</th>
+                      <th>Severity Level</th>
+                      <th>Source</th>
+                      <th>Task Category</th>
+                      <th>Message</th>
                       <th>Timestamp</th>
                     </tr>
                   </thead>
@@ -1099,10 +1097,13 @@ const Logs: React.FC = () => {
                           <td>{indexOfFirstUniversalDeviceLog + index + 1}</td>
                           <td>
                             {windowsAppInstances.find(
-                              (inst) => inst.id === log.instance_id
-                            )?.title || `ID: ${log.instance_id}`}
+                              (inst) => inst.id === log.app_instance_id
+                            )?.title || `ID: ${log.app_instance_id}`}
                           </td>
-                          <td>{log.action}</td>
+                          <td>{log.level}</td>
+                          <td>{log.source}</td>
+                          <td>{log.task_category}</td>
+                          <td>{log.message}</td>
                           <td>{formatDate(log.createdAt)}</td>
                         </tr>
                       ))
