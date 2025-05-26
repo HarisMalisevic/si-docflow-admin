@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import db from '../database/db'; // Importing the database connection and models
+import DB from '../database'; // Importing the database connection and models
 
 // THIS FILE MUST NOT BE IMPORTED OR USED IN PRODUCTION ENVIRONMENT!
 // THIS FILE IS FOR TESTING PURPOSES ONLY!
 
 
 let ssoProviders_default: any[] = [];
+
 try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     ssoProviders_default = require('./sso_init').default;
 } catch (error) {
-    console.warn("sso_init module not found, using empty array for ssoProviders_default. " + error);
+    console.warn("sso_init module not found, using empty array for ssoProviders_default.\nSee sso_init.ts.example" + error);
 }
 
 function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
@@ -20,7 +21,7 @@ function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
 
         ssoProviders_arg.forEach((provider) => {
             ssoProviders_PromiseList.push(
-                db.sso_providers.create({
+                DB.sso_providers.create({
                     display_name: provider.display_name,
                     api_name: provider.api_name,
                     client_id: provider.clientId,
@@ -68,7 +69,7 @@ function fill_document_types() {
 
         documentTypes_default.forEach((documentType) => {
             documentTypes_PromiseList.push(
-                db.document_types.create({
+                DB.document_types.create({
                     name: documentType.name,
                     description: documentType.description
                 })
@@ -90,6 +91,7 @@ function fill_document_types() {
     });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function fill_admin_users() {
     return new Promise<void>(function (resolve, reject) {
         const adminUsers_PromiseList: Promise<any>[] = [];
@@ -123,7 +125,7 @@ function fill_admin_users() {
 
         adminUsers_default.forEach((user) => {
             adminUsers_PromiseList.push(
-                db.admin_users.create({
+                DB.admin_users.create({
                     email: user.email,
                     password: user.password,
                     sso_provider: user.sso_provider,
@@ -147,10 +149,10 @@ function fill_admin_users() {
 }
 
 async function db_seed() {
-    if (!db.sequelize) {
+    if (!DB.sequelize) {
         throw new Error("Sequelize connection is not defined")
     }
-    db.sequelize.sync({ force: true }).then(function () {
+    DB.sequelize.sync({ force: true }).then(function () {
         fill_document_types().then(function () {
             console.log("Document type seeding done!");
         });
