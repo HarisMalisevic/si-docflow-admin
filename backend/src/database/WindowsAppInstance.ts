@@ -65,7 +65,7 @@ export function initWindowsAppInstance(sequelize: Sequelize) {
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
                 references: {
                     model: AdminUser, // Reference the AdminUser model
                     key: "id",
