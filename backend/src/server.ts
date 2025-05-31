@@ -1,6 +1,6 @@
 import express from "express";
 import passport from 'passport';
-import configurePassport from './auth/PassportConfig';
+import configurePassport from './auth/passportConfig';
 import session from 'express-session';
 import API_ROUTER from './router';
 import { createServer } from "http";
