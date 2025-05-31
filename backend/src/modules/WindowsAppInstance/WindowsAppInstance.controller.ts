@@ -1,23 +1,12 @@
 import DB from "../../database";
 import { Request, Response } from "express";
-import WindowsAppInstance, { OperationalMode } from "./WindowsAppInstance.model";
-import { Optional } from "sequelize";
-
-interface WindowsAppInstanceAttributes {
-  id: number;
-  title: string;
-  location: string;
-  machine_id: string;
-  operational_mode: OperationalMode;
-  polling_frequency: number;
-  created_by?: number;
-  updated_by?: number;
-}
-
-type WindowsAppInstanceCreationAttributes = Optional<
+import WindowsAppInstance, {
+  OperationalMode,
   WindowsAppInstanceAttributes,
-  "id" | "created_by" | "updated_by"
->;
+  WindowsAppInstanceCreationAttributes,
+} from "./WindowsAppInstance.model";
+import { Transaction, Sequelize } from "sequelize";
+import AvailableDevice from "../AvailableDevice/AvailableDevice.model";
 
 type WindowsAppInstanceUpdateAttributes = Partial<
   Omit<WindowsAppInstanceAttributes, "id" | "created_by">
@@ -36,43 +25,40 @@ class WindowsAppInstanceController {
   }
 
   static async getById(req: Request, res: Response) {
-    const getByIdResult = await WindowsAppInstanceController.getByIdWithReturn(req);
-
-    if (getByIdResult?.status === 200) {
-      res.status(200).json(getByIdResult?.data);
-    } else {
-      res
-        .status(getByIdResult?.status ?? 500)
-        .json({ message: getByIdResult?.message ?? "Internal server error" });
-    }
-  }
-
-  static async getByIdWithReturn(req: Request) {
     const { id } = req.params;
     const numericId = parseInt(id, 10);
 
     if (isNaN(numericId)) {
-      return { status: 400, message: "Invalid ID format" };
+      res.status(400).json({ message: "Invalid ID format" });
+      return;
     }
 
     try {
       const instance = await DB.windows_app_instances.findOne({
         where: { id: numericId },
+        include: [
+          { model: DB.available_devices, as: "chosenDevice", required: false },
+          {
+            model: DB.available_devices,
+            as: "availableDevices",
+            required: false,
+          },
+        ],
       });
 
       if (!instance) {
-        return {
-          status: 404,
-          message: `Windows app instance with ID ${id} not found.`,
-        };
+        res
+          .status(404)
+          .json({ message: `Windows app instance with ID ${id} not found.` });
+        return;
       }
-      return { status: 200, data: instance };
+      res.status(200).json(instance);
     } catch (error) {
       console.error(
         `Error fetching Windows app instance with ID ${id}: `,
         error
       );
-      return { status: 500, message: "Internal server error" };
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 
@@ -82,12 +68,20 @@ class WindowsAppInstanceController {
     try {
       const instance = await DB.windows_app_instances.findOne({
         where: { machine_id: machine_id },
+        include: [
+          { model: DB.available_devices, as: "chosenDevice", required: false },
+          {
+            model: DB.available_devices,
+            as: "availableDevices",
+            required: false,
+          },
+        ],
       });
 
       if (!instance) {
-        res
-          .status(404)
-          .json({ message: `Windows app instance with machine ID ${machine_id} not found.` });
+        res.status(404).json({
+          message: `Windows app instance with machine ID ${machine_id} not found.`,
+        });
         return;
       }
       res.status(200).json(instance);
@@ -107,12 +101,12 @@ class WindowsAppInstanceController {
       key: keyof WindowsAppInstanceCreationAttributes;
       name: string;
     }[] = [
-        { key: "title", name: "Title" },
-        { key: "location", name: "Location" },
-        { key: "machine_id", name: "Machine ID" },
-        { key: "operational_mode", name: "Operational mode" },
-        { key: "polling_frequency", name: "Polling frequency" },
-      ];
+      { key: "title", name: "Title" },
+      { key: "location", name: "Location" },
+      { key: "machine_id", name: "Machine ID" },
+      { key: "operational_mode", name: "Operational mode" },
+      { key: "polling_frequency", name: "Polling frequency" },
+    ];
 
     for (const field of requiredFields) {
       if (jsonReq[field.key] === undefined || jsonReq[field.key] === null) {
@@ -128,39 +122,39 @@ class WindowsAppInstanceController {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       isInvalid: (value: any) => boolean;
     }[] = [
-        {
-          key: "title",
-          name: "Title",
-          typeDescription: "non-empty string",
-          isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-        },
-        {
-          key: "location",
-          name: "Location",
-          typeDescription: "non-empty string",
-          isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-        },
-        {
-          key: "machine_id",
-          name: "Machine ID",
-          typeDescription: "non-empty string",
-          isInvalid: (v) => typeof v !== "string" || v.trim() === "",
-        },
-        {
-          key: "operational_mode",
-          name: "Operational mode",
-          typeDescription: `one of ${Object.values(OperationalMode).join(", ")}`,
-          isInvalid: (v) =>
-            !Object.values(OperationalMode).includes(v as OperationalMode),
-        },
-        {
-          key: "polling_frequency",
-          name: "Polling frequency",
-          typeDescription: "non-negative integer",
-          isInvalid: (v) =>
-            typeof v !== "number" || !Number.isInteger(v) || v < 0,
-        },
-      ];
+      {
+        key: "title",
+        name: "Title",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "location",
+        name: "Location",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "machine_id",
+        name: "Machine ID",
+        typeDescription: "non-empty string",
+        isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+      },
+      {
+        key: "operational_mode",
+        name: "Operational mode",
+        typeDescription: `one of ${Object.values(OperationalMode).join(", ")}`,
+        isInvalid: (v) =>
+          !Object.values(OperationalMode).includes(v as OperationalMode),
+      },
+      {
+        key: "polling_frequency",
+        name: "Polling frequency",
+        typeDescription: "non-negative integer",
+        isInvalid: (v) =>
+          typeof v !== "number" || !Number.isInteger(v) || v < 0,
+      },
+    ];
 
     for (const validation of typeValidations) {
       const value =
@@ -194,6 +188,7 @@ class WindowsAppInstanceController {
         operational_mode: jsonReq.operational_mode,
         polling_frequency: jsonReq.polling_frequency,
         created_by: userID,
+        chosen_device_id: null,
       });
 
       res.status(201).json(newInstance);
@@ -208,7 +203,7 @@ class WindowsAppInstanceController {
     const jsonReq: WindowsAppInstanceUpdateAttributes = req.body || {};
     const numericId = parseInt(id, 10);
 
-    if (isNaN(numericId)) {
+    if (isNaN(numericId) || numericId < 0) {
       res.status(400).json({ message: "Invalid ID format" });
       return;
     }
@@ -220,13 +215,33 @@ class WindowsAppInstanceController {
       return;
     }
 
-    const typeValidations: {
-      key: keyof WindowsAppInstanceAttributes;
-      name: string;
-      typeDescription: string;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      isInvalid: (value: any) => boolean;
-    }[] = [
+    const userID: number = (req.user as { id: number })?.id;
+    if (!userID || typeof userID !== "number") {
+      res.status(401).json({ message: "Unauthorized or invalid user data" });
+      return;
+    }
+
+    const transaction = await DB.sequelize.transaction();
+    try {
+      const instance = await DB.windows_app_instances.findOne({
+        where: { id: numericId },
+        transaction,
+      });
+
+      if (!instance) {
+        await transaction.rollback();
+        res
+          .status(404)
+          .json({ message: `Windows app instance with ID ${id} not found` });
+        return;
+      }
+
+      const typeValidations: {
+        key: keyof WindowsAppInstanceAttributes;
+        name: string;
+        typeDescription: string;
+        isInvalid: (value: any) => boolean;
+      }[] = [
         {
           key: "title",
           name: "Title",
@@ -248,7 +263,9 @@ class WindowsAppInstanceController {
         {
           key: "operational_mode",
           name: "Operational mode",
-          typeDescription: `one of ${Object.values(OperationalMode).join(", ")}`,
+          typeDescription: `one of ${Object.values(OperationalMode).join(
+            ", "
+          )}`,
           isInvalid: (v) =>
             !Object.values(OperationalMode).includes(v as OperationalMode),
         },
@@ -259,64 +276,160 @@ class WindowsAppInstanceController {
           isInvalid: (v) =>
             typeof v !== "number" || !Number.isInteger(v) || v < 0,
         },
+        {
+          key: "chosen_device_id",
+          name: "Chosen Device ID",
+          typeDescription: "integer or null",
+          isInvalid: (v) => typeof v !== "number" || !Number.isInteger(v),
+        },
       ];
 
-    for (const validation of typeValidations) {
-      const fieldKey =
-        validation.key as keyof WindowsAppInstanceUpdateAttributes;
-      if (jsonReq[fieldKey] !== undefined) {
-        const value = jsonReq[fieldKey];
-        const modelNullableFields: (keyof WindowsAppInstanceAttributes)[] = [
-          "created_by",
-          "updated_by",
-        ];
+      for (const validation of typeValidations) {
+        const fieldKey =
+          validation.key as keyof WindowsAppInstanceUpdateAttributes;
 
-        if (value === null) {
-          if (!modelNullableFields.includes(validation.key)) {
+        if (Object.prototype.hasOwnProperty.call(jsonReq, fieldKey)) {
+          const value = jsonReq[fieldKey];
+          const modelNullableFields: (keyof WindowsAppInstanceAttributes)[] = [
+            "chosen_device_id",
+            "created_by",
+            "updated_by",
+          ];
+
+          if (value === null) {
+            if (!modelNullableFields.includes(validation.key)) {
+              await transaction.rollback();
+              res.status(400).json({
+                message: `${validation.name}, if provided, cannot be null.`,
+              });
+              return;
+            }
+          } else if (validation.isInvalid(value)) {
+            await transaction.rollback();
             res.status(400).json({
-              message: `${validation.name}, if provided, cannot be null.`,
+              message: `${validation.name} must be a ${validation.typeDescription}`,
             });
             return;
           }
-        } else if (validation.isInvalid(value)) {
+        }
+      }
+
+      const currentOpMode = instance.operational_mode;
+      const newOpMode = jsonReq.operational_mode || currentOpMode;
+      let newChosenDeviceId = jsonReq.chosen_device_id !== undefined ? jsonReq.chosen_device_id : instance.chosen_device_id;
+
+      // check for HEADLESS mode
+      if (jsonReq.chosen_device_id !== undefined) {
+        if (
+          newOpMode !== OperationalMode.HEADLESS &&
+          jsonReq.chosen_device_id !== null
+        ) {
+          await transaction.rollback();
           res.status(400).json({
-            message: `${validation.name} must be a ${validation.typeDescription}`,
+            message:
+              "Cannot set a chosen device for an instance not in HEADLESS mode.",
           });
           return;
         }
+
+        // check is Available device exists & if it belongs to this Windows app instance
+        if (jsonReq.chosen_device_id !== null) {
+          const deviceToChoose = await DB.available_devices.findOne({
+            where: {
+              id: jsonReq.chosen_device_id,
+              instance_id: numericId,
+            },
+            transaction,
+          });
+          if (!deviceToChoose) {
+            await transaction.rollback();
+            res.status(400).json({
+              message: `Available device with ID ${jsonReq.chosen_device_id} not found or does not belong to this instance.`,
+            });
+            return;
+          }
+          // Set ALL devices for this instance to is_chosen = false
+          await DB.available_devices.update(
+            { is_chosen: false },
+            {
+              where: { instance_id: numericId },
+              transaction,
+            }
+          );
+
+          // Set the specifically chosen device to is_chosen = true
+          if (!deviceToChoose.is_chosen) {
+             await deviceToChoose.update({ is_chosen: true }, { transaction });
+          }
+
+        } else { 
+          // chosen_device_id is explicitly set to null -> set all devices for this instance to is_chosen = false
+          await DB.available_devices.update(
+            { is_chosen: false },
+            {
+              where: { instance_id: numericId },
+              transaction,
+            }
+          );
+          newChosenDeviceId = null;
+        }
       }
-    }
 
-    const userID: number = (req.user as { id: number })?.id;
-    if (!userID || typeof userID !== "number") {
-      res.status(401).json({ message: "Unauthorized or invalid user data" });
-      return;
-    }
-
-    try {
-      const instance = await DB.windows_app_instances.findOne({
-        where: { id: numericId },
-      });
-
-      if (!instance) {
-        res
-          .status(404)
-          .json({ message: `Windows app instance with ID ${id} not found` });
-        return;
+      if (
+        jsonReq.operational_mode === OperationalMode.STANDALONE &&
+        currentOpMode === OperationalMode.HEADLESS &&
+        instance.chosen_device_id !== null
+      ) {
+        const previouslyChosenDevice = await DB.available_devices.findByPk(
+          instance.chosen_device_id,
+          { transaction }
+        );
+        if (previouslyChosenDevice) {
+          await previouslyChosenDevice.update(
+            { is_chosen: false },
+            { transaction }
+          );
+        }
+        newChosenDeviceId = null;
       }
 
       const updateData = { ...jsonReq, updated_by: userID };
-      instance.set(updateData);
-      await instance.save();
-      res.status(200).json(instance);
+      if (
+        jsonReq.chosen_device_id !== undefined ||
+        (jsonReq.operational_mode === OperationalMode.STANDALONE &&
+          currentOpMode === OperationalMode.HEADLESS)
+      ) {
+        updateData.chosen_device_id = newChosenDeviceId;
+      }
+
+      await instance.update(updateData, { transaction });
+      await transaction.commit();
+
+      const updatedInstance = await DB.windows_app_instances.findByPk(
+        numericId,
+        {
+          include: [
+            {
+              model: DB.available_devices,
+              as: "chosenDevice",
+              required: false,
+            },
+            {
+              model: DB.available_devices,
+              as: "availableDevices",
+              required: false,
+            },
+          ],
+        }
+      );
+      res.status(200).json(updatedInstance);
     } catch (error) {
+      await transaction.rollback();
       console.error(
         `Error updating Windows app instance with ID ${id}: `,
         error
       );
-      res.status(500).json({
-        message: "Internal server error",
-      });
+      res.status(500).json({ message: "Internal server error" });
     }
   }
 
@@ -346,6 +459,91 @@ class WindowsAppInstanceController {
         `Error deleting Windows app instance with ID ${id}: `,
         error
       );
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+  static async reportAvailableDevices(req: Request, res: Response) {
+    const { id } = req.params;
+    const { devices: reportedDeviceNames } = req.body as {
+      devices: string[];
+    };
+
+    const numericInstanceId = parseInt(id, 10);
+
+    if (isNaN(numericInstanceId)) {
+      res.status(400).json({ message: "Invalid instance ID format" });
+      return;
+    }
+    if (!Array.isArray(reportedDeviceNames) || !reportedDeviceNames.every(name => typeof name === 'string')) {
+      res
+        .status(400)
+        .json({ message: "Invalid devices format; expected an array of strings." });
+      return;
+    }
+
+    const transaction = await DB.sequelize.transaction();
+    try {
+      const instance = await DB.windows_app_instances.findByPk(
+        numericInstanceId,
+        { transaction }
+      );
+      if (!instance) {
+        await transaction.rollback();
+        res
+          .status(404)
+          .json({ message: `Windows app instance with ID ${id} not found.` });
+        return;
+      }
+
+      const currentAvailableDevices = await DB.available_devices.findAll({
+        where: { instance_id: numericInstanceId },
+        transaction,
+      });
+      const currentDeviceNamesMap = new Map(currentAvailableDevices.map((d: { device_name: any; }) => [d.device_name, d]));
+
+      // Add new devices or update existing ones (though we mostly just care about existence here)
+      for (const name of reportedDeviceNames) {
+        if (!currentDeviceNamesMap.has(name)) {
+          await DB.available_devices.create(
+            {
+              instance_id: numericInstanceId,
+              device_name: name,
+              is_chosen: false, 
+            },
+            { transaction }
+          );
+        }
+      }
+
+      // Devices to remove
+      let chosenDeviceRemovedFlag = false;
+      for (const existingDevice of currentAvailableDevices) {
+        if (!reportedDeviceNames.includes(existingDevice.device_name)) {
+          if (instance.chosen_device_id === existingDevice.id) {
+            chosenDeviceRemovedFlag = true;
+          }
+          await existingDevice.destroy({ transaction });
+        }
+      }
+
+      if (chosenDeviceRemovedFlag) {
+        // The actively chosen device is no longer available.
+        // Nullify chosen_device_id on the instance. is_chosen on the (now deleted) device is irrelevant.
+        await instance.update({ chosen_device_id: null }, { transaction });
+      }
+
+      await transaction.commit();
+      const updatedInstanceData = await DB.windows_app_instances.findByPk(numericInstanceId, {
+        include: [
+            { model: DB.available_devices, as: "chosenDevice", required: false },
+            { model: DB.available_devices, as: "availableDevices", required: false },
+        ]
+      });
+      res.status(200).json({ message: "Available devices synchronized.", instance: updatedInstanceData });
+    } catch (error) {
+      await transaction.rollback();
+      console.error("Error reporting available devices: ", error);
       res.status(500).json({ message: "Internal server error" });
     }
   }

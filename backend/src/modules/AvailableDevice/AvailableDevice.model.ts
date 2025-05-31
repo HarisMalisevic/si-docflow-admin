@@ -10,7 +10,7 @@ export interface AvailableDeviceAttributes {
 }
 
 // Creation attributes (id is optional)
-export type AvailableDeviceCreationAttributes = Optional<AvailableDeviceAttributes, "id">;
+export type AvailableDeviceCreationAttributes = Optional<AvailableDeviceAttributes, "id" | "is_chosen">;
 
 // Update attributes
 export type AvailableDeviceUpdateAttributes = Partial<
