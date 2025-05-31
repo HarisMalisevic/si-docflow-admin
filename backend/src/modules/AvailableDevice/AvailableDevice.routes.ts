@@ -18,14 +18,4 @@ router.get(
   AvailableDeviceController.getByAppInstanceId
 );
 
-router.post("/", AuthMiddleware.isLoggedIn, AvailableDeviceController.create);
-
-router.put("/:id", AuthMiddleware.isLoggedIn, AvailableDeviceController.update);
-
-router.delete(
-  "/:id",
-  AuthMiddleware.isLoggedIn,
-  AvailableDeviceController.delete
-);
-
 export default router;
