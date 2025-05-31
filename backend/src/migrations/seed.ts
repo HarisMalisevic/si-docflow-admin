@@ -65,15 +65,15 @@ function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
     });
 }
 
-function fill_layout_images() {
+function fill_layout_images(layoutImages_arg: any[] = layoutImages_default) {
     return new Promise<void>(function (resolve, reject) {
         const layoutImages_PromiseList: Promise<any>[] = [];
         // Use imported layoutImages_default
-        layoutImages_default.forEach((layoutImage) => {
+        layoutImages_arg.forEach((layoutImage) => {
             layoutImages_PromiseList.push(
                 DB.layout_images.create({
                     id: layoutImage.id,
-                    image: layoutImage.image,
+                    image: Buffer.from(layoutImage.image_base64, 'base64'),
                     width: layoutImage.width,
                     height: layoutImage.height,
                 })
@@ -93,11 +93,11 @@ function fill_layout_images() {
     });
 }
 
-function fill_document_layouts() {
+function fill_document_layouts(documentLayouts_arg: any[] = documentLayouts_default) {
     return new Promise<void>(function (resolve, reject) {
         const documentLayouts_PromiseList: Promise<any>[] = [];
         // Use imported documentLayouts_default
-        documentLayouts_default.forEach((documentLayout) => {
+        documentLayouts_arg.forEach((documentLayout) => {
             documentLayouts_PromiseList.push(
                 DB.document_layouts.create({
                     id: documentLayout.id,
@@ -121,11 +121,11 @@ function fill_document_layouts() {
     });
 }
 
-function fill_document_types() {
+function fill_document_types(documentTypes_arg: any[] = documentTypes_default) {
     return new Promise<void>(function (resolve, reject) {
         const documentTypes_PromiseList: Promise<any>[] = [];
         // Use imported documentTypes_default
-        documentTypes_default.forEach((documentType) => {
+        documentTypes_arg.forEach((documentType) => {
             documentTypes_PromiseList.push(
                 DB.document_types.create({
                     id: documentType.id,
@@ -149,12 +149,12 @@ function fill_document_types() {
     });
 }
 
-function fill_ai_providers() {
+function fill_ai_providers(aiProviders_arg: any[] = aiProviders_default) {
     return new Promise<void>(function (resolve, reject) {
         const aiProviders_PromiseList: Promise<any>[] = [];
         // Use imported aiProviders_default
 
-        aiProviders_default.forEach((aiProvider) => {
+        aiProviders_arg.forEach((aiProvider) => {
             aiProviders_PromiseList.push(
                 DB.ai_providers.create({
                     id: aiProvider.id,
@@ -176,11 +176,11 @@ function fill_ai_providers() {
     });
 }
 
-function fill_windows_app_instances() {
+function fill_windows_app_instances(windowsAppInstances_arg: any[] = windowsAppInstances_default) {
     return new Promise<void>(function (resolve, reject) {
         const windowsAppInstances_PromiseList: Promise<any>[] = [];
         // Use imported windowsAppInstances_default
-        windowsAppInstances_default.forEach((windowsAppInstance) => {
+        windowsAppInstances_arg.forEach((windowsAppInstance) => {
             windowsAppInstances_PromiseList.push(
                 DB.windows_app_instances.create({
                     id: windowsAppInstance.id,
