@@ -24,6 +24,7 @@ class UniversalDeviceInterfaceLogController {
                 !app_instance_id
             ) {
                 res.status(400).json({ message: "Missing required fields" });
+                return;
             }
 
             const newLog = await DB.universal_device_interface_logs.create({
@@ -39,6 +40,7 @@ class UniversalDeviceInterfaceLogController {
         } catch (error) {
             console.error("Error creating universal device interface log: ", error);
             res.status(500).json({ message: "Internal server error" });
+            return;
         }
     }
 
