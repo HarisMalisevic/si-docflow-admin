@@ -6,34 +6,10 @@ import documentTypes_default from './seed_data/documentTypes_default';
 import aiProviders_default from './seed_data/aiProviders_default';
 import adminUsers_default from './seed_data/adminUsers_default';
 import windowsAppInstances_default from './seed_data/windowsAppInstances_default';
+import ssoProviders_default from './seed_data/ssoProviders_default';
 
 // THIS FILE MUST NOT BE IMPORTED OR USED IN PRODUCTION ENVIRONMENT!
 // THIS FILE IS FOR TESTING PURPOSES ONLY!
-
-let ssoProviders_default: any[] = [];
-
-try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    ssoProviders_default = require('./sso_init').default;
-    if (!Array.isArray(ssoProviders_default)) {
-        throw new Error("sso_init module does not export a default array.");
-    }
-    const hasGoogle = ssoProviders_default.some(
-        (provider) =>
-            provider.api_name === 'google' ||
-            provider.display_name?.toLowerCase().includes('google')
-    );
-    if (!hasGoogle) {
-        throw new Error("sso_init must contain at least Google as SSO provider.");
-    }
-} catch (error) {
-    throw new Error(
-        "sso_init module not found or invalid, and ssoProviders_default must contain at least Google. See sso_init.ts.example. " +
-        error
-    );
-}
-
-
 
 function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
     return new Promise<void>(function (resolve, reject) {
