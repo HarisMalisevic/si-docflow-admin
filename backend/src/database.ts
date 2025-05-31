@@ -22,6 +22,7 @@ import { initAIProvider } from './modules/AIProvider/AIProvider.model';
 import { initProcessingRequestsBillingLog } from './modules/ProcessingRequestBillingLog/ProcessingRequestBillingLog.model';
 import { initProcessingResultsTriplet } from './modules/ProcessingResultTriplet/ProcessingResultTriplet.model';
 import { initUniversalDeviceInterfaceLog } from './modules/UniversalDeviceInterfaceLog/UniversalDeviceInterfaceLog.model';
+import { initAvailableDevice } from './modules/AvailableDevice/AvailableDevice.model';
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../.env"));
@@ -66,6 +67,7 @@ DB.ai_providers = initAIProvider(sequelize_obj);
 DB.processing_requests_billing_logs = initProcessingRequestsBillingLog(sequelize_obj);
 DB.processing_results_triplets = initProcessingResultsTriplet(sequelize_obj);
 DB.universal_device_interface_logs = initUniversalDeviceInterfaceLog(sequelize_obj);
+DB.available_devices = initAvailableDevice(sequelize_obj);
 
 // Relacije
 DB.sso_providers.hasMany(DB.admin_users, {
@@ -216,7 +218,6 @@ DB.admin_users.hasMany(DB.processing_rule_destinations, {
   onDelete: 'SET NULL',
   as: 'processing_rule_destinations_updated',
 });
-
 
 
 export default DB;
