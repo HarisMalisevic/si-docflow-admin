@@ -198,7 +198,7 @@ Running this command will erase all existing data in the database and replace it
 
 1. Clone latest version from dev branch:
     ```sh
-    git clone https://github.com/your-org/si-docflow-admin.git
+    git clone https://github.com/HarisMalisevic/si-docflow-admin
     cd si-docflow-admin
     ```
 
