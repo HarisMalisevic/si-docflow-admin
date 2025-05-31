@@ -1,15 +1,20 @@
-import db from "../database/db";
+import DB from "../database";
 
 async function db_sync() {
-    if (!db.sequelize) {
-        throw new Error("Sequelize connection is not defined")
+    if (!DB.sequelize) {
+        throw new Error("Sequelize connection is not defined");
     }
 
-    db.sequelize.sync({ force: true }).then(function () {
-        console.log("Database synchronized!");
-    })
+    // Check for -F flag in command line arguments
+    const force = process.argv.includes('-F');
+
+    console.log(`Running database synchronization with force: ${force}`);
+
+    await DB.sequelize.sync({ force, alter: !force });
+    
+    console.log(`Database synchronized! (force: ${force}, alter: ${!force})`);
 }
 
-console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! migrate.js/.ts")
+console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! migrate.js/.ts");
 
-db_sync()
+db_sync();
