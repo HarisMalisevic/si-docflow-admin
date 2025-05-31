@@ -1,5 +1,5 @@
 import { useState, FormEvent, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button, Dropdown, Stack, Form, Spinner } from "react-bootstrap";
 import "../App.css";
 import GoogleLogo from "../assets/GoogleLogo.svg";
@@ -7,6 +7,9 @@ import GoogleLogo from "../assets/GoogleLogo.svg";
 function LoginForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [emailInput, setEmailInput] = useState<string>('');
+  const [passwordInput, setPasswordInput] = useState<string>('');
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const [otherSSOProviders, setOtherSSOProviders] = useState<
     { name: string; callback_url: string }[] | null
@@ -45,33 +48,52 @@ function LoginForm() {
     window.location.href = `/auth/${provider_name}/login`;
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const validateForm = () => {
+    const newErrors: { email?: string; password?: string } = {};
+    if (!emailInput.trim()) {
+        newErrors.email = "Email is required.";
+    }
+    else if(!isValidEmail(emailInput)) {
+      newErrors.email = "Invalid email format";
+    }
+    if (!passwordInput.trim()) {
+        newErrors.password = "Password is required.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
     setIsLoading(true);
 
-    const formData = new FormData(e.currentTarget);
     const loginData = {
-      email: formData.get("email"),
-      password: formData.get("password"),
+      email: emailInput,
+      password: passwordInput,
     };
 
     try {
-      //zamijeniti sa rutom za tradicionalni login
       const response = await fetch("/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(loginData),
+        credentials: "include",
       });
 
       if (response.ok) {
-        // rutiranje na stranicu za managanje dokumentima
-        // promijeniti i odgovarajuci path na app.tsx
-        navigate("/dashboard");
+        window.location.href = "/home";
+      }
+      else {
+        const newErrors: { email?: string; password?: string } = {};
+        newErrors.password = "Invalid password";
+        setErrors(newErrors);
       }
     } catch (error) {
-      console.error("Greska prilikom prijave:", error);
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -151,26 +173,39 @@ function LoginForm() {
             <hr className="flex-grow-1" />
           </div>
 
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3" controlId="loginFormEmail">
+          <Form onSubmit={(e) => e.preventDefault()}>
+            <Form.Group className="mb-2" controlId="loginFormEmail">
               <Form.Label>Email address</Form.Label>
               <Form.Control
                 type="email"
-                name="email"
+                value={emailInput}
                 placeholder="example@example.com"
+                onChange={(e) => setEmailInput(e.target.value)}
+                isInvalid={!!errors.email}
               />
+              <Form.Control.Feedback type="invalid">
+                  {errors.email}
+              </Form.Control.Feedback>
             </Form.Group>
-
-            <Form.Group className="mb-3" controlId="loginFormPassword">
+            
+            <Form.Group className="mb-2" controlId="loginFormPassword">
               <Form.Label>Password</Form.Label>
-              <Form.Control type="password" name="password" />
+              <Form.Control 
+                type="password" 
+                value={passwordInput} 
+                onChange={(e) => setPasswordInput(e.target.value)}
+                isInvalid={!!errors.password}
+              />
+              <Form.Control.Feedback type="invalid">
+                  {errors.password}
+              </Form.Control.Feedback>
             </Form.Group>
 
             <div className="d-grid mt-4">
               <Button
                 variant="success"
                 size="lg"
-                type="submit"
+                onClick={handleSubmit}
                 className="btn-custom-green"
                 disabled={isLoading}
               >
@@ -192,6 +227,15 @@ function LoginForm() {
               </Button>
             </div>
           </Form>
+          <div className="d-flex justify-content-center align-items-center mt-3">
+          <div className="text-muted me-2">Don't have an account?</div>
+          <Link
+            to="/register"
+            className="fw-semibold text-success text-decoration-none"
+          >
+            Register
+          </Link>
+        </div>
         </Stack>
       </div>
     </div>

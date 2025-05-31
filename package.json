@@ -21,6 +21,10 @@
   },
   "homepage": "https://github.com/HarisMalisevic/si-docflow-admin#readme",
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/node-fetch": "^2.6.12"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0"
   }
 }
