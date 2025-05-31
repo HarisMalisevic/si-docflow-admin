@@ -11,7 +11,8 @@ This repository contains the source code for Admin Web Application (React) for a
 - [Installation and Configuration](#installation-and-configuration)
   - [Installing Node.js, npm, PostgreSQL, and Git](#installing-nodejs-npm-postgresql-and-git)
   - [Environment Variables (.env)](#environment-variables-env)
-- [Steps to Initialize the System (Universal)](#steps-to-initialize-the-system-universal)
+    - [Google OAuth Environment Variables](#google-oauth-environment-variables)
+- [Steps to Initialize the System](#steps-to-initialize-the-system)
   - [Database Deployment](#database-deployment)
     - [Running Database Migrations](#running-database-migrations)
     - [Seeding the Database (Test Data)](#seeding-the-database-test-data)
@@ -153,8 +154,35 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 **Note:**  
 Ensure that these variables are set in your `.env` file before starting the application.
 
-**You are now ready to run SI Docflow Admin on any supported platform.**
+### Google OAuth Environment Variables
 
+To enable Google Single Sign-On (SSO), you must set the following variables in your `.env` file (see `.env.example` for reference):
+
+- `GOOGLE_CLIENT_ID`  
+  The Client ID from your Google Cloud OAuth 2.0 credentials.
+
+- `GOOGLE_CLIENT_SECRET`  
+  The Client Secret from your Google Cloud OAuth 2.0 credentials.
+
+- `GOOGLE_CALLBACK_URL`  
+  The callback URL registered in your Google Cloud project (must match the URL configured in the Google Cloud Console, e.g., `https://your-domain.com/auth/google/callback`).
+
+**How to obtain these values:**
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/) and log in
+2. Create a new project or select an existing one (top left of the screen).
+3. Open the menu on the left side of the screen and navigate to "APIs & Services" > "Credentials". You will be prompted to configure a consent screen - this is mandatory.
+4. Click "Create Credentials" > "OAuth client ID".
+5. Set the application type to "Web application".
+6. Add your authorized redirect URI (e.g., `https://your-domain.com/auth/google/callback`).
+7. Copy the generated Client ID and Client Secret into your `.env` file.
+8. Set `GOOGLE_CALLBACK_URL` to the same redirect URI you registered.
+
+**Example:**
+```env
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GOOGLE_CALLBACK_URL=https://your-domain.com/auth/google/callback
+```
 
 # Steps to initialize the system (universal)
 
@@ -168,6 +196,7 @@ Ensure that these variables are set in your `.env` file before starting the appl
 
 ### Running Database Migrations
 
+Before you can start database migrations, you must prepare .env variables as described in previous section.
 To initialize or update the database schema, run the migration scripts using the following command from the `/backend` directory:
 
 ```sh
@@ -213,9 +242,8 @@ Running this command will erase all existing data in the database and replace it
 
 5. Set `SESSION_SECRET` to a secure random string
 
-6. Write `sso_init.ts` based on example `sso_init.ts.example`  
-   (location: `si-docflow-admin/backend/src/migrations`)
-   - **MUST HAVE VALID [Google OAuth 2.0 credentials](https://console.cloud.google.com)**
+6. Write Google OAuth variables in .env.
+More at [Google OAuth Environment Variables](#google-oauth-environment-variables)
 
 7. Build the project:
     ```sh
@@ -228,7 +256,6 @@ Running this command will erase all existing data in the database and replace it
     ```
 
     **Note:**
-    `npm run migrate` will prepare available SSO Providers from `sso_init.ts`. 
     You can run `npm run seed` to populate the database with starting default data for development and testing.  
     To change the default starting data, edit the files in `backend/src/migrations/seed_data`.
 
@@ -236,11 +263,6 @@ Running this command will erase all existing data in the database and replace it
     ```sh
     npm run start
     ```
-
-**Note**
-No default users or passwords are provided.
-To log in, you must use a SSO Provider you provided in `sso_init.ts`
-
 
 
 # About the project
