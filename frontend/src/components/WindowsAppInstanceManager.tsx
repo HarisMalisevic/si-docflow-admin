@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
-import { Container, Form, Row, Col, Button, Table, Alert, Modal } from "react-bootstrap";
+import { Container, Form, Row, Col, Button, Table, Alert, Modal, Spinner } from "react-bootstrap";
 
 enum OperationalMode {
     HEADLESS = "headless",
     STANDALONE = "standalone",
+}
+
+interface ScanningDevice {
+    id: number;
+    instance_id: number;
+    device_name: string;
+    is_chosen: boolean;
 }
 
 interface ApplicationInstance {
@@ -13,6 +20,7 @@ interface ApplicationInstance {
     machine_id: string;
     operational_mode: OperationalMode;
     polling_frequency?: number;
+    chosen_device?: ScanningDevice;         // use the FK to fix this !!!
 }
 
 function WindowsAppInstanceManager() {
@@ -29,16 +37,39 @@ function WindowsAppInstanceManager() {
     const [searchQuery, setSearchQuery] = useState<string>("");
     const [changesMade, setChangesMade] = useState(false);
     const [waitingForSave, setWaitingForSave] = useState(false);
+    const [appInstancesLoading, setAppInstancesLoading] = useState(false);
+    const [scanningDevices, setScanningDevices] = useState<ScanningDevice[]>([]);
+    const [scanningDevicesLoading, setScanningDevicesLoading] = useState(false);
+    const [chosenScanningDeviceId, setChosenScanningDeviceId] = useState<number | null>(null);
 
     const fetchAppInstances = async () => {
+        setAppInstancesLoading(true);
+
         try {
             const response = await fetch("/api/windows-app-instance");
             const data = await response.json();
             setAppInstances(data);
         } catch(error) {
             console.error("Error while fetching app instances: ", error);
+        } finally {
+            setAppInstancesLoading(false);
         }
     };
+
+    const fetchDevicesForAppInstance = async () => {
+        setScanningDevicesLoading(true);
+
+        try {
+            // EXAMPLE
+            // const response = await fetch(`/api/scanning-devices/${pollingFreqEditingId}`);
+            // const data = await response.json();
+            // setScanningDevices(data);
+        } catch(error) {
+            console.error(`Error while fetching scanning devices for instance ID ${pollingFreqEditingId}: `, error);
+        } finally {
+            setScanningDevicesLoading(false);
+        }
+    }
 
     useEffect(() => { fetchAppInstances(); }, []);
 
@@ -151,12 +182,18 @@ function WindowsAppInstanceManager() {
         resetForm();
         setPollingFreqEditingId(appInstance.id);
         setPollingFrequencyHours(appInstance.polling_frequency ?? 0);
+
+        /*if(appInstance.operational_mode === OperationalMode.HEADLESS){
+            fetchDevicesForAppInstance();
+            setChosenScanningDeviceId(appInstance.chosen_device?.id ?? null);
+        }*/
     }
 
-    const handleSavePollingFrequency = async () => {
+    const handleSaveConfiguration = async () => {
         setWaitingForSave(true);
 
         try {
+            // update polling frequency
             const response = await fetch(`/api/windows-app-instance/${pollingFreqEditingId}`, {
                 method: "PUT",
                 credentials: "include",
@@ -169,16 +206,40 @@ function WindowsAppInstanceManager() {
             });
 
             if (response.ok) {
-                window.alert("Polling frequency successfully configured!");
-                setPollingFreqEditingId(null);
+                window.alert("Instance successfully configured!");  // move
+                setPollingFreqEditingId(null);  // move
                 setPollingFrequencyHours(0);
-                setWaitingForSave(false);
-                fetchAppInstances();
+                setWaitingForSave(false);   // move
+                fetchAppInstances();    // move
             } else {
                 console.error("Failed to configure polling frequency");
             }
+
+            // update chosen scanning device
+            // EXAMPLE
+            /* const responseScanningDevice = await fetch(`/api/scanning-device/${chosenScanningDeviceId}`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    is_chosen: true
+                }),
+            });
+
+            if (responseScanningDevice.ok) {
+                window.alert("Instance successfully configured!");
+                setPollingFreqEditingId(null);
+                setScanningDevices([]);
+                setChosenScanningDeviceId(null);
+                setWaitingForSave(false);
+                fetchAppInstances();
+            } else {
+                console.error("Failed to select scanning device");
+            } */
         } catch (error) {
-            console.error("Error saving polling frequency: ", error);
+            console.error("Error saving instance configuration: ", error);
         }
     };
 
@@ -277,19 +338,43 @@ function WindowsAppInstanceManager() {
                 </Col>
             </Row>
 
-            <Row className="mb-4" style={{ marginTop: "70px" }}>
-                <Col md={8} className="mx-auto">
-                    <Form className="d-flex w-50 mb-3" >
+            <Row className="align-items-end justify-content-between mb-3" style={{ marginTop: "70px" }}>
+                <Col md={4}>
+                    <Form className="d-flex" >
                         <Form.Control
                             type="text"
-                            placeholder="Search documents"
+                            placeholder="Search app instances"
                             className="me-2"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                         <Button variant="secondary">Search</Button>
                     </Form>
-                
+                </Col>
+                <Col md="auto">
+                    <Button
+                        variant="success"
+                        onClick={fetchAppInstances}
+                        disabled={appInstancesLoading}
+                        className="w-100 w-md-auto"
+                        style={{ minWidth: "100px" }}
+                    >
+                    {appInstancesLoading ? (
+                        <Spinner
+                        as="span"
+                        animation="border"
+                        size="sm"
+                        role="status"
+                        aria-hidden="true"
+                        />
+                    ) : (
+                        "Refresh"
+                    )}
+                    </Button>
+                </Col>
+            </Row>
+            <Row className="justify-content-center">
+                <Col>
                     <Table striped bordered hover>
                         <thead>
                             <tr>
@@ -299,6 +384,7 @@ function WindowsAppInstanceManager() {
                                 <th>Machine ID</th>
                                 <th>Operational Mode</th>
                                 <th>Polling Frequency (hours)</th>
+                                <th>Scanning Device</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -312,6 +398,11 @@ function WindowsAppInstanceManager() {
                                         <td>{app.machine_id}</td>
                                         <td>{app.operational_mode}</td>
                                         <td>{!app.polling_frequency ? '-' : app.polling_frequency}</td>
+                                        <td>{
+                                            app.operational_mode === OperationalMode.HEADLESS 
+                                                ? (app.chosen_device?.device_name ?? <strong>No device selected</strong>) 
+                                                : '-'
+                                        }</td>
                                         <td className="text-center" style={{ whiteSpace: "nowrap", padding: "5px 5px 0px 5px" }}>
                                             <Button
                                                 variant="primary"
@@ -350,7 +441,13 @@ function WindowsAppInstanceManager() {
                         </tbody>
                     </Table>
 
-                    <Modal show={pollingFreqEditingId !== null} onHide={() => setPollingFreqEditingId(null)}>
+                    <Modal 
+                        show={pollingFreqEditingId !== null && !scanningDevicesLoading} 
+                        onHide={() => {
+                            setPollingFreqEditingId(null);
+                            setScanningDevices([]);
+                            setChosenScanningDeviceId(null);
+                        }}>
                         <Modal.Header closeButton>
                         <Modal.Title>Configure Polling Frequency</Modal.Title>
                         </Modal.Header>
@@ -363,6 +460,28 @@ function WindowsAppInstanceManager() {
                                 value={pollingFrequencyHours}
                                 onChange={(e) => setPollingFrequencyHours(Number(e.target.value))}
                             />
+
+                            {(appInstances.find(
+                                (instance) => instance.id === pollingFreqEditingId
+                            )?.operational_mode === OperationalMode.HEADLESS) 
+                            && <Form.Group controlId="scanning-device">
+                                <Form.Label>Scanning Device</Form.Label>
+                                <Form.Control
+                                    as="select"
+                                    onChange={(e) => {
+                                        setChosenScanningDeviceId(Number(e.target.value) || null);
+                                    }}
+                                    value={chosenScanningDeviceId || 0}
+                                    style={{ width: "250px" }}
+                                >
+                                    <option value={0}>Select Scanning Device</option>
+                                    {scanningDevices.map((device) => (
+                                    <option key={device.id} value={device.id}>
+                                        {device.device_name}
+                                    </option>
+                                    ))}
+                                </Form.Control>
+                            </Form.Group>}
                         </Form>
                         <div 
                             className="d-flex justify-content-between"
@@ -370,7 +489,7 @@ function WindowsAppInstanceManager() {
                         >
                             <Button 
                                 variant="success" 
-                                onClick={handleSavePollingFrequency} 
+                                onClick={handleSaveConfiguration} 
                                 disabled={waitingForSave}
                             >
                                 Save
@@ -381,6 +500,8 @@ function WindowsAppInstanceManager() {
                                     setPollingFreqEditingId(null);
                                     setPollingFrequencyHours(0);
                                     setWaitingForSave(false);
+                                    setScanningDevices([]);
+                                    setChosenScanningDeviceId(null);
                                 }} 
                                 disabled={waitingForSave}
                             >
