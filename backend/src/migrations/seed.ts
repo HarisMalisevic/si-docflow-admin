@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import db from '../database/db'; // Importing the database connection and models
+import DB from '../database'; // Importing the database connection and models
 
 // THIS FILE MUST NOT BE IMPORTED OR USED IN PRODUCTION ENVIRONMENT!
 // THIS FILE IS FOR TESTING PURPOSES ONLY!
 
 let ssoProviders_default: any[] = [];
+
 try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     ssoProviders_default = require('./sso_init').default;
 } catch (error) {
-    console.warn("sso_init module not found, using empty array for ssoProviders_default. " + error);
+    console.warn("sso_init module not found, using empty array for ssoProviders_default.\nSee sso_init.ts.example" + error);
 }
 
 function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
@@ -17,7 +18,7 @@ function fill_sso_providers(ssoProviders_arg: any[] = ssoProviders_default) {
         const ssoProviders_PromiseList: Promise<any>[] = [];
         ssoProviders_arg.forEach((provider) => {
             ssoProviders_PromiseList.push(
-                db.sso_providers.create({
+                DB.sso_providers.create({
                     display_name: provider.display_name,
                     api_name: provider.api_name,
                     client_id: provider.clientId,
@@ -62,7 +63,7 @@ function fill_layout_images() {
 
         layoutImages_default.forEach((layoutImage) => {
             layoutImages_PromiseList.push(
-                db.layout_images.create({
+                DB.layout_images.create({
                     id: layoutImage.id,
                     image: layoutImage.image,
                     width: layoutImage.width,
@@ -285,7 +286,7 @@ function fill_document_layouts() {
 
         documentLayouts_default.forEach((documentLayout) => {
             documentLayouts_PromiseList.push(
-                db.document_layouts.create({
+                DB.document_layouts.create({
                     id: documentLayout.id,
                     name: documentLayout.name,
                     fields: documentLayout.fields,
@@ -327,7 +328,7 @@ function fill_document_types() {
 
         documentTypes_default.forEach((documentType) => {
             documentTypes_PromiseList.push(
-                db.document_types.create({
+                DB.document_types.create({
                     id: documentType.id,
                     name: documentType.name,
                     description: documentType.description,
@@ -369,7 +370,7 @@ function fill_ai_providers() {
 
         aiProviders_default.forEach((aiProvider) => {
             aiProviders_PromiseList.push(
-                db.ai_providers.create({
+                DB.ai_providers.create({
                     id: aiProvider.id,
                     name: aiProvider.name,
                 })
@@ -405,7 +406,7 @@ function fill_windows_app_instances() {
 
         windowsAppInstances_default.forEach((windowsAppInstance) => {
             windowsAppInstances_PromiseList.push(
-                db.windows_app_instances.create({
+                DB.windows_app_instances.create({
                     id: windowsAppInstance.id,
                     title: windowsAppInstance.title,
                     location: windowsAppInstance.location,
@@ -429,6 +430,7 @@ function fill_windows_app_instances() {
     });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function fill_admin_users() {
     return new Promise<void>(function (resolve, reject) {
         const adminUsers_PromiseList: Promise<any>[] = [];
@@ -461,7 +463,7 @@ function fill_admin_users() {
 
         adminUsers_default.forEach((user) => {
             adminUsers_PromiseList.push(
-                db.admin_users.create({
+                DB.admin_users.create({
                     email: user.email,
                     password: user.password,
                     sso_provider: user.sso_provider,
@@ -485,10 +487,10 @@ function fill_admin_users() {
 }
 
 async function db_seed() {
-    if (!db.sequelize) {
+    if (!DB.sequelize) {
         throw new Error("Sequelize connection is not defined")
     }
-    db.sequelize.sync({ force: true }).then(function () {
+    DB.sequelize.sync({ force: true }).then(function () {
         fill_layout_images().then(function () {
             console.log("Layout image seeding done!");
         });
