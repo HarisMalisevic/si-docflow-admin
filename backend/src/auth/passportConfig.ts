@@ -1,16 +1,17 @@
-import db from '../database/db';
-import createAuthStrategy from './AuthStrategy';
+import DB from '../database';
+import createAuthStrategy from './createAuthStrategy';
 import { PassportStatic } from 'passport';
-import SSOProvider from 'database/SSOProvider';
-import createGoogleStrategy from './googleAuthStrategy';
-import { GOOGLE_API_NAME } from './googleAuthStrategy';
-import createBitbucketStrategy, { BITBUCKET_API_NAME } from './bitbucketAuthStrategy';
+import SSOProvider from 'modules/SSOProvider/SSOProvider.model';
+import createGoogleStrategy from './SpecificAuthStrategies/GoogleAuthStrategy';
+import { GOOGLE_API_NAME } from './SpecificAuthStrategies/GoogleAuthStrategy';
+import createBitbucketStrategy from './SpecificAuthStrategies/BitbucketAuthStrategy';
+import { BITBUCKET_API_NAME } from './SSO_DEFAULTS';
 
 
 async function configurePassport(passport: PassportStatic) {
 
 
-  const ssoProviders: SSOProvider[] = await db.sso_providers.findAll();
+  const ssoProviders: SSOProvider[] = await DB.sso_providers.findAll();
 
   if (!ssoProviders || ssoProviders.length === 0) {
     throw new Error("No SSO providers found in the database.");
@@ -38,7 +39,7 @@ async function configurePassport(passport: PassportStatic) {
 
   passport.deserializeUser(async function (id: number, done) {
     try {
-      const user = await db.admin_users.findByPk(id);
+      const user = await DB.admin_users.findByPk(id);
       done(null, user);
     } catch (err) {
       done(err);
