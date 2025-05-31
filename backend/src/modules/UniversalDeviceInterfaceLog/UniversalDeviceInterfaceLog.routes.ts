@@ -10,6 +10,12 @@ router.get(
     UniversalDeviceInterfaceLogController.getAll
 );
 
+router.post(
+    "/",
+    AuthMiddleware.isLoggedIn,
+    UniversalDeviceInterfaceLogController.create
+);
+
 router.get(
     "/latest/:n",
     AuthMiddleware.isLoggedIn,
