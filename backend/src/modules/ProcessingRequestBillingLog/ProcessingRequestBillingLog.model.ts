@@ -6,7 +6,6 @@ import AIProvider from "../AIProvider/AIProvider.model";
 interface ProcessingRequestsBillingLogAttributes {
     id: number;
     document_type_id: number;
-    file_name: string;
     ai_provider_id: number;
     price: number;
 }
@@ -18,7 +17,6 @@ export type ProcessingRequestsBillingLogCreationAttributes = Optional<Processing
 class ProcessingRequestsBillingLog extends Model<ProcessingRequestsBillingLogAttributes, ProcessingRequestsBillingLogCreationAttributes> implements ProcessingRequestsBillingLogAttributes {
     public id!: number;
     public document_type_id!: ForeignKey<DocumentType["id"]>;
-    public file_name!: string;
     public ai_provider_id!: ForeignKey<AIProvider["id"]>;;
     public price!: number;
 }
@@ -40,10 +38,6 @@ export function initProcessingRequestsBillingLog(sequelize: Sequelize) {
                 },
                 onUpdate: "CASCADE",
                 onDelete: "CASCADE",
-            },
-            file_name: {
-                type: DataTypes.STRING,
-                allowNull: false,
             },
             ai_provider_id: {
                 type: DataTypes.INTEGER,
