@@ -9,10 +9,10 @@ function fill_sso_providers() {
     return new Promise<void>(function (resolve, reject) {
         const ssoProviders_PromiseList: Promise<void>[] = [];
 
-
         ssoProviders_default.forEach((provider) => {
             ssoProviders_PromiseList.push(
-                DB.sso_providers.create({
+                // Use upsert to avoid duplicate key errors
+                DB.sso_providers.upsert({
                     display_name: provider.display_name,
                     api_name: provider.api_name,
                     client_id: provider.clientId,
@@ -20,20 +20,21 @@ function fill_sso_providers() {
                     callback_url: provider.callbackURL,
                     authorization_url: provider.authorizationURL,
                     token_url: provider.tokenURL,
+                }).then(() => {
+                    console.log("SSO provider upserted:", provider.api_name);
                 })
             );
-            console.log("SSO provider created:", provider.api_name)
         });
 
         Promise.all(ssoProviders_PromiseList)
             .then(() => {
-                console.log("SSO providers table filled!")
+                console.log("SSO providers table filled!");
                 resolve();
             })
             .catch((err) => {
                 console.error("Error while resolving SSO providers table", err);
                 reject(err);
-            })
+            });
     });
 }
 

@@ -40,7 +40,7 @@ const sequelize_obj = new Sequelize(connectionString,
   });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const DB: { Sequelize?: typeof Sequelize; sequelize?: Sequelize;[key: string]: any } = {};
+const DB: { Sequelize: typeof Sequelize; sequelize: Sequelize;[key: string]: any } = {} as any;
 
 DB.Sequelize = Sequelize;
 DB.sequelize = sequelize_obj;
@@ -217,6 +217,20 @@ DB.admin_users.hasMany(DB.processing_rule_destinations, {
   foreignKey: 'updated_by',
   onDelete: 'SET NULL',
   as: 'processing_rule_destinations_updated',
+});
+
+DB.windows_app_instances.hasMany(DB.available_devices, {
+  foreignKey: "instance_id", 
+  as: "availableDevices",    
+  onDelete: "CASCADE",       
+  onUpdate: "CASCADE",
+});
+
+DB.available_devices.belongsTo(DB.windows_app_instances, {
+  foreignKey: "instance_id",
+  as: "instance", 
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
 });
 
 

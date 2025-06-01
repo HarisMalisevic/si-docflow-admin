@@ -2,7 +2,7 @@ import { Sequelize, DataTypes, Model, Optional, ForeignKey } from "sequelize";
 import WindowsAppInstance from "../WindowsAppInstance/WindowsAppInstance.model";
 
 // Define the attributes for the AvailableDevice model
-interface AvailableDeviceAttributes {
+export interface AvailableDeviceAttributes {
     id: number;
     instance_id: number;
     device_name: string;
@@ -10,7 +10,12 @@ interface AvailableDeviceAttributes {
 }
 
 // Creation attributes (id is optional)
-type AvailableDeviceCreationAttributes = Optional<AvailableDeviceAttributes, "id">;
+export type AvailableDeviceCreationAttributes = Optional<AvailableDeviceAttributes, "id" | "is_chosen">;
+
+// Update attributes
+export type AvailableDeviceUpdateAttributes = Partial<
+  Omit<AvailableDeviceAttributes, "id" | "instance_id">
+>;
 
 // Define the AvailableDevice model class
 class AvailableDevice extends Model<AvailableDeviceAttributes, AvailableDeviceCreationAttributes>
