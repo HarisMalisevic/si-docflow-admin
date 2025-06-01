@@ -6,6 +6,7 @@ import API_ROUTER from './router';
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import dotenv from "dotenv";
+import { swaggerUiMiddleware, swaggerUiSetup } from './swagger';
 
 dotenv.config();
 
@@ -68,6 +69,7 @@ APP.use(session({
 APP.use(passport.initialize());
 APP.use(passport.session());
 
+APP.use('/api-docs', swaggerUiMiddleware, swaggerUiSetup);
 APP.use("/", API_ROUTER);
 
 httpServer.listen(PORT, () => {
