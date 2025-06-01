@@ -56,6 +56,7 @@ export function initExternalAPIEndpoint(sequelize: Sequelize): typeof ExternalAP
             is_active: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
+                defaultValue: true,
             },
             method: {
                 type: DataTypes.TEXT,
