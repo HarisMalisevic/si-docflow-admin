@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Form, Spinner, Stack } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function RegistrationForm() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,6 +68,10 @@ function RegistrationForm() {
             className="p-4 p-md-5 border rounded-4 bg-white shadow"
             style={{ width: "100%" }}
             >
+            <Link to="/login" className="text-decoration-none d-inline-flex align-items-center text-success fw-semibold back-to-login-link mb-2">
+                ← Back to Login
+            </Link>
+
             <h2 className="text-center fw-bold mb-3">
                 Welcome to DocFlow
             </h2>
