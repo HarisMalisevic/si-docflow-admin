@@ -217,35 +217,28 @@ async function db_seed() {
     if (!DB.sequelize) {
         throw new Error("Sequelize connection is not defined")
     }
-    DB.sequelize.sync({ force: true }).then(function () {
-        fill_layout_images().then(function () {
-            console.log("Layout image seeding done!");
-        });
+    await DB.sequelize.sync({ force: true });
 
-        fill_document_layouts().then(function () {
-            console.log("Document layout seeding done!");
-        });
+    await fill_layout_images();
+    console.log("Layout image seeding done!");
 
-        fill_document_types().then(function () {
-            console.log("Document type seeding done!");
-        });
+    await fill_document_layouts();
+    console.log("Document layout seeding done!");
 
-        fill_ai_providers().then(function () {
-            console.log("AI provider seeding done!");
-        });
+    await fill_document_types();
+    console.log("Document type seeding done!");
 
-        fill_windows_app_instances().then(function () {
-            console.log("Windows app instance seeding done!");
-        });
+    await fill_ai_providers();
+    console.log("AI provider seeding done!");
 
-        fill_sso_providers().then(function () {
-            console.log("SSO Provider seeding done!");
-        });
+    await fill_windows_app_instances();
+    console.log("Windows app instance seeding done!");
 
-        // fill_admin_users().then(function () {
-        //     console.log("Admin Users seeding done!");
-        // });
-    });
+    await fill_sso_providers();
+    console.log("SSO Provider seeding done!");
+
+    // await fill_admin_users();
+    // console.log("Admin Users seeding done!");
 }
 
 console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! seed.js/.ts");
