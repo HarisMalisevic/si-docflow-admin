@@ -13,9 +13,21 @@ router.get(
 );
 
 router.get(
-  "/app-instance/:id",
+  "/app-instance/:instance_id",
   AuthMiddleware.isLoggedIn,
   AvailableDeviceController.getByAppInstanceId
 );
+
+router.get(
+  "/app-instance/chosen-device/:instance_id",
+  AuthMiddleware.isLoggedIn,
+  AvailableDeviceController.getChosenDeviceForInstance
+)
+
+router.put(
+  "/app-instance/chosen-device/:instance_id",
+  AuthMiddleware.isLoggedIn,
+  AvailableDeviceController.setChosenDeviceForInstance
+)
 
 export default router;
