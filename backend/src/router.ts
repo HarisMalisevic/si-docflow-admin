@@ -28,10 +28,57 @@ const FRONTEND_BUILD_PATH = path.join(__dirname, "../../frontend/build");
 const API_ROUTER = express.Router();
 
 // Example API routes
+/**
+ * @openapi
+ * /hello:
+ *   get:
+ *     summary: Example hello endpoint
+ *     tags:
+ *       - Example
+ *     responses:
+ *       200:
+ *         description: Returns a hello message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 requestUrl:
+ *                   type: string
+ */
+API_ROUTER.get("/hello", (req: Request, res: Response) => {
+  res.json({ message: "Hello from API!", requestUrl: req.url });
+});
 API_ROUTER.get("/hello", (req: Request, res: Response) => {
   res.json({ message: "Hello from API!", requestUrl: req.url });
 });
 
+/**
+ * @openapi
+ * /api/message:
+ *   get:
+ *     summary: Example protected message endpoint
+ *     tags:
+ *       - Example
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Returns a backend hello message
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 API_ROUTER.get(
   "/api/message",
   AuthMiddleware.isLoggedIn,
@@ -48,22 +95,61 @@ API_ROUTER.get(
   }
 );
 
-// Serve React frontend
-API_ROUTER.use(express.static(FRONTEND_BUILD_PATH));
 
-API_ROUTER.get("/", (req, res) => {
-  res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
-});
-
-// Auth Routes
-API_ROUTER.use("/auth", authRoutes);
-
-// Route to check if the user is logged in
+/**
+ * @openapi
+ * /api/auth/status:
+ *   get:
+ *     summary: Check if the user is logged in
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User is logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 loggedIn:
+ *                   type: boolean
+ *                 user:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ */
 API_ROUTER.get("/api/auth/status", AuthMiddleware.isLoggedIn, (req, res) => {
   res.json({ loggedIn: true, user: req.user });
 });
 
-// Route to check if logged in user is super admin
+/**
+ * @openapi
+ * /api/auth/status/super:
+ *   get:
+ *     summary: Check if the logged in user is super admin
+ *     tags:
+ *       - Auth
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: User is super admin
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 loggedIn:
+ *                   type: boolean
+ *                 user:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ */
 API_ROUTER.get(
   "/api/auth/status/super",
   AuthMiddleware.isLoggedIn,
@@ -73,6 +159,17 @@ API_ROUTER.get(
     res.json({ loggedIn: true, user: req.user });
   }
 );
+
+
+// Serve React frontend
+API_ROUTER.use(express.static(FRONTEND_BUILD_PATH));
+
+API_ROUTER.get("/", (req, res) => {
+  res.sendFile(path.join(FRONTEND_BUILD_PATH, "index.html"));
+});
+
+// Auth Routes
+API_ROUTER.use("/auth", authRoutes);
 
 // API Routes
 API_ROUTER.use("/api/document-types", documentTypeRoutes);
