@@ -16,18 +16,15 @@ import { useNavigate } from "react-router-dom";
 
 interface ApiEndpoint {
   id: number;
-  title?: string;
+  title: string;
   description?: string;
   is_active: boolean;
-  auth_type?: "None" | "API_Key" | "Basic" | "Bearer" | "OAuth";
   method: string;
   base_url: string;
   route: string;
-  query_parameters?: string;
+  params: string;
   headers: string;
-  body?: string;
-  timeout_seconds: number;
-  send_file: boolean;
+  timeout: number;
 }
 
 const ApiEndpoints: React.FC = () => {
@@ -232,7 +229,6 @@ const ApiEndpoints: React.FC = () => {
                 <th style={{ width: "23%" }}>Full URL</th>
                 <th style={{ width: "9%", textAlign: "center" }}>Status</th>
                 <th style={{ width: "9%", textAlign: "center" }}>Method</th>
-                <th style={{ width: "9%", textAlign: "center" }}>Auth</th>
                 <th style={{ width: "10%", textAlign: "center" }}>Actions</th>
               </tr>
             </thead>
@@ -279,11 +275,6 @@ const ApiEndpoints: React.FC = () => {
                     <td className="text-center align-middle">
                       <Badge bg={getMethodColor(endpoint.method)}>
                         {endpoint.method}
-                      </Badge>
-                    </td>
-                    <td className="text-center align-middle">
-                      <Badge bg={getAuthColor(endpoint.auth_type)}>
-                        {endpoint.auth_type || "None"}
                       </Badge>
                     </td>
                     <td
@@ -345,23 +336,6 @@ function getMethodColor(method: string): string {
       return "info";
     case "DELETE":
       return "danger";
-    default:
-      return "secondary";
-  }
-}
-
-function getAuthColor(authType?: string): string {
-  switch (authType) {
-    case "None":
-      return "secondary";
-    case "API_Key":
-      return "info";
-    case "Basic":
-      return "primary";
-    case "Bearer":
-      return "success";
-    case "OAuth":
-      return "warning";
     default:
       return "secondary";
   }

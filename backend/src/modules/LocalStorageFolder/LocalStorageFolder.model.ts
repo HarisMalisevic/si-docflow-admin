@@ -4,7 +4,7 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 interface LocalStorageFolderAttributes {
     id: number;
     title: string;
-    description: string;
+    description?: string;
     path: string;
     is_active: boolean;
     created_by: number; // Foreign key for the user who created the folder
@@ -18,7 +18,7 @@ type LocalStorageFolderCreationAttributes = Optional<LocalStorageFolderAttribute
 class LocalStorageFolder extends Model<LocalStorageFolderAttributes, LocalStorageFolderCreationAttributes> implements LocalStorageFolderAttributes {
     public id!: number;
     public title!: string;
-    public description!: string;
+    public description?: string;
     public path!: string;
     public is_active!: boolean;
     public created_by!: number;
@@ -39,7 +39,7 @@ export function initLocalStorageFolder(sequelize: Sequelize) {
             },
             description: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: true,
             },
             path: {
                 type: DataTypes.STRING,
@@ -52,7 +52,7 @@ export function initLocalStorageFolder(sequelize: Sequelize) {
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             updated_by: {
                 type: DataTypes.INTEGER,

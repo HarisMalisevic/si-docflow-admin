@@ -72,7 +72,7 @@ export function initProcessingRuleDestination(sequelize: Sequelize) {
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             updated_by: {
                 type: DataTypes.INTEGER,

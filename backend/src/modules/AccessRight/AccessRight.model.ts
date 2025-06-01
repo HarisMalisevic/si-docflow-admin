@@ -6,7 +6,7 @@ interface AccessRightAttributes {
   token: string;
   is_active: boolean;
   name: string;
-  description: string;
+  description?: string;
   created_by: number;
   updated_by: number | null;
 }
@@ -23,7 +23,7 @@ class AccessRight
   public token!: string;
   public is_active!: boolean;
   public name!: string;
-  public description!: string;
+  public description?: string;
   public created_by!: number;
   public updated_by!: number | null;
 }
@@ -52,11 +52,11 @@ export function initAccessRight(sequelize: Sequelize): typeof AccessRight {
             },
             description: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: true,
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             updated_by: {
                 type: DataTypes.INTEGER,

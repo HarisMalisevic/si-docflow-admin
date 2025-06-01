@@ -11,6 +11,7 @@ interface FTPEndpoint {
   password: string;
   secure: boolean;
   path: string;
+  is_active: boolean;
   created_by: number;
 }
 
@@ -18,11 +19,12 @@ const DEFAULT_FTP_ENDPOINT: FTPEndpoint = {
   title: "",
   description: "",
   host: "",
-  port: 0,
-  username: "",
-  password: "",
+  port: 21,
+  username: "anonymous",
+  password: "guest",
   secure: false,
   path: "",
+  is_active: true,
   created_by: 0,
 };
 
@@ -37,7 +39,6 @@ const FTPEndpointsCreate: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const isEditMode = !!id;
-
 
   useEffect(() => {
     fetch("/auth/profile", { credentials: "include" })
@@ -55,25 +56,25 @@ const FTPEndpointsCreate: React.FC = () => {
   }, []);
 
   useEffect(() => {
-  if (!isEditMode) return;
+    if (!isEditMode) return;
 
-  fetch(`/api/ftp-endpoints/${id}`)
-    .then((res) => {
-      if (!res.ok) throw new Error("Failed to fetch endpoint");
-      return res.json();
-    })
-    .then((data) => {
-      setFormState({
-        ...data,
-        created_by: data.created_by || user?.id || 0, // fallback in case
+    fetch(`/api/ftp-endpoints/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch endpoint");
+        return res.json();
+      })
+      .then((data) => {
+        setFormState({
+          ...DEFAULT_FTP_ENDPOINT,
+          ...data,
+          created_by: data.created_by || user?.id || 0,
+        });
+      })
+      .catch((err) => {
+        setSaveError("Could not load endpoint for editing.");
+        console.error(err);
       });
-    })
-    .catch((err) => {
-      setSaveError("Could not load endpoint for editing.");
-      console.error(err);
-    });
-}, [id, isEditMode, user?.id]);
-
+  }, [id, isEditMode, user?.id]);
 
   const updateFormState = (updates: Partial<FTPEndpoint>) => {
     setFormState((prev) => ({ ...prev, ...updates }));
@@ -92,36 +93,35 @@ const FTPEndpointsCreate: React.FC = () => {
   };
 
   const handleSave = async () => {
-  if (!validateForm()) return;
+    if (!validateForm()) return;
 
-  setIsSaving(true);
-  setSaveError(null);
+    setIsSaving(true);
+    setSaveError(null);
 
-  try {
-    const payload = { ...formState };
+    try {
+      const payload = { ...formState };
 
-    const response = await fetch(
-      isEditMode ? `/api/ftp-endpoints/${id}` : "/api/ftp-endpoints",
-      {
-        method: isEditMode ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      const response = await fetch(
+        isEditMode ? `/api/ftp-endpoints/${id}` : "/api/ftp-endpoints",
+        {
+          method: isEditMode ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to save FTP endpoint");
       }
-    );
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.message || "Failed to save FTP endpoint");
+      navigate("/ftp-endpoints");
+    } catch (error: any) {
+      setSaveError(error.message || "Error saving FTP endpoint.");
+    } finally {
+      setIsSaving(false);
     }
-
-    navigate("/ftp-endpoints");
-  } catch (error: any) {
-    setSaveError(error.message || "Error saving FTP endpoint.");
-  } finally {
-    setIsSaving(false);
-  }
-};
-
+  };
 
   const handleCancel = () => {
     if (hasChanges) {
@@ -228,6 +228,15 @@ const FTPEndpointsCreate: React.FC = () => {
                 label="Use Secure FTP (FTPS)"
                 checked={formState.secure}
                 onChange={(e) => updateFormState({ secure: e.target.checked })}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="is_active">
+              <Form.Check
+                type="checkbox"
+                label="Active"
+                checked={formState.is_active}
+                onChange={(e) => updateFormState({ is_active: e.target.checked })}
               />
             </Form.Group>
 

@@ -7,7 +7,7 @@ interface ProcessingResultsTripletAttributes {
     image: Buffer;
     ai_data: string;
     user_data: string;
-    ai_provider_id?: number;
+    ai_provider_id: number;
 }
 
 // Define the creation attributes (optional fields for new instances)
@@ -19,7 +19,7 @@ class ProcessingResultsTriplet extends Model<ProcessingResultsTripletAttributes,
     public image!: Buffer;
     public ai_data!: string;
     public user_data!: string;
-    public ai_provider_id?: number;
+    public ai_provider_id!: number;
 }
 
 export function initProcessingResultsTriplet(sequelize: Sequelize) {
@@ -44,7 +44,7 @@ export function initProcessingResultsTriplet(sequelize: Sequelize) {
             },
             ai_provider_id: {
                 type: DataTypes.INTEGER,
-                allowNull: true,
+                allowNull: false,
                 references: {
                     model: AIProvider,
                     key: "id",

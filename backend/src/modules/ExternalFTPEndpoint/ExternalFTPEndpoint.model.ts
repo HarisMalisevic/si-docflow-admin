@@ -1,9 +1,10 @@
 import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 
 // Define the attributes for ExternalFTPEndpoint
-interface ExternalFTPEndpointAttributes {
+export interface ExternalFTPEndpointAttributes {
     id: number;
     title?: string;
+    is_active: boolean;
     description?: string;
     host: string;
     port: number;
@@ -11,18 +12,19 @@ interface ExternalFTPEndpointAttributes {
     password: string;
     secure: boolean;
     path: string;
-    created_by: number;
+    created_by?: number;
     updated_by?: number;
 }
 
 // Define the creation attributes (optional fields during creation)
-type ExternalFTPEndpointCreationAttributes = Optional<ExternalFTPEndpointAttributes, "id">
+export type ExternalFTPEndpointCreationAttributes = Optional<ExternalFTPEndpointAttributes, "id">
 
 // Extend the Sequelize Model
 class ExternalFTPEndpoint extends Model<ExternalFTPEndpointAttributes, ExternalFTPEndpointCreationAttributes>
     implements ExternalFTPEndpointAttributes {
     public id!: number;
     public title?: string;
+    public is_active!: boolean;
     public description?: string;
     public host!: string;
     public port!: number;
@@ -30,7 +32,7 @@ class ExternalFTPEndpoint extends Model<ExternalFTPEndpointAttributes, ExternalF
     public password!: string;
     public secure!: boolean;
     public path!: string;
-    public created_by!: number;
+    public created_by?: number;
     public updated_by?: number;
 }
 
@@ -45,11 +47,16 @@ export function initExternalFTPEndpoint(sequelize: Sequelize): typeof ExternalFT
             },
             title: {
                 type: DataTypes.TEXT,
-                allowNull: true,
+                allowNull: false,
             },
             description: {
                 type: DataTypes.TEXT,
                 allowNull: true,
+            },
+            is_active: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: true,
             },
             host: {
                 type: DataTypes.TEXT,
@@ -81,7 +88,7 @@ export function initExternalFTPEndpoint(sequelize: Sequelize): typeof ExternalFT
             },
             created_by: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
+                allowNull: true,
             },
             updated_by: {
                 type: DataTypes.INTEGER,

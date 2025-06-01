@@ -18,7 +18,7 @@ interface ExternalFTPEndpoint {
   host: string;
   port: number;
   username: string;
-  password: string;
+  is_active: boolean;
   secure: boolean;
   path: string;
   created_by: number;
@@ -77,17 +77,16 @@ const ExternalFTPEndpoints: React.FC = () => {
   };
 
   const filteredEndpoints = endpoints.filter((ep) => {
-  const matchesSearch = [ep.title, ep.description, ep.host, ep.path]
-    .join(" ")
-    .toLowerCase()
-    .includes(searchTerm.toLowerCase());
+    const matchesSearch = [ep.title, ep.description, ep.host, ep.path]
+      .join(" ")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
 
-  const matchesSecure =
-    showActive === null ? true : ep.secure === showActive;
+    const matchesActive =
+      showActive === null ? true : ep.is_active === showActive;
 
-  return matchesSearch && matchesSecure;
-});
-
+    return matchesSearch && matchesActive;
+  });
 
   if (loading) {
     return (
@@ -109,39 +108,46 @@ const ExternalFTPEndpoints: React.FC = () => {
         <Col md={10} className="mx-auto">
           <div className="d-flex justify-content-between align-items-center flex-wrap mb-3">
             <div className="d-flex">
-            <Form.Select
-              className="me-2"
-              style={{ width: "auto", minWidth: "120px" }}
-              value={
-                showActive === null
-                ? "all"
-                : showActive
-                ? "yes"
-                : "no"
+              <Form.Select
+                className="me-2"
+                style={{ width: "auto", minWidth: "120px" }}
+                value={
+                  showActive === null
+                    ? "all"
+                    : showActive
+                    ? "active"
+                    : "inactive"
                 }
-              onChange={(e) => {
-                const val = e.target.value;
-                setShowActive(val === "all" ? null : val === "yes");
-              }}
-              aria-label="Filter by status"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setShowActive(val === "all" ? null : val === "active");
+                }}
+                aria-label="Filter by status"
               >
-              <option value="all">All Status</option>
-              <option value="yes">Secure</option>
-              <option value="no">Not Secure</option>
-            </Form.Select>
-            <Form.Control
-              type="text"
-              className="me-2 flex-grow-1"
-              placeholder="Search FTP endpoints..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ minWidth: "300px" }}
-            />
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </Form.Select>
+              <Form.Control
+                type="text"
+                className="me-2 flex-grow-1"
+                placeholder="Search FTP endpoints..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ minWidth: "300px" }}
+              />
             </div>
             <Button variant="success" onClick={() => navigate("/ftp-endpoints/create")}>
               Add New
             </Button>
           </div>
+
+          {error && (
+            <div className="alert alert-danger">{error}</div>
+          )}
+          {successMsg && (
+            <div className="alert alert-success">{successMsg}</div>
+          )}
 
           <Table striped bordered hover responsive>
             <thead>
@@ -151,7 +157,8 @@ const ExternalFTPEndpoints: React.FC = () => {
                 <th style={{width: '20%'}}>Description</th>
                 <th style={{width: '10%'}}>Host</th>
                 <th style={{width: '10%'}}>Port</th>
-                <th style={{width: '10%', textAlign: "center"}}>Secure</th>
+                <th style={{width: '8%', textAlign: "center"}}>Active</th>
+                <th style={{width: '8%', textAlign: "center"}}>Secure</th>
                 <th style={{width: '10%', textAlign: "center"}}>Path</th>
                 <th style={{width: '10%', textAlign: "center"}}>User</th>
                 <th style={{width: '10%', textAlign: "center"}}>Actions</th>
@@ -166,6 +173,11 @@ const ExternalFTPEndpoints: React.FC = () => {
                     <td>{ep.description || "-"}</td>
                     <td>{ep.host}</td>
                     <td>{ep.port}</td>
+                    <td className="text-center">
+                      <Badge bg={ep.is_active ? "success" : "secondary"}>
+                        {ep.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
                     <td className="text-center">
                       <Badge bg={ep.secure ? "success" : "secondary"}>
                         {ep.secure ? "Yes" : "No"}
@@ -194,7 +206,7 @@ const ExternalFTPEndpoints: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="text-center">
+                  <td colSpan={10} className="text-center">
                     No FTP endpoints found.
                   </td>
                 </tr>
