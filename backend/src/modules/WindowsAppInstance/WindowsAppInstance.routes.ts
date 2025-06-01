@@ -28,6 +28,7 @@ const router = Router();
  *         description: Internal server error
  */
 router.get("/", AuthMiddleware.isLoggedIn, WindowsAppInstanceController.getAll);
+router.get("/available-devices", AuthMiddleware.isLoggedIn, WindowsAppInstanceController.getAllWithDevices)
 
 /**
  * @openapi
@@ -139,6 +140,7 @@ router.get("/machine/:machine_id", WindowsAppInstanceController.getByMachineId);
  *         description: Internal server error
  */
 router.post("/", AuthMiddleware.isLoggedIn, WindowsAppInstanceController.create);
+router.post("/report-available-devices/:instance_id", WindowsAppInstanceController.reportAvailableDevices); // used by the Windows app, thus no AuthMiddleware authorization
 
 /**
  * @openapi
