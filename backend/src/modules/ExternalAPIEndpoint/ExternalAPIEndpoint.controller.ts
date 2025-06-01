@@ -169,13 +169,10 @@ class APIEndpointsController {
       }
     }
 
-    let userID: number | null = null;
-    if (req.user) {
-      userID = (req.user as { id: number }).id;
-      if (!userID || typeof userID !== "number") {
-        res.status(400).json({ message: "Unauthorized or invalid user data" });
-        return;
-      }
+    const userID: number = (req.user as { id: number })?.id;
+    if (!userID || typeof userID !== "number") {
+      res.status(401).json({ message: "Unauthorized or invalid user data" });
+      return;
     }
 
     try {
@@ -302,13 +299,10 @@ class APIEndpointsController {
       }
     }
 
-    let userID: number | null = null;
-    if (req.user) {
-      userID = (req.user as { id: number }).id;
-      if (!userID || typeof userID !== "number") {
-        res.status(400).json({ message: "Unauthorized or invalid user data" });
-        return;
-      }
+    const userID: number = (req.user as { id: number })?.id;
+    if (!userID || typeof userID !== "number") {
+      res.status(401).json({ message: "Unauthorized or invalid user data" });
+      return;
     }
 
     try {

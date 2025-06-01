@@ -7,6 +7,7 @@ interface DocumentTypeAttributes {
     description?: string;
     document_layout_id?: number;
     created_by?: number;
+    updated_by?: number;
 }
 
 // Define the creation attributes (optional fields for new instances)
@@ -19,6 +20,7 @@ class DocumentType extends Model<DocumentTypeAttributes, DocumentTypeCreationAtt
     public description?: string;
     public document_layout_id?: number;
     public created_by?: number;
+    public updated_by?: number;
 }
 
 export function initDocumentType(sequelize: Sequelize) {
@@ -32,7 +34,6 @@ export function initDocumentType(sequelize: Sequelize) {
             name: {
                 type: DataTypes.TEXT,
                 allowNull: false,
-                unique: true,
             },
             description: {
                 type: DataTypes.TEXT,
@@ -44,7 +45,12 @@ export function initDocumentType(sequelize: Sequelize) {
                 unique: true,
             },
             created_by: {
-                type: DataTypes.INTEGER
+                type: DataTypes.INTEGER,
+                allowNull: true,
+            },
+            updated_by: {
+                type: DataTypes.INTEGER,
+                allowNull: true,
             },
         },
         {
