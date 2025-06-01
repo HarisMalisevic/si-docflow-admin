@@ -8,6 +8,7 @@ import SSOProvider from "modules/SSOProvider/SSOProvider.model";
 import { GOOGLE_API_NAME } from "./SSO_DEFAULTS";
 import AdminUser from "../modules/AdminUser/AdminUser.model";
 import bcrypt from 'bcrypt';
+import { Op } from 'sequelize';
 
 class AuthController {
 
@@ -184,7 +185,10 @@ class AuthController {
             }
 
             const userProfile = await AdminUser.findOne({
-                where: { email: email }
+                where: {
+                    email,
+                    password: { [Op.ne]: null }
+                }
             });
 
             if (!userProfile) {

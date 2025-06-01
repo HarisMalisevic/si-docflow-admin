@@ -20,7 +20,7 @@ interface ApplicationInstance {
     machine_id: string;
     operational_mode: OperationalMode;
     polling_frequency?: number;
-    chosen_device?: ScanningDevice;         // use the FK to fix this !!!
+    availableDevices?: ScanningDevice[];
 }
 
 function WindowsAppInstanceManager() {
@@ -46,7 +46,7 @@ function WindowsAppInstanceManager() {
         setAppInstancesLoading(true);
 
         try {
-            const response = await fetch("/api/windows-app-instance");
+            const response = await fetch("/api/windows-app-instance/available-devices");
             const data = await response.json();
             setAppInstances(data);
         } catch(error) {
@@ -56,16 +56,20 @@ function WindowsAppInstanceManager() {
         }
     };
 
-    const fetchDevicesForAppInstance = async () => {
+    const fetchDevicesForAppInstance_SetChosenDevice = async (instanceId: number) => { 
         setScanningDevicesLoading(true);
 
         try {
-            // EXAMPLE
-            // const response = await fetch(`/api/scanning-devices/${pollingFreqEditingId}`);
-            // const data = await response.json();
-            // setScanningDevices(data);
+            const response = await fetch(`/api/available-device/app-instance/${instanceId}`);
+            const data = await response.json();
+            setScanningDevices(data);
+            setChosenScanningDeviceId(
+                data && data.length > 0 
+                ? data.find((d: ScanningDevice) => d.is_chosen)?.id ?? null
+                : null
+            );
         } catch(error) {
-            console.error(`Error while fetching scanning devices for instance ID ${pollingFreqEditingId}: `, error);
+            console.error(`Error while fetching scanning devices for instance ID ${instanceId}: `, error);
         } finally {
             setScanningDevicesLoading(false);
         }
@@ -178,21 +182,29 @@ function WindowsAppInstanceManager() {
         }
     };
 
-    const handleConfigure = (appInstance: ApplicationInstance) => {
+    const handleConfigure = async (appInstance: ApplicationInstance) => {
         resetForm();
         setPollingFreqEditingId(appInstance.id);
         setPollingFrequencyHours(appInstance.polling_frequency ?? 0);
 
-        /*if(appInstance.operational_mode === OperationalMode.HEADLESS){
-            fetchDevicesForAppInstance();
-            setChosenScanningDeviceId(appInstance.chosen_device?.id ?? null);
-        }*/
+        if(appInstance.operational_mode === OperationalMode.HEADLESS){
+            await fetchDevicesForAppInstance_SetChosenDevice(appInstance.id);  
+        }
     }
 
-    const handleSaveConfiguration = async () => {
+    const handleSaveConfiguration = async (operationalMode : OperationalMode | undefined) => {
+        if (operationalMode === OperationalMode.HEADLESS && scanningDevices.length > 0 && !chosenScanningDeviceId) {
+            const newErrors: Record<string, string> = {};
+            newErrors.chosenDevice = "Please choose a valid device."
+            setErrors(newErrors);
+            return;
+        }
+
         setWaitingForSave(true);
 
         try {
+            let saveConfigSuccessful: boolean = true;
+
             // update polling frequency
             const response = await fetch(`/api/windows-app-instance/${pollingFreqEditingId}`, {
                 method: "PUT",
@@ -206,38 +218,44 @@ function WindowsAppInstanceManager() {
             });
 
             if (response.ok) {
-                window.alert("Instance successfully configured!");  // move
-                setPollingFreqEditingId(null);  // move
                 setPollingFrequencyHours(0);
-                setWaitingForSave(false);   // move
-                fetchAppInstances();    // move
+
+                // update chosen scanning device
+                if (operationalMode === OperationalMode.HEADLESS) {
+                    const responseScanningDevice = await fetch(`/api/available-device/app-instance/chosen-device/${pollingFreqEditingId}`, {
+                        method: "PUT",
+                        credentials: "include",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            device_id: chosenScanningDeviceId
+                        }),
+                    });
+
+                    if (responseScanningDevice.ok) {
+                        setScanningDevices([]);
+                        setChosenScanningDeviceId(null);
+                    } else {
+                        console.error("Failed to select a scanning device");
+                        saveConfigSuccessful = false;
+                    }
+                }
             } else {
                 console.error("Failed to configure polling frequency");
+                saveConfigSuccessful = false;
             }
 
-            // update chosen scanning device
-            // EXAMPLE
-            /* const responseScanningDevice = await fetch(`/api/scanning-device/${chosenScanningDeviceId}`, {
-                method: "PUT",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    is_chosen: true
-                }),
-            });
-
-            if (responseScanningDevice.ok) {
+            if (saveConfigSuccessful) {
                 window.alert("Instance successfully configured!");
                 setPollingFreqEditingId(null);
-                setScanningDevices([]);
-                setChosenScanningDeviceId(null);
                 setWaitingForSave(false);
                 fetchAppInstances();
-            } else {
-                console.error("Failed to select scanning device");
-            } */
+                setErrors({});
+            }
+            else {
+                window.alert("Failed to save instance configuration!");
+            }
         } catch (error) {
             console.error("Error saving instance configuration: ", error);
         }
@@ -400,7 +418,9 @@ function WindowsAppInstanceManager() {
                                         <td>{!app.polling_frequency ? '-' : app.polling_frequency}</td>
                                         <td>{
                                             app.operational_mode === OperationalMode.HEADLESS 
-                                                ? (app.chosen_device?.device_name ?? <strong>No device selected</strong>) 
+                                                ? (app.availableDevices && app.availableDevices.length > 0 
+                                                    ? app.availableDevices[0].device_name 
+                                                    : <strong>No device selected</strong>) 
                                                 : '-'
                                         }</td>
                                         <td className="text-center" style={{ whiteSpace: "nowrap", padding: "5px 5px 0px 5px" }}>
@@ -449,7 +469,7 @@ function WindowsAppInstanceManager() {
                             setChosenScanningDeviceId(null);
                         }}>
                         <Modal.Header closeButton>
-                        <Modal.Title>Configure Polling Frequency</Modal.Title>
+                        <Modal.Title>Configure Application Instance</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
                         <Form>
@@ -473,6 +493,7 @@ function WindowsAppInstanceManager() {
                                     }}
                                     value={chosenScanningDeviceId || 0}
                                     style={{ width: "250px" }}
+                                    isInvalid={!!errors.chosenDevice}
                                 >
                                     <option value={0}>Select Scanning Device</option>
                                     {scanningDevices.map((device) => (
@@ -481,6 +502,9 @@ function WindowsAppInstanceManager() {
                                     </option>
                                     ))}
                                 </Form.Control>
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.chosenDevice}
+                                </Form.Control.Feedback>
                             </Form.Group>}
                         </Form>
                         <div 
@@ -489,7 +513,13 @@ function WindowsAppInstanceManager() {
                         >
                             <Button 
                                 variant="success" 
-                                onClick={handleSaveConfiguration} 
+                                onClick={() => { 
+                                    const operationalMode = appInstances.find(
+                                        (instance) => instance.id === pollingFreqEditingId
+                                    )?.operational_mode;
+                                    
+                                    handleSaveConfiguration(operationalMode); 
+                                }} 
                                 disabled={waitingForSave}
                             >
                                 Save
