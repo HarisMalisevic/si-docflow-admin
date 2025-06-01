@@ -47,7 +47,7 @@ class AvailableDeviceController {
     const { instance_id } = req.params;
     const numericN = parseInt(instance_id, 10);
 
-    if (isNaN(numericN)) {
+    if (isNaN(numericN) || numericN < 0) {
       res.status(400).json({
         message: `Available devices for App instance with ID ${instance_id} not found.`,
       });
