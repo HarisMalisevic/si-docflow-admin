@@ -13,7 +13,8 @@ interface FTPEndpointAttributes {
   password: string;
   secure: boolean;
   path: string;
-  created_by: number;
+  is_active: boolean;
+  created_by?: number;
   updated_by?: number;
 }
 
@@ -27,11 +28,10 @@ type FTPEndpointCreationAttributes = Optional<
   | "password"
   | "secure"
   | "updated_by"
+  | "created_by"
 >;
 
-
-type FTPEndpointUpdateAttributes =
-  Partial<FTPEndpointCreationAttributes>;
+type FTPEndpointUpdateAttributes = Partial<FTPEndpointCreationAttributes>;
 
 class FTPEndpointsController {
   static async getAll(req: Request, res: Response) {
@@ -84,6 +84,7 @@ class FTPEndpointsController {
     }[] = [
         { key: "host", name: "Host" },
         { key: "path", name: "Path" },
+        { key: "is_active", name: "Is Active" },
       ];
 
     for (const field of requiredFields) {
@@ -148,6 +149,12 @@ class FTPEndpointsController {
           typeDescription: "non-empty string",
           isInvalid: (v) => typeof v !== "string" || v.trim() === "",
         },
+        {
+          key: "is_active",
+          name: "Is Active",
+          typeDescription: "boolean",
+          isInvalid: (v) => typeof v !== "boolean",
+        },
       ];
 
     for (const validation of typeValidations) {
@@ -178,6 +185,7 @@ class FTPEndpointsController {
         password: jsonReq.password,
         secure: jsonReq.secure,
         path: jsonReq.path,
+        is_active: jsonReq.is_active,
         created_by: userID,
       });
       res.status(201).json(newEndpoint);
@@ -257,6 +265,12 @@ class FTPEndpointsController {
           name: "Path",
           typeDescription: "non-empty string",
           isInvalid: (v) => typeof v !== "string" || v.trim() === "",
+        },
+        {
+          key: "is_active",
+          name: "Is Active",
+          typeDescription: "boolean",
+          isInvalid: (v) => typeof v !== "boolean",
         },
       ];
 

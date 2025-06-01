@@ -25,7 +25,6 @@ interface DocumentType {
 interface ProcessingRequestsBillingLogAttributes {
   id: number;
   document_type_id: number;
-  file_name: string;
   ai_provider_id: number;
   price: number;
   createdAt?: string;
@@ -287,7 +286,6 @@ const BillingLogsViewer: React.FC = () => {
                   <tr>
                     <th>#</th>
                     <th>Document Type</th>
-                    <th>File Name</th>
                     <th>AI Provider</th>
                     <th>Price</th>
                     <th>Timestamp</th>
@@ -303,7 +301,6 @@ const BillingLogsViewer: React.FC = () => {
                             (dt) => dt.id === log.document_type_id
                           )?.name || `ID: ${log.document_type_id}`}
                         </td>
-                        <td>{log.file_name}</td>
                         <td>
                           {aiProviders.find(
                             (ap) => ap.id === log.ai_provider_id
@@ -315,7 +312,7 @@ const BillingLogsViewer: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="text-center py-3">
+                      <td colSpan={5} className="text-center py-3">
                         No billing logs found matching your criteria.
                       </td>
                     </tr>
