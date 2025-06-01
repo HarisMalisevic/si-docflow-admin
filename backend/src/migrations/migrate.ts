@@ -1,32 +1,15 @@
 import DB from "../database";
+import ssoProviders_default from './seed_data/ssoProviders_default';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let ssoProviders_default: any[] = [];
-
-try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    ssoProviders_default = require('./sso_init').default;
-    if (!Array.isArray(ssoProviders_default)) {
-        throw new Error("sso_init module does not export a default array.");
-    }
-    const hasGoogle = ssoProviders_default.some(
-        (provider) =>
-            provider.api_name === 'google' ||
-            provider.display_name?.toLowerCase().includes('google')
-    );
-    if (!hasGoogle) {
-        throw new Error("sso_init must contain at least Google as SSO provider.");
-    }
-} catch (error) {
-    throw new Error(
-        "sso_init module not found or invalid, and ssoProviders_default must contain at least Google. See sso_init.ts.example. " +
-        error
-    );
+if (!Array.isArray(ssoProviders_default)) {
+    throw new Error("seed_data/ssoProviders_default does not export a default array.");
 }
 
 function fill_sso_providers() {
     return new Promise<void>(function (resolve, reject) {
         const ssoProviders_PromiseList: Promise<void>[] = [];
+
+
         ssoProviders_default.forEach((provider) => {
             ssoProviders_PromiseList.push(
                 DB.sso_providers.create({

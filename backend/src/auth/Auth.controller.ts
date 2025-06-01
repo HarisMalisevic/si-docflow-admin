@@ -6,6 +6,8 @@ import passport from "passport";
 import jwt from "jsonwebtoken";
 import SSOProvider from "modules/SSOProvider/SSOProvider.model";
 import { GOOGLE_API_NAME } from "./SSO_DEFAULTS";
+import AdminUser from "../modules/AdminUser/AdminUser.model";
+import bcrypt from 'bcrypt';
 
 class AuthController {
 
@@ -150,7 +152,8 @@ class AuthController {
                 include: [{
                     model: DB.sso_providers,
                     as: "sso_provider_details",
-                    attributes: ["display_name"]
+                    attributes: ["display_name"],
+                    required: false
                 }]
             });
 
@@ -161,14 +164,86 @@ class AuthController {
 
             res.send({
                 email: user.email,
-                ssoProvider: user.sso_provider_details.display_name,
-                ssoId: user.sso_id,
+                ssoProvider: user.sso_provider_details ? user.sso_provider_details.display_name : '',
+                ssoId: user.sso_id ?? '',
                 isSuperAdmin: user.is_super_admin,
                 createdAt: user.createdAt
             });
         } catch (err) {
             console.error("Error in profile route: ", err);
             res.status(500).send({ error: "Internal server error" });
+        }
+    }
+
+    static async login(req: Request, res: Response): Promise<void> {
+        try{
+            const { email, password } = req.body;
+            if (!email || !password) {
+                res.status(400).json({ message: "Missing required fields: email or password" });
+                return;
+            }
+
+            const userProfile = await AdminUser.findOne({
+                where: { email: email }
+            });
+
+            if (!userProfile) {
+                res.status(404).json({ message: "No user profile found for the provided email address" });
+                return;
+            }
+
+            if (!userProfile.password) {
+                res.status(400).json({ message: "Password for this user profile has not been set" });
+                return;
+            }
+
+            const isPasswordMatched = await bcrypt.compare(password, userProfile.password);
+
+            if (!isPasswordMatched) {
+                res.status(401).json({ message: "Invalid email or password" });
+                return;
+            }
+
+            const token = jwt.sign({ id: userProfile.id }, process.env.SESSION_SECRET!);
+            console.log("User.id:", userProfile.id, " - generated token: ", token);
+
+            res.cookie("jwt", token, { httpOnly: true, secure: true, maxAge: 3600000 });
+            res.status(200).json({ message: "User successfully logged in" });
+        } catch (error) {
+            console.log("Login error: ", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
+
+    static async register(req: Request, res: Response): Promise<void> {
+        try{
+            const { email, password } = req.body;
+            if (!email || !password) {
+                res.status(400).json({ message: "Missing required fields: email or password" });
+                return;
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 12);
+
+            const existingProfile = await AdminUser.findOne({
+                where: { email: email }
+            });
+
+            if (existingProfile && !existingProfile.sso_provider) {
+                res.status(409).json({ message: "A user profile with this email address already exists" });
+                return;
+            }
+
+            await AdminUser.create({
+                email: email,
+                password: hashedPassword,
+                is_super_admin: false
+            });
+
+            res.status(200).json({ message: "User successfully registered" });
+        } catch (error) {
+            console.log("Error while registering: ", error);
+            res.status(500).json({ message: "Internal server error" });
         }
     }
 }

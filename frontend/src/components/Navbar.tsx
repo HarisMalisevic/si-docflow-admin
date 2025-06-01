@@ -141,7 +141,7 @@ function AppNavbar() {
                 </Dropdown.Toggle>
 
                 <Dropdown.Menu>
-                  <Dropdown.ItemText><strong>SSO Provider:</strong> {user.ssoProvider}</Dropdown.ItemText>
+                  {user.ssoProvider && <Dropdown.ItemText><strong>SSO Provider:</strong> {user.ssoProvider}</Dropdown.ItemText>}
                   <Dropdown.ItemText><strong>Role:</strong> {user.role}</Dropdown.ItemText>
                   <Dropdown.ItemText><strong>Created At:</strong> {new Date(user.createdAt).toLocaleDateString()}</Dropdown.ItemText>
                   <Dropdown.Divider />

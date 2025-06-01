@@ -22,67 +22,69 @@ import ProcessingRequestsBillingLogsViewer from "./components/ProcessingRequests
 import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 import CommandInitiatorUI from "./components/CommandInitiatorUI";
 import LocalStorageFolder from "./components/LocalStorageFolder";
+import RegistrationForm from "./components/RegistrationForm";
 
 function App() {
   return (
     <div>
-      <ProtectedRoute>
-        <AppNavbar />
-      </ProtectedRoute>
-
       <Routes>
-        <Route path="/" element={<HomeRedirect />} />
-        <Route
-          path="/document-types"
-          element={
-            <ProtectedRoute>
-              <DocumentTypeViewer />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/sso-providers"
-          element={
-            <ProtectedRoute>
-              <SSOProviderCreate />
-            </ProtectedRoute>
-          }
-        />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/logout" element={<LoginForm />} />
+        <Route path="/register" element={<RegistrationForm />} />
 
-        <Route path="/document-layouts" element={<DocumentLayoutViewer />} />
         <Route
-          path="/document-layouts/create"
-          element={<DocumentLayoutCreate />}
+          path="*"
+          element={
+            <ProtectedRoute>
+              <>
+                <AppNavbar />
+                <Routes>
+                  <Route path="/" element={<HomeRedirect />} />
+                  <Route
+                    path="/document-types"
+                    element={<DocumentTypeViewer />}
+                  />
+                  <Route
+                    path="/sso-providers"
+                    element={<SSOProviderCreate />}
+                  />
+                  <Route path="/document-layouts" element={<DocumentLayoutViewer />} />
+                  <Route
+                    path="/document-layouts/create"
+                    element={<DocumentLayoutCreate />}
+                  />
+                  <Route
+                    path="/document-layouts/edit/:id"
+                    element={<DocumentLayoutEdit />}
+                  />
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/access-rights" element={<AccessRightsViewer />} />
+                  <Route path="/api-endpoints" element={<ApiEndpoints />} />
+                  <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
+                  <Route
+                    path="/api-endpoints/edit/:id"
+                    element={<ApiEndpointsCreate />}
+                  />
+                  <Route
+                    path="/processing-rules/:id/destinations"
+                    element={<ProcessingRuleDestinationViewer />}
+                  />
+                  <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
+                  <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
+                  <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
+                  <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
+                  <Route path="/client-transaction-logs" element={<LogsViewer />} />
+                  <Route path="/processing-requests-billing-logs" element={<ProcessingRequestsBillingLogsViewer />} />
+                  <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
+                  <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
+                  <Route path="/local-storage-folder" element={<LocalStorageFolder />} />
+                  {/*redirect unknown routes*/}
+                  <Route path="*" element={<HomeRedirect />} />
+                </Routes>
+              </>
+            </ProtectedRoute>
+          }
         />
-        <Route
-          path="/document-layouts/edit/:id"
-          element={<DocumentLayoutEdit />}
-        />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/access-rights" element={<AccessRightsViewer />} />
-        <Route path="/api-endpoints" element={<ApiEndpoints />} />
-        <Route path="/api-endpoints/create" element={<ApiEndpointsCreate />} />
-        <Route
-          path="/api-endpoints/edit/:id"
-          element={<ApiEndpointsCreate />}
-        />
-        <Route
-          path="/processing-rules/:id/destinations"
-          element={<ProcessingRuleDestinationViewer />}
-        />
-        <Route path="/processing-rules" element={<ProcessingRuleViewer />} />
-        <Route path="/ftp-endpoints" element={<FTPEndPointsViewer />} />
-        <Route path="/ftp-endpoints/create" element={<FTPEndpointsCreate />} />
-        <Route path="/ftp-endpoints/edit/:id" element={<FTPEndpointsCreate />} />
-        <Route path="/client-transaction-logs" element={<LogsViewer />} />
-        <Route path="/processing-requests-billing-logs" element={<ProcessingRequestsBillingLogsViewer />} />
-        <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
-        <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
-        <Route path="/local-storage-folder" element={<LocalStorageFolder />} />
-        {/*redirect unknown routes*/}
-        <Route path="*" element={<HomeRedirect />} />
       </Routes>
     </div>
   );
