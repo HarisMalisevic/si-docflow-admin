@@ -26,6 +26,7 @@ export function initAIProvider(sequelize: Sequelize) {
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                unique: true,
             },
         },
         {
