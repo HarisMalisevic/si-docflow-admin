@@ -37,6 +37,27 @@ class WindowsAppInstanceController {
     }
   }
 
+  static async getAllWithDevices(req: Request, res: Response) {
+    try {
+      const instances: WindowsAppInstance[] = await DB.windows_app_instances.findAll({
+        include: [
+            {
+              model: DB.available_devices,
+              as: "availableDevices",
+              required: false,
+              where: {
+                is_chosen: true 
+              }
+            },
+          ],
+      });
+      res.status(200).json(instances);
+    } catch (error) {
+      console.error("Error fetching Windows app instances & corresponding available devices: ", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
   static async getById(req: Request, res: Response) {
     const getByIdResult = await WindowsAppInstanceController.getByIdWithReturn(
       req
@@ -86,6 +107,16 @@ class WindowsAppInstanceController {
     try {
       const instance = await DB.windows_app_instances.findOne({
         where: { machine_id: machine_id },
+        include: [
+            {
+              model: DB.available_devices,
+              as: "availableDevices",
+              required: false,
+              where: {
+                is_chosen: true 
+              }
+            },
+          ],
       });
 
       if (!instance) {
