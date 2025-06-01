@@ -31,3 +31,5 @@ backend/uploads/
 
 # Ignore macOS specific files
 .DS_Store
+
+.idea/

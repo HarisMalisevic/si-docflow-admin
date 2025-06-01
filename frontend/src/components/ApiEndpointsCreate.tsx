@@ -11,14 +11,6 @@ export enum HttpMethod {
   PATCH = "PATCH",
 }
 
-export enum AuthType {
-  NONE = "None",
-  API_KEY = "API_Key",
-  BASIC = "Basic",
-  BEARER = "Bearer",
-  OAUTH = "OAuth",
-}
-
 export enum ParameterType {
   STRING = "string",
   NUMBER = "number",
@@ -31,7 +23,7 @@ interface ApiEndpoint {
   base_url: string;
   route: string;
   method: HttpMethod;
-  query_parameters: Record<
+  params: Record<
     string,
     {
       value: string;
@@ -40,25 +32,10 @@ interface ApiEndpoint {
     }
   >;
   headers: string;
-  body: string;
   path_parameters?: Record<string, string>;
-  timeout_seconds: number;
-  auth_type: AuthType;
-  auth_credentials?: {
-    apiKeyName?: string;
-    apiKeyValue?: string;
-    apiKeyLocation?: string;
-    username?: string;
-    password?: string;
-    token?: string;
-    clientId?: string;
-    clientSecret?: string;
-    tokenUrl?: string;
-    scopes?: string[];
-  };
+  timeout: number;
   is_active: boolean;
-  send_file: boolean;
-  created_by: number;
+  created_by?: number | null;
 }
 
 const DEFAULT_ENDPOINT: ApiEndpoint = {
@@ -67,22 +44,18 @@ const DEFAULT_ENDPOINT: ApiEndpoint = {
   base_url: "",
   route: "",
   method: HttpMethod.GET,
-  query_parameters: {},
+  params: {},
   headers: "",
-  body: "",
   path_parameters: {},
-  timeout_seconds: 30,
-  auth_type: AuthType.NONE,
-  auth_credentials: {},
+  timeout: 30,
   is_active: false,
-  send_file: false,
-  created_by: 1, // Replace with the actual user ID
+  created_by: null,
 };
 
 const ApiEndpointsCreate: React.FC = () => {
   const [formState, setFormState] = useState<ApiEndpoint>(DEFAULT_ENDPOINT);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [activeTab, setActiveTab] = useState<"basic" | "parameters" | "auth">("basic");
+  const [activeTab, setActiveTab] = useState<"basic" | "parameters">("basic");
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -126,21 +99,15 @@ const ApiEndpointsCreate: React.FC = () => {
         base_url:         data.base_url,
         route:            data.route,
         method:           data.method as HttpMethod,
-        query_parameters: data.query_parameters
-                            ? JSON.parse(data.query_parameters)
+        params:           data.params
+                            ? JSON.parse(data.params)
                             : {},
-        headers:          data.headers   ?? "",
-        body:             data.body      ?? "",
+        headers:          data.headers && data.headers != "{}" ? data.headers : "",
         path_parameters:  data.path_parameters
                             ? JSON.parse(data.path_parameters)
                             : {},
-        timeout_seconds:  data.timeout_seconds,
-        auth_type:        data.auth_type as AuthType,
-        auth_credentials: data.auth_credentials
-                            ? JSON.parse(data.auth_credentials)
-                            : {},
+        timeout:          data.timeout,
         is_active:        data.is_active,
-        send_file:        data.send_file,
         created_by:       data.created_by,
       });
     } catch (err) {
@@ -173,16 +140,6 @@ const ApiEndpointsCreate: React.FC = () => {
       newErrors.method = "HTTP Method is required";
     }
 
-    // Validate authentication fields based on auth_type
-    if (formState.auth_type === AuthType.API_KEY) {
-      if (!formState.auth_credentials?.apiKeyName) {
-        newErrors.apiKeyName = "API Key Name is required";
-      }
-      if (!formState.auth_credentials?.apiKeyValue) {
-        newErrors.apiKeyValue = "API Key Value is required";
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -201,24 +158,19 @@ const ApiEndpointsCreate: React.FC = () => {
       base_url:         formState.base_url,
       route:            formState.route,
       method:           formState.method,
-      query_parameters:
-        typeof formState.query_parameters === "string"
-          ? formState.query_parameters
-          : JSON.stringify(formState.query_parameters),
-      headers:          formState.headers,
-      body:             formState.body,
+      params:
+        formState.params && Object.keys(formState.params).length != 0 ? 
+        (typeof formState.params === "string"
+          ? formState.params
+          : JSON.stringify(formState.params))
+        : "{}",
+      headers:          formState.headers || "{}",
       path_parameters:
         typeof formState.path_parameters === "string"
           ? formState.path_parameters
           : JSON.stringify(formState.path_parameters),
-      timeout_seconds:  formState.timeout_seconds,
-      auth_type:        formState.auth_type,
-      auth_credentials:
-        typeof formState.auth_credentials === "string"
-          ? formState.auth_credentials
-          : JSON.stringify(formState.auth_credentials),
+      timeout:  formState.timeout,
       is_active:        formState.is_active,
-      send_file:        formState.send_file,
     };
 
 
@@ -285,7 +237,7 @@ const ApiEndpointsCreate: React.FC = () => {
           <Form>
             <Tabs
               activeKey={activeTab}
-              onSelect={(tab) => setActiveTab(tab as "basic" | "parameters" | "auth")}
+              onSelect={(tab) => setActiveTab(tab as "basic" | "parameters")}
               className="mb-3"
             >
               {/* Basic Info Tab */}
@@ -359,13 +311,13 @@ const ApiEndpointsCreate: React.FC = () => {
                     </Form.Group>
                   </Col>
                   <Col md={6}>
-                    <Form.Group className="mb-3" controlId="timeout_seconds">
-                      <Form.Label>Timeout (seconds)</Form.Label>
+                    <Form.Group className="mb-3" controlId="timeout">
+                      <Form.Label>Timeout</Form.Label>
                       <Form.Control
                         type="number"
-                        value={formState.timeout_seconds}
+                        value={formState.timeout}
                         onChange={(e) =>
-                          updateFormState({ timeout_seconds: parseInt(e.target.value, 10) || 0 })
+                          updateFormState({ timeout: parseInt(e.target.value, 10) || 0 })
                         }
                         placeholder="30"
                       />
@@ -381,14 +333,6 @@ const ApiEndpointsCreate: React.FC = () => {
                     onChange={(e) => updateFormState({ is_active: e.target.checked })}
                   />
                 </Form.Group>
-                <Form.Group className="mb-3" controlId="send_file">
-                      <Form.Check
-                        type="checkbox"
-                        label="Send File"
-                        checked={formState.send_file}
-                        onChange={(e) => updateFormState({ send_file: e.target.checked })}
-                      />
-                    </Form.Group>
               </Tab>
 
               {/* Parameters Tab */}
@@ -396,9 +340,9 @@ const ApiEndpointsCreate: React.FC = () => {
                 {/* Query Parameters */}
                 <ParameterEditor
                   location={ParameterLocation.QUERY}
-                  value={formState.query_parameters as Record<string, QueryParameter>}
+                  value={formState.params as Record<string, QueryParameter>}
                   onChange={(value) => updateFormState({ 
-                    query_parameters: value as Record<string, QueryParameter>
+                    params: value as Record<string, QueryParameter>
                   })}
                 />
 
@@ -410,219 +354,6 @@ const ApiEndpointsCreate: React.FC = () => {
                     headers: value as string
                   })}
                 />
-
-                {/* Body */}
-                <ParameterEditor
-                  location={ParameterLocation.BODY}
-                  value={formState.body || ""}
-                  onChange={(value) => updateFormState({ 
-                    body: value as string
-                  })}
-                />
-              </Tab>
-
-              {/* Authentication Tab */}
-              <Tab eventKey="auth" title="Authentication">
-                <Form.Group className="mb-3" controlId="auth_type">
-                  <Form.Label>Authentication Type</Form.Label>
-                  <Form.Select
-                    value={formState.auth_type}
-                    onChange={(e) => {
-                        const newType = e.target.value as AuthType;
-                        updateFormState({
-                          auth_type: newType,
-                          auth_credentials: {},
-                        });
-                      }}
-                    >
-                    {Object.values(AuthType).map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-
-                {/* Render fields based on auth type */}
-                {formState.auth_type === AuthType.API_KEY && (
-                  <div>
-                    <Form.Group className="mb-3" controlId="apiKeyName">
-                      <Form.Label>API Key Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.apiKeyName || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              apiKeyName: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="X-API-Key"
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="apiKeyValue">
-                      <Form.Label>API Key Value</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.apiKeyValue || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              apiKeyValue: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="your_api_key_here"
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="apiKeyLocation">
-                      <Form.Label>API Key Location</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.apiKeyLocation || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              apiKeyLocation: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="header or query"
-                      />
-                    </Form.Group>
-                  </div>
-                )}
-
-                {formState.auth_type === AuthType.BASIC && (
-                  <div>
-                    <Form.Group className="mb-3" controlId="username">
-                      <Form.Label>Username</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.username || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              username: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="your_username"
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="password">
-                      <Form.Label>Password</Form.Label>
-                      <Form.Control
-                        type="password"
-                        value={formState.auth_credentials?.password || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              password: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="your_password"
-                      />
-                    </Form.Group>
-                  </div>
-                )}
-
-                {formState.auth_type === AuthType.BEARER && (
-                  <div>
-                    <Form.Group className="mb-3" controlId="token">
-                      <Form.Label>Bearer Token</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.token || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              token: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="your_bearer_token"
-                      />
-                    </Form.Group>
-                  </div>
-                )}
-
-                {formState.auth_type === AuthType.OAUTH && (
-                  <div>
-                    <Form.Group className="mb-3" controlId="clientId">
-                      <Form.Label>Client ID</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.clientId || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              clientId: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="your_client_id"
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="clientSecret">
-                      <Form.Label>Client Secret</Form.Label>
-                      <Form.Control
-                        type="password"
-                        value={formState.auth_credentials?.clientSecret || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              clientSecret: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="your_client_secret"
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="tokenUrl">
-                      <Form.Label>Token URL</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.tokenUrl || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              tokenUrl: e.target.value,
-                            },
-                          })
-                        }
-                        placeholder="https://example.com/oauth/token"
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-3" controlId="scopes">
-                      <Form.Label>Scopes</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={formState.auth_credentials?.scopes?.join(", ") || ""}
-                        onChange={(e) =>
-                          updateFormState({
-                            auth_credentials: {
-                              ...formState.auth_credentials,
-                              scopes: e.target.value.split(",").map((scope) => scope.trim()),
-                            },
-                          })
-                        }
-                        placeholder="scope1, scope2"
-                      />
-                    </Form.Group>
-                  </div>
-                )}
               </Tab>
             </Tabs>
 
