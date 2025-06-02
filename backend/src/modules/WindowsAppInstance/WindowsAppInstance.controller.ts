@@ -386,14 +386,9 @@ class WindowsAppInstanceController {
   }
 
   static async reportAvailableDevices(req: Request, res: Response) {
-    const { instance_id } = req.params;
+    const { machine_id } = req.params;
     const { devices: reportedDeviceNames } = req.body as { devices: string[] };
-    const numericInstanceId = parseInt(instance_id, 10);
 
-    if (isNaN(numericInstanceId)) {
-      res.status(400).json({ message: "Invalid ID format" });
-      return;
-    }
     if (
       !Array.isArray(reportedDeviceNames) ||
       !reportedDeviceNames.every(
@@ -411,20 +406,21 @@ class WindowsAppInstanceController {
     let instanceSuccessfullySynchronized = false;
 
     try {
-      const instance = await DB.windows_app_instances.findByPk(
-        numericInstanceId,
-        { transaction }
-      );
+      const instance = await DB.windows_app_instances.findOne({
+        where: { machine_id: machine_id },
+        transaction,
+      });
       if (!instance) {
         await transaction.rollback();
         res
           .status(404)
-          .json({ message: `Instance with ID ${instance_id} not found.` });
+          .json({ message: `Instance with machine ID ${machine_id} not found.` });
         return;
       }
 
+      const instanceId = instance.id;
       const currentAvailableDevices = await DB.available_devices.findAll({
-        where: { instance_id: numericInstanceId },
+        where: { instance_id: instanceId },
         transaction,
       });
       const currentDeviceNamesMap = new Map(
@@ -438,7 +434,7 @@ class WindowsAppInstanceController {
         if (!currentDeviceNamesMap.has(name)) {
           await DB.available_devices.create(
             {
-              instance_id: numericInstanceId,
+              instance_id: instanceId,
               device_name: name,
               is_chosen: false,
             },
@@ -456,7 +452,7 @@ class WindowsAppInstanceController {
       await transaction.commit();
       instanceSuccessfullySynchronized = true;
       const updatedInstanceData = await DB.windows_app_instances.findByPk(
-        numericInstanceId,
+        instanceId,
         {
           include: [
             {
