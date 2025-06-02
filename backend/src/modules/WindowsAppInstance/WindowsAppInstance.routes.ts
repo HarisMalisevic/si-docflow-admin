@@ -140,7 +140,7 @@ router.get("/machine/:machine_id", WindowsAppInstanceController.getByMachineId);
  *         description: Internal server error
  */
 router.post("/", AuthMiddleware.isLoggedIn, WindowsAppInstanceController.create);
-router.post("/report-available-devices/:instance_id", WindowsAppInstanceController.reportAvailableDevices); // used by the Windows app, thus no AuthMiddleware authorization
+router.post("/report-available-devices/:machine_id", WindowsAppInstanceController.reportAvailableDevices); // used by the Windows app, thus no AuthMiddleware authorization
 
 /**
  * @openapi
