@@ -7,7 +7,8 @@ export enum ClientActionType {
     PROCESSING_REQ_SENT = "processing_req_sent",
     PROCESSING_RESULT_RECEIVED = "processing_result_received",
     COMMAND_RECEIVED = "command_received",
-    INSTANCE_STOPPED = "instance_stopped"
+    INSTANCE_STOPPED = "instance_stopped",
+    DEVICES_DELIVERED = "devices_delivered",
 }
 
 // Define the attributes for the ClientLog model

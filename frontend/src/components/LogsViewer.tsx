@@ -24,9 +24,10 @@ export enum SeverityLevel {
 export enum ClientActionType {
   INSTANCE_STARTED = "instance_started",
   PROCESSING_REQ_SENT = "processing_req_sent",
-  PROCESSING_RESULT_RECEIVED = "processing_res_received",
+  PROCESSING_RESULT_RECEIVED = "processing_result_received",
   COMMAND_RECEIVED = "command_received",
   INSTANCE_STOPPED = "instance_stopped",
+  DEVICES_DELIVERED = "devices_delivered",
 }
 
 export enum TransactionStatus {
@@ -504,6 +505,26 @@ const Logs: React.FC = () => {
     );
   };
 
+  const getClientActionTypeBadge = (action: ClientActionType) => {
+    console.log(action);
+    switch (action) {
+      case ClientActionType.INSTANCE_STARTED:
+        return "primary";
+      case ClientActionType.DEVICES_DELIVERED:
+        return "danger";
+      case ClientActionType.COMMAND_RECEIVED:
+        return "info";
+      case ClientActionType.PROCESSING_REQ_SENT:
+        return "secondary";
+      case ClientActionType.PROCESSING_RESULT_RECEIVED:
+        return "success";
+      case ClientActionType.INSTANCE_STOPPED:
+        return "primary";
+      default:
+        return "warning";
+    }
+  };
+
   return (
     <Container fluid="lg" className="py-4">
       <Row>
@@ -595,7 +616,11 @@ const Logs: React.FC = () => {
                               (inst) => inst.id === log.instance_id
                             )?.title || `ID: ${log.instance_id}`}
                           </td>
-                          <td>{log.action}</td>
+                          <td>
+                            <Badge bg={getClientActionTypeBadge(log.action)}>
+                              {log.action}
+                            </Badge>
+                          </td>
                           <td>{formatDate(log.createdAt)}</td>
                         </tr>
                       ))

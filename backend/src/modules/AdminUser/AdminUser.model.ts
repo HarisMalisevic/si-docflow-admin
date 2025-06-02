@@ -3,7 +3,7 @@ import { Sequelize, DataTypes, Model, Optional } from "sequelize";
 interface AdminUserAttributes {
     id: number;
     email: string;
-    password?: string;
+    password?: string | null;
     sso_provider?: number;
     sso_id?: string;
     access_token?: string;
@@ -15,7 +15,7 @@ type AdminUserCreationAttributes = Optional<AdminUserAttributes, "id">
 class AdminUser extends Model<AdminUserAttributes, AdminUserCreationAttributes> implements AdminUserAttributes {
     public id!: number;
     public email!: string;
-    public password?: string;
+    public password?: string | null;
     public sso_provider?: number;
     public sso_id?: string;
     public access_token?: string;
