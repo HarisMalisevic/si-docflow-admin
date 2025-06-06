@@ -23,7 +23,7 @@ import { initProcessingRequestsBillingLog } from './modules/ProcessingRequestBil
 import { initProcessingResultsTriplet } from './modules/ProcessingResultTriplet/ProcessingResultTriplet.model';
 import { initUniversalDeviceInterfaceLog } from './modules/UniversalDeviceInterfaceLog/UniversalDeviceInterfaceLog.model';
 import { initAvailableDevice } from './modules/AvailableDevice/AvailableDevice.model';
-import { initFinalizedDocument } from 'modules/FinalizedDocument/FinalizedDocument.model';
+import { initFinalizedDocument } from './modules/FinalizedDocument/FinalizedDocument.model';
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../.env"));
