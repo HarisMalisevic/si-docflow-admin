@@ -164,6 +164,7 @@ Table processing_rules {
   title varchar [not null]
   description varchar
   document_type_id integer [not null, ref: > document_types.id]
+  log_result boolean [not null, default: false]
   is_active boolean [not null, default: true]
   created_by integer [ref: > admin_users.id]
   updated_by integer [ref: > admin_users.id]
@@ -179,7 +180,6 @@ Table processing_rule_destinations {
   external_ftp_endpoint_id integer [ref: > external_ftp_endpoints.id]
   created_by integer [ref: > admin_users.id]
   updated_by integer [ref: > admin_users.id]
-  log_result boolean [not null, default: false]
   created_at timestamp
   updated_at timestamp
 }
