@@ -21,7 +21,7 @@ export function initFinalizedDocument(sequelize: Sequelize) {
                 primaryKey: true,
             },
             content: {
-                type: DataTypes.TEXT("long"),
+                type: DataTypes.JSONB,
                 allowNull: false,
             },
         },
