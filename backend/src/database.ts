@@ -23,6 +23,7 @@ import { initProcessingRequestsBillingLog } from './modules/ProcessingRequestBil
 import { initProcessingResultsTriplet } from './modules/ProcessingResultTriplet/ProcessingResultTriplet.model';
 import { initUniversalDeviceInterfaceLog } from './modules/UniversalDeviceInterfaceLog/UniversalDeviceInterfaceLog.model';
 import { initAvailableDevice } from './modules/AvailableDevice/AvailableDevice.model';
+import { initFinalizedDocument } from 'modules/FinalizedDocument/FinalizedDocument.model';
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 console.log("Loaded .env: " + path.resolve(__dirname, "../.env"));
@@ -68,6 +69,7 @@ DB.processing_requests_billing_logs = initProcessingRequestsBillingLog(sequelize
 DB.processing_results_triplets = initProcessingResultsTriplet(sequelize_obj);
 DB.universal_device_interface_logs = initUniversalDeviceInterfaceLog(sequelize_obj);
 DB.available_devices = initAvailableDevice(sequelize_obj);
+DB.finalized_documents = initFinalizedDocument(sequelize_obj);
 
 // Relacije
 DB.sso_providers.hasMany(DB.admin_users, {
@@ -220,15 +222,15 @@ DB.admin_users.hasMany(DB.processing_rule_destinations, {
 });
 
 DB.windows_app_instances.hasMany(DB.available_devices, {
-  foreignKey: "instance_id", 
-  as: "availableDevices",    
-  onDelete: "CASCADE",       
+  foreignKey: "instance_id",
+  as: "availableDevices",
+  onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
 
 DB.available_devices.belongsTo(DB.windows_app_instances, {
   foreignKey: "instance_id",
-  as: "instance", 
+  as: "instance",
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
