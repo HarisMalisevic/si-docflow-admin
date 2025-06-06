@@ -18,6 +18,18 @@ class FinalizedDocumentController {
             res.status(500).json({ message: "Internal server error" });
         }
     }
+
+    static async getAll(req: Request, res: Response): Promise<void> {
+        try {
+            const finalizedDocuments = await DB.finalized_documents.findAll({
+                order: [['id', 'DESC']]
+            });
+            res.status(200).json(finalizedDocuments);
+        } catch (error) {
+            console.error("Error fetching finalized documents:", error);
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
 }
 
 export default FinalizedDocumentController;

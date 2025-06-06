@@ -41,6 +41,30 @@ router.post(
     FinalizedDocumentController.create
 );
 
+/**
+ * @openapi
+ * /api/finalized-documents:
+ *   get:
+ *     summary: Get all finalized documents (newest first)
+ *     tags:
+ *       - FinalizedDocument
+ *     responses:
+ *       200:
+ *         description: List of finalized documents
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/FinalizedDocument'
+ *       500:
+ *         description: Internal server error
+ */
+router.get(
+    "/",
+    FinalizedDocumentController.getAll
+);
+
 export default router;
 
 /**
