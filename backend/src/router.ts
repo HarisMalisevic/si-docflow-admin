@@ -21,6 +21,7 @@ import aiProviderRoutes from "./modules/AIProvider/AIProvider.routes";
 import universalDeviceLogsRoutes from "./modules/UniversalDeviceInterfaceLog/UniversalDeviceInterfaceLog.routes";
 import ProcessingRequestsBillingLogRouter from "./modules/ProcessingRequestBillingLog/ProcessingRequestBillingLog.routes";
 import AvailableDeviceRoutes from "./modules/AvailableDevice/AvailableDevice.routes"
+import FinalizedDocumentRoutes from "./modules/FinalizedDocument/FinalizedDocument.routes";
 import path from "path";
 
 // Define the path to the frontend build folder
@@ -212,6 +213,8 @@ API_ROUTER.use("/api/processing-requests-billing-logs", ProcessingRequestsBillin
 API_ROUTER.use("/api/universal-device-logs", universalDeviceLogsRoutes);
 
 API_ROUTER.use("/api/available-device", AvailableDeviceRoutes);
+
+API_ROUTER.use("/api/finalized-documents", FinalizedDocumentRoutes);
 
 // Serve React frontend for any unknown routes - THIS MUST BE LAST IN THE FILE
 API_ROUTER.get("*", (req, res) => {
