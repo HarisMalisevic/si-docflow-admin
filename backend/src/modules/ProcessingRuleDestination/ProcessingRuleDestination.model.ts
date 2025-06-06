@@ -13,13 +13,14 @@ interface ProcessingRuleDestinationAttributes {
     external_ftp_endpoint_id?: number | null;
     created_by: number;
     updated_by?: number;
+    log_result: boolean;
 }
 
 // Define the creation attributes (optional fields for new instances)
 type ProcessingRuleDestinationCreationAttributes = Optional<ProcessingRuleDestinationAttributes, "id">;
 
 // Define the ProcessingRuleDestination model class
-class ProcessingRuleDestination extends Model<ProcessingRuleDestinationAttributes, ProcessingRuleDestinationCreationAttributes> 
+class ProcessingRuleDestination extends Model<ProcessingRuleDestinationAttributes, ProcessingRuleDestinationCreationAttributes>
     implements ProcessingRuleDestinationAttributes {
     public id!: number;
     public processing_rule_id!: number;
@@ -28,6 +29,7 @@ class ProcessingRuleDestination extends Model<ProcessingRuleDestinationAttribute
     public external_ftp_endpoint_id?: number | null;
     public created_by!: number;
     public updated_by?: number;
+    public log_result!: boolean; // Added attribute
 }
 
 export function initProcessingRuleDestination(sequelize: Sequelize) {
@@ -77,6 +79,11 @@ export function initProcessingRuleDestination(sequelize: Sequelize) {
             updated_by: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
+            },
+            log_result: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
         },
         {
