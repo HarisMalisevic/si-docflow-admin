@@ -2,7 +2,7 @@ import DB from "../../database";
 import { Request, Response } from "express";
 import DocumentLayout from "./DocumentLayout.model";
 import DocumentType from "../DocumentType/DocumentType.model";
-import LayoutImage from "modules/LayoutImage/LayoutImage";
+import LayoutImage from "modules/LayoutImage/LayoutImage.model";
 import path from "path";
 import fs from "fs/promises";
 

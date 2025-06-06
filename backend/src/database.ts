@@ -6,7 +6,7 @@ import { initAdminUser } from './modules/AdminUser/AdminUser.model';
 import { initSSOProvider } from './modules/SSOProvider/SSOProvider.model';
 import DocumentLayout, { initDocumentLayout } from './modules/DocumentLayout/DocumentLayout.model';
 import { initAccessRight } from './modules/AccessRight/AccessRight.model';
-import { initLayoutImage } from './modules/LayoutImage/LayoutImage';
+import { initLayoutImage } from './modules/LayoutImage/LayoutImage.model';
 import { initExternalAPIEndpoint } from './modules/ExternalAPIEndpoint/ExternalAPIEndpoint.model';
 import { initExternalFTPEndpoint } from './modules/ExternalFTPEndpoint/ExternalFTPEndpoint.model';
 import { initProcessingRule } from './modules/ProcessingRule/ProcessingRule.model';
