@@ -1,0 +1,219 @@
+Table admin_users {
+  id integer [pk, increment]
+  email text [not null]
+  password text
+  sso_provider integer [ref: > sso_providers.id]
+  sso_id text
+  access_token text
+  is_super_admin boolean [not null]
+}
+
+Table sso_providers {
+  id integer [pk, increment]
+  display_name text [not null]
+  api_name text [not null]
+  client_id text [not null]
+  client_secret text [not null]
+  callback_url text [not null]
+  authorization_url text
+  token_url text
+}
+
+Table access_rights {
+  id integer [pk, increment]
+  token text [unique, not null]
+  is_active boolean [not null]
+  name text [not null]
+  description text
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+}
+
+Table ai_providers {
+  id integer [pk, increment]
+  name varchar [not null, unique]
+}
+
+Table application_logs {
+  id integer [pk, increment]
+  level varchar [not null] // ENUM: Information, Warning, Error, Critical, Verbose
+  source varchar [not null]
+  event_id varchar [not null]
+  task_category varchar [not null]
+  app_instance_id integer [not null, ref: > windows_app_instances.id]
+}
+
+Table windows_app_instances {
+  id integer [pk, increment]
+  title varchar [not null]
+  location varchar [not null]
+  machine_id varchar [not null]
+  operational_mode varchar [not null] // ENUM: headless, standalone
+  polling_frequency integer
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+}
+
+Table available_devices {
+  id integer [pk, increment]
+  instance_id integer [not null, ref: > windows_app_instances.id]
+  device_name varchar [not null]
+  is_chosen boolean [not null, default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table client_logs {
+  id integer [pk, increment]
+  instance_id integer [not null, ref: > windows_app_instances.id]
+  action varchar [not null] // ENUM: instance_started, processing_req_sent, processing_result_received, command_received, instance_stopped, devices_delivered
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table document_layouts {
+  id integer [pk, increment]
+  name text [not null]
+  fields text [not null]
+  image_id integer [not null, unique, ref: > layout_images.id]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+}
+
+Table layout_images {
+  id integer [pk, increment]
+  image blob [not null]
+  width double [not null]
+  height double [not null]
+}
+
+Table document_types {
+  id integer [pk, increment]
+  name text [not null]
+  description text
+  document_layout_id integer [unique, ref: > document_layouts.id]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+}
+
+Table external_api_endpoints {
+  id integer [pk, increment]
+  title text [not null]
+  description text
+  is_active boolean [not null, default: true]
+  method text [not null]
+  base_url text [not null]
+  route text [not null]
+  params text [not null]
+  headers text [not null]
+  timeout integer [not null]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+}
+
+Table external_ftp_endpoints {
+  id integer [pk, increment]
+  title text [not null]
+  is_active boolean [not null, default: true]
+  description text
+  host text [not null]
+  port integer [not null, default: 21]
+  username text [not null, default: 'anonymous']
+  password text [not null, default: 'guest']
+  secure boolean [not null, default: false]
+  path text [not null]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+}
+
+Table finalized_documents {
+  id integer [pk, increment]
+  content jsonb [not null]
+}
+
+Table local_storage_folders {
+  id integer [pk, increment]
+  title varchar [not null]
+  description varchar
+  path varchar [not null]
+  is_active boolean [not null, default: true]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+
+Table processing_requests_billing_logs {
+  id integer [pk, increment]
+  ai_provider_id integer [not null, ref: > ai_providers.id]
+  document_type_id integer [not null, ref: > document_types.id]
+  price double [not null]
+}
+
+Table processing_results_triplets {
+  id integer [pk, increment]
+  image blob [not null]
+  ai_data varchar [not null]
+  user_data varchar [not null]
+  ai_provider_id integer [not null, ref: > ai_providers.id]
+}
+
+Table processing_rules {
+  id integer [pk, increment]
+  title varchar [not null]
+  description varchar
+  document_type_id integer [not null, ref: > document_types.id]
+  log_result boolean [not null, default: false]
+  is_active boolean [not null, default: true]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table processing_rule_destinations {
+  id integer [pk, increment]
+  processing_rule_id integer [not null, ref: > processing_rules.id]
+  local_storage_folder_id integer [ref: > local_storage_folders.id]
+  external_api_endpoint_id integer [ref: > external_api_endpoints.id]
+  external_ftp_endpoint_id integer [ref: > external_ftp_endpoints.id]
+  created_by integer [ref: > admin_users.id]
+  updated_by integer [ref: > admin_users.id]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table remote_initiators {
+  id integer [pk, increment]
+  initiator_key varchar [not null, unique]
+}
+
+Table remote_transactions {
+  id integer [pk, increment]
+  initiator_id integer [not null, ref: > remote_initiators.id]
+  target_instance_id integer [not null, ref: > windows_app_instances.id]
+  document_type_id integer [not null, ref: > document_types.id]
+  file_name varchar [not null]
+  status varchar [not null] // ENUM: started, forwarded, finished, failed
+  socket_id varchar [not null]
+}
+
+Table system_logs {
+  id integer [pk, increment]
+  level varchar [not null] // ENUM: Information, Warning, Error, Critical, Verbose
+  source varchar [not null]
+  event_id varchar [not null]
+  task_category varchar [not null]
+  app_instance_id integer [not null, ref: > windows_app_instances.id]
+}
+
+Table universal_device_interface_logs {
+  id integer [pk, increment]
+  level varchar [not null] // ENUM: Information, Warning, Error, Critical, Verbose
+  source varchar [not null]
+  event_id varchar [not null]
+  task_category varchar [not null]
+  message varchar [not null]
+  app_instance_id integer [not null, ref: > windows_app_instances.id]
+}

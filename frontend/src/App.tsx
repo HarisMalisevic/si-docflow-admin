@@ -23,6 +23,7 @@ import WindowsAppInstanceManager from "./components/WindowsAppInstanceManager";
 import CommandInitiatorUI from "./components/CommandInitiatorUI";
 import LocalStorageFolder from "./components/LocalStorageFolder";
 import RegistrationForm from "./components/RegistrationForm";
+import FinalizedDocumentsViewer from "./components/FinalizedDocumentsViewer";
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
                   <Route path="/app-instance-manager" element={<WindowsAppInstanceManager />} />
                   <Route path="/remote-command/initiate" element={<CommandInitiatorUI />} />
                   <Route path="/local-storage-folder" element={<LocalStorageFolder />} />
+                  <Route path="/finalized-documents" element={<FinalizedDocumentsViewer />} />
                   {/*redirect unknown routes*/}
                   <Route path="*" element={<HomeRedirect />} />
                 </Routes>

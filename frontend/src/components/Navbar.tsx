@@ -2,8 +2,8 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router";
-import { useEffect, useState } from "react"; 
-import Dropdown from "react-bootstrap/Dropdown"; 
+import { useEffect, useState } from "react";
+import Dropdown from "react-bootstrap/Dropdown";
 import HoverNavDropdown from "./HoverNavDropdown";
 
 var NAV_BAR_LINKS = [
@@ -13,6 +13,7 @@ var NAV_BAR_LINKS = [
     children: [
       { to: "/document-types", label: "Types" },
       { to: "/document-layouts", label: "Layouts" },
+      { to: "/finalized-documents", label: "Finalized Documents" },
     ],
   },
   {
@@ -117,12 +118,12 @@ function AppNavbar() {
               {NAV_BAR_LINKS.map((link, index) => {
                 if (link.children) {
                   return (
-                    <HoverNavDropdown 
+                    <HoverNavDropdown
                       title={link.label}
-                      items={link.children} 
+                      items={link.children}
                       id={`nav-dropdown-${index}`}
                     />
-                  );          
+                  );
                 }
                 else {
                   return (

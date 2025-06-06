@@ -19,7 +19,7 @@ interface ProcessingRuleDestinationAttributes {
 type ProcessingRuleDestinationCreationAttributes = Optional<ProcessingRuleDestinationAttributes, "id">;
 
 // Define the ProcessingRuleDestination model class
-class ProcessingRuleDestination extends Model<ProcessingRuleDestinationAttributes, ProcessingRuleDestinationCreationAttributes> 
+class ProcessingRuleDestination extends Model<ProcessingRuleDestinationAttributes, ProcessingRuleDestinationCreationAttributes>
     implements ProcessingRuleDestinationAttributes {
     public id!: number;
     public processing_rule_id!: number;
@@ -77,7 +77,7 @@ export function initProcessingRuleDestination(sequelize: Sequelize) {
             updated_by: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-            },
+            }
         },
         {
             sequelize,

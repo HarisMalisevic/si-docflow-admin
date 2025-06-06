@@ -52,9 +52,13 @@ async function db_sync() {
 
     console.log(`Database synchronized! (force: ${force}, alter: ${!force})`);
 
-    fill_sso_providers().then(function () {
+    const googleProvider = await DB.sso_providers.findOne({ where: { api_name: 'google' } });
+    if (!googleProvider) {
+        await fill_sso_providers();
         console.log("SSO Provider seeding done!");
-    });
+    } else {
+        console.log("Google SSO provider already exists. Skipping seeding.");
+    }
 }
 
 console.log("DO NOT IMPORT THIS FILE IN PRODUCTION! migrate.js/.ts");

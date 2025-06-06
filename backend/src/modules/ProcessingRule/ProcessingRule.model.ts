@@ -10,6 +10,7 @@ interface ProcessingRuleAttributes {
     is_active: boolean;
     created_by: number;
     updated_by?: number; // Assuming this field is optional
+    log_result: boolean; // Assuming this field is always present
 }
 
 // Define the creation attributes (optional fields for new instances)
@@ -24,6 +25,7 @@ class ProcessingRule extends Model<ProcessingRuleAttributes, ProcessingRuleCreat
     public is_active!: boolean;
     public created_by!: number;
     public updated_by?: number; // Assuming this field is optional
+    public log_result!: boolean; // Assuming this field is always present
 }
 
 export function initProcessingRule(sequelize: Sequelize) {
@@ -62,6 +64,11 @@ export function initProcessingRule(sequelize: Sequelize) {
             updated_by: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
+            },
+            log_result: {
+                type: DataTypes.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
         },
         {
